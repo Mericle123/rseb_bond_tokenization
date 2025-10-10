@@ -24,7 +24,7 @@ export default function UserNavbar() {
             transition={{ type: "spring", stiffness: 300, damping: 15 }}
           >
             <Image
-              src="/RSEB.png"
+              src="/logo.png"
               alt="RSEB Logo"
               width={40}
               height={40}
