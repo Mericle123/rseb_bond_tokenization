@@ -1,0 +1,76 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #3b4a9a;
+  /* Add your background pattern image here */
+  background-image: url('/background-pattern.png');
+  background-repeat: repeat;
+  font-family: sans-serif;
+  padding: 20px;
+}
+
+.loginBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 50px 60px; /* Increased padding to make the card larger */
+  width: 100%;
+  max-width: 480px; /* Set a max-width for the card */
+  
+  /* Glassmorphism Effect */
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo {
+  margin-bottom: 25px;
+  background-color: #ffffff;
+  border-radius: 0%;
+  padding: 10px; /* Padding inside the white circle */
+}
+
+.title {
+  font-size: 1.4rem; /* Slightly larger font */
+  font-weight: 500;
+  color: #ffffff;
+  margin-bottom: 30px; /* Increased margin */
+}
+
+.loginButton {
+  background-color: #1e2a3a;
+  color: #ffffff;
+  border: none;
+  padding: 15px 30px;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 25px;
+  transition: background-color 0.3s ease;
+  width: 100%;
+  max-width: 300px;
+  /* Add these two properties to style the Link component like a button */
+  text-align: center;
+  text-decoration: none;
+}
+
+.loginButton:hover {
+  background-color: #2a3b52;
+}
+
+.adminLoginLink {
+  color: #d1d1d1;
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.adminLoginLink:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,114 @@
+/* [project]/app/admin/login/page.module.css [app-client] (css) */
+.page-module__jhZ8IG__container {
+  background-color: #3b4a9a;
+  background-image: url("/background-pattern.png");
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  font-family: sans-serif;
+  display: flex;
+}
+
+.page-module__jhZ8IG__loginBox {
+  text-align: center;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 450px;
+  display: flex;
+}
+
+.page-module__jhZ8IG__logo {
+  background-color: #fff;
+  border-radius: 0%;
+  margin-bottom: 25px;
+  padding: 10px;
+}
+
+.page-module__jhZ8IG__title {
+  color: #fff;
+  margin-bottom: 30px;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.page-module__jhZ8IG__form {
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  margin-bottom: 15px;
+  display: flex;
+}
+
+.page-module__jhZ8IG__input {
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width: 100%;
+  padding: 15px 20px;
+  font-size: 1rem;
+}
+
+.page-module__jhZ8IG__input::placeholder {
+  color: #888;
+}
+
+.page-module__jhZ8IG__passwordWrapper {
+  width: 100%;
+  position: relative;
+}
+
+.page-module__jhZ8IG__passwordWrapper .page-module__jhZ8IG__input {
+  padding-right: 50px;
+}
+
+.page-module__jhZ8IG__eyeIcon {
+  cursor: pointer;
+  color: #666;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+}
+
+.page-module__jhZ8IG__loginButton {
+  color: #fff;
+  cursor: pointer;
+  background-color: #1e2a3a;
+  border: none;
+  border-radius: 8px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 15px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  transition: background-color .3s;
+}
+
+.page-module__jhZ8IG__loginButton:hover {
+  background-color: #2a3b52;
+}
+
+.page-module__jhZ8IG__links {
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 15px;
+  display: flex;
+}
+
+.page-module__jhZ8IG__link {
+  color: #d1d1d1;
+  font-size: .95rem;
+  text-decoration: none;
+}
+
+.page-module__jhZ8IG__link:hover {
+  text-decoration: underline;
+}
+
+/*# sourceMappingURL=app_admin_login_page_module_edb7d94b.css.map*/

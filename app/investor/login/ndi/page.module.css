@@ -1,0 +1,66 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #3b4a9a;
+  font-family: sans-serif;
+  /* You can add your background pattern here if you have it */
+  background-image: url('/background-pattern.png');
+  background-repeat: repeat;
+  padding: 20px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 40px 50px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+.logo {
+  margin-bottom: 20px;
+  /* The logo in the UI doesn't have a white background */
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.ndiText {
+  color: #4caf50; /* A green color for the 'NDI' text */
+  font-weight: 700;
+}
+
+.qrCodeWrapper {
+  padding: 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.scanText {
+  color: #555;
+  font-size: 1rem;
+  margin-bottom: 25px;
+}
+
+.backLink {
+  color: #666;
+  font-size: 0.95rem;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}

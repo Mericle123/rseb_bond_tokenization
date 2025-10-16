@@ -1,0 +1,129 @@
+/* [project]/app/admin/bonds/[bondId]/details/page.module.css [app-client] (css) */
+.page-module__SYLGGW__container {
+  padding: 10px;
+}
+
+.page-module__SYLGGW__header {
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+  display: flex;
+}
+
+.page-module__SYLGGW__header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.page-module__SYLGGW__backButton {
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+}
+
+.page-module__SYLGGW__chartSection {
+  background: #fff;
+  border-radius: 20px;
+  margin-bottom: 30px;
+  padding: 30px;
+}
+
+.page-module__SYLGGW__chartHeader {
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  display: flex;
+}
+
+.page-module__SYLGGW__chartHeader h2 {
+  font-size: 1.5rem;
+}
+
+.page-module__SYLGGW__filters {
+  gap: 15px;
+  display: flex;
+}
+
+.page-module__SYLGGW__selectWrapper {
+  background-color: #f8f7ff;
+  border: 1px solid #eef2f9;
+  border-radius: 10px;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  display: flex;
+}
+
+.page-module__SYLGGW__selectWrapper select {
+  background: none;
+  border: none;
+  outline: none;
+  font-size: .95rem;
+  font-weight: 500;
+}
+
+.page-module__SYLGGW__chartContainer {
+  height: 350px;
+}
+
+.page-module__SYLGGW__activitiesSection {
+  background: #fff;
+  border-radius: 20px;
+  padding: 30px;
+}
+
+.page-module__SYLGGW__activitiesHeader {
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  display: flex;
+}
+
+.page-module__SYLGGW__activitiesHeader h2 {
+  font-size: 1.5rem;
+}
+
+.page-module__SYLGGW__toggleButtons {
+  background-color: #f8f7ff;
+  border-radius: 10px;
+  padding: 5px;
+  display: flex;
+}
+
+.page-module__SYLGGW__toggleButtons button {
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-weight: 500;
+}
+
+.page-module__SYLGGW__toggleButtons .page-module__SYLGGW__active {
+  color: #fff;
+  background-color: #5a4bda;
+}
+
+.page-module__SYLGGW__table {
+  font-size: .95rem;
+}
+
+.page-module__SYLGGW__tableHeader, .page-module__SYLGGW__tableRow {
+  border-bottom: 1px solid #eef2f9;
+  grid-template-columns: 1fr 1fr 1fr 1.5fr;
+  gap: 15px;
+  padding: 15px;
+  display: grid;
+}
+
+.page-module__SYLGGW__tableHeader {
+  color: #555;
+  font-weight: 600;
+}
+
+.page-module__SYLGGW__tableRow {
+  color: #333;
+}
+
+/*# sourceMappingURL=app_admin_bonds_%5BbondId%5D_details_page_module_1f9cb807.css.map*/

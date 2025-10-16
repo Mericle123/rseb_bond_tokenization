@@ -1,0 +1,3 @@
+{
+  "/admin/bonds/[bondId]/delete/page": "app/admin/bonds/[bondId]/delete/page.js"
+}

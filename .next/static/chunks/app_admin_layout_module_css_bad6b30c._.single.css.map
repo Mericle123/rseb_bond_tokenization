@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/app/admin/layout.module.css"],"sourcesContent":[".layoutContainer {\r\n    display: flex;\r\n    min-height: 100vh;\r\n    /* Updated background for a softer look */\r\n    background-color: #f8f9fe;\r\n}\r\n\r\n.mainContent {\r\n    flex-grow: 1;\r\n    padding: 40px;\r\n}"],"names":[],"mappings":"AAAA;;;;;;AAOA"}}]
+}
