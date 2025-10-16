@@ -1,7 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import UserNavbar from "@/Components/UserNavbar"; // or "../../Components/UserNavbar"
+import UserNavbar from "@/Components/UserNavbar"; 
+import Footer from "../../Components/UserFooter";
+
 
 const fadeIn = {
   initial: { opacity: 0, y: 28 },
@@ -422,89 +424,7 @@ export default function UserLanding() {
           </div>
         </motion.section>
 
-        {/* ===== Footer (exact 3-column layout) ===== */}
-        <footer className="w-full mt-16 sm:mt-20">
-          {/* Top Purple Section — full-bleed */}
-          <div className="bg-[#2F2A72] w-screen relative left-1/2 right-1/2 -mx-[50vw]">
-            <motion.div
-              {...fadeIn}
-              viewport={{ once: true, amount: 0.15 }}
-              className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-9"
-            >
-              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 lg:gap-10">
-                {/* LEFT — Logo + Text */}
-                <motion.div {...cardHover} className="flex items-start sm:items-center gap-4 sm:gap-5">
-                  <div className="h-[84px] w-[84px] sm:h-[96px] sm:w-[96px] rounded-full bg-white p-3 flex items-center justify-center shadow">
-                    <img src="/RSEB.png" alt="RSEB" className="h-full w-full object-contain" />
-                  </div>
-                  <div className="text-white leading-[1.1] pt-0.5">
-                    <p className="text-[1.4rem] sm:text-[1.8rem] font-semibold">Claim</p>
-                    <p className="text-[1.4rem] sm:text-[1.8rem] font-semibold">Your</p>
-                    <p className="text-[1.4rem] sm:text-[1.8rem] font-semibold">Unclaimed</p>
-                    <p className="text-[1.4rem] sm:text-[1.8rem] font-semibold">Funds</p>
-                  </div>
-                </motion.div>
-
-                {/* MIDDLE — Nav links */}
-                <nav className="text-white text-[0.95rem]">
-                  <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 justify-start">
-                    <li><a href="#" className="hover:text-white/80">Home</a></li>
-                    <li><a href="#" className="hover:text-white/80">About RSEB</a></li>
-                    <li><a href="#" className="hover:text-white/80">Terms of Service</a></li>
-                    <li><a href="#" className="hover:text-white/80">Privacy Policy</a></li>
-                  </ul>
-                </nav>
-
-                {/* RIGHT — Contact Info + Feedback */}
-                <div className="text-white/95 w-full sm:w-auto">
-                  <div className="space-y-2.5">
-                    <div className="text-sm sm:text-base">
-                      <span className="font-semibold text-white">Call us :</span>
-                      <span className="ml-2">+975 17495130</span>
-                    </div>
-                    <div className="text-sm sm:text-base">
-                      <span className="font-semibold text-white">Email :</span>
-                      <span className="ml-2">Note@gmail.com</span>
-                    </div>
-                  </div>
-
-                  <form className="mt-3 sm:mt-4 flex items-center">
-                    <input
-                      type="text"
-                      placeholder="Write your feedback"
-                      className="h-10 w-full sm:w-[260px] rounded-md bg-white px-3.5 sm:px-4 text-[#111] text-sm placeholder:text-[#666] focus:outline-none"
-                      aria-label="Feedback"
-                    />
-                    <button
-                      type="submit"
-                      className="ml-2 h-10 w-10 flex items-center justify-center rounded-md bg-white hover:bg-white/90 text-[#111]"
-                      aria-label="Send feedback"
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path
-                          d="M4 12h14M13 5l7 7-7 7"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
-                  </form>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Bottom White Strip */}
-          <div className="bg-white">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
-              <p className="text-center text-[0.85rem] sm:text-[0.9rem] text-neutral-600">
-                ©2025 Royal Securities Exchange of Bhutan. All rights reserved.
-              </p>
-            </div>
-          </div>
-        </footer>
+<Footer/>
       </main>
     </>
   );

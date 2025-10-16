@@ -1,5 +1,8 @@
+
 "use client";
 import Image from "next/image";
+import Navbar from "@/Components/UserNavbar";
+import Footer from "../../../Components/UserFooter";
 
 export default function BondsSection() {
   const bonds = [
@@ -20,6 +23,7 @@ export default function BondsSection() {
 
   return (
     <main className="bg-white w-full">
+      <Navbar/>
       {/* BONDS SECTION */}
       <section className="w-full bg-white py-8 sm:py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -232,6 +236,8 @@ export default function BondsSection() {
           </div>
         </div>
       </section>
+      <Footer/>
+      
     </main>
   );
 }
