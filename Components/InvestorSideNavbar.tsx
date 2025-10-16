@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowLeft } from "lucide-react";
+import { logout } from "@/server/action/action";
+import { useUser } from "@/context/userContext";
 
 /* ------------------------------ Helpers ------------------------------ */
 
@@ -18,13 +20,14 @@ function useMounted() {
 /* ----------------------------- Main UI ------------------------------- */
 
 export default function InvestorSideNavbar() {
+  const currentUser = useUser()
   const pathname = usePathname();
   const [accountOpen, setAccountOpen] = useState(false);
 
   const user = {
-    name: "Ngawang Gyeltshen",
-    id: "10709004662",
-    walletAddress: "0i4u1290nfkjd809214190poij",
+    name: "dummy",
+    id: currentUser.national_id,
+    walletAddress: currentUser.wallet_address,
   };
 
   // Match your folder casing exactly
@@ -156,6 +159,8 @@ type AccountPanelProps = {
   onLogout: () => void;
 };
 
+
+
 function AccountPanel({
   open,
   onClose,
@@ -247,7 +252,7 @@ function AccountPanel({
               </div>
 
               <button
-                onClick={onLogout}
+                onClick={logout}
                 className="mt-8 w-full rounded-full bg-[#5B50D9] text-white py-3 font-semibold hover:opacity-95 transition"
               >
                 Logout

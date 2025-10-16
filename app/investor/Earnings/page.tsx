@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
-import { Copy, Wallet, FileText } from "lucide-react";
+import { Copy, Wallet, FileText, Currency } from "lucide-react";
 import { motion } from "framer-motion";
 
 /* ========================= Types ========================= */
@@ -91,7 +91,7 @@ function WalletStrip({ walletAddress }: { walletAddress: string }) {
 
 /* ========================= Page ========================= */
 
-export default function EarningsPage() {
+export default function EarningsPage(currentUser) {
   const walletAddress = "0i4u1290nfkjd809214190poij"; // mock wallet
 
   const [query, setQuery] = useState("");
@@ -105,7 +105,7 @@ export default function EarningsPage() {
 
   return (
     <div className="flex min-h-screen bg-[#F7F8FB]">
-      <InvestorSideNavbar />
+      <InvestorSideNavbar currentUser={currentUser}/>
 
       <main className="flex-1 min-w-0 p-4 sm:p-6">
         {/* Wallet strip */}

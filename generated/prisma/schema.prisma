@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  user
+}
+
+enum Status {
+  open
+  closed
+}
+
+enum Type {
+  subscription
+  transfer
+  maturity
+}
+
+model Users {
+  id              String   @id @default(cuid())
+  national_id     BigInt   @unique
+  wallet_address  String   @unique
+  salt            String
+  email           String   @unique
+  password        String?
+  role            Role
+  hashed_mnemonic String?
+  created_at      DateTime @default(now())
+}
+
+model Bonds {
+  id             String   @id @default(cuid())
+  bond_object_id String
+  name           String
+  face_value     BigInt
+  price          BigInt
+  maturity       DateTime
+  status         Status
+  interest_rate  String
+  created_at     DateTime @default(now())
+}
+
+model Events {
+  id         String   @id @default(cuid())
+  type       Type
+  bond_id    String
+  user_id    String
+  details    String
+  tx_hash    String
+  created_at DateTime @default(now())
+}
+
+model Subscriptions {
+  id               String   @id @default(cuid())
+  bond_id          String
+  user_id          String
+  committed_amount BigInt
+  tx_hash          String
+  created_at       DateTime @default(now())
+}
+
+model Transactions {
+  id         String   @id @default(cuid())
+  bond_id    String
+  user_from  String
+  user_to    String
+  tx_hash    String
+  created_at DateTime @default(now())
+}
