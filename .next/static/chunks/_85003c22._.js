@@ -792,7 +792,7 @@ _c = Footer;
                         "aria-label": title,
                         tabIndex: -1,
                         ref: dialogRef,
-                        className: " w-full h-[88vh] sm:h-auto sm:w-[700px] rounded-t-2xl sm:rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 flex flex-col ",
+                        className: "   w-full h-[88vh] sm:h-auto sm:w-[700px]   rounded-t-2xl sm:rounded-2xl   bg-white shadow-2xl ring-1 ring-black/10   flex flex-col   ",
                         initial: {
                             y: 32,
                             opacity: 0,

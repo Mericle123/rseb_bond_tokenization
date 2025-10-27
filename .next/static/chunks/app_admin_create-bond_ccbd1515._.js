@@ -704,7 +704,7 @@ const TokenizationBondPage = ()=>{
         columnNumber: 5
     }, ("TURBOPACK compile-time value", void 0));
 };
-_s(TokenizationBondPage, "GLqBxwGxVKEBsdsTduEq12BS6mg=");
+_s(TokenizationBondPage, "MUNHGkOyXsrnELwy/pFOylramls=");
 _c = TokenizationBondPage;
 const __TURBOPACK__default__export__ = TokenizationBondPage;
 var _c;
