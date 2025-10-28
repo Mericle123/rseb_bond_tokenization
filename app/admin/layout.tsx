@@ -1,5 +1,4 @@
-import AdminSidebar from '@/Components/AdminSidebar';
-import styles from './layout.module.css';
+import AdminSidebar from "@/Components/AdminSidebar";
 
 export default function AdminLayout({
     children,
@@ -7,9 +6,12 @@ export default function AdminLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className={styles.layoutContainer}>
+        // This div uses Tailwind classes for layout
+        <div className="flex bg-gray-50 min-h-screen">
             <AdminSidebar />
-            <main className={styles.mainContent}>{children}</main>
+            <main className="flex-1 p-2 sm:p-4">
+                {children}
+            </main>
         </div>
     );
 }

@@ -36,46 +36,10 @@ type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
 }
 
 
-// Validate ../../app/admin/account/change-password/page.tsx
-{
-  type __IsExpected<Specific extends AppPageConfig<"/admin/account/change-password">> = Specific
-  const handler = {} as typeof import("../../app/admin/account/change-password/page.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../app/admin/account/delete-account/page.tsx
-{
-  type __IsExpected<Specific extends AppPageConfig<"/admin/account/delete-account">> = Specific
-  const handler = {} as typeof import("../../app/admin/account/delete-account/page.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../app/admin/account/page.tsx
-{
-  type __IsExpected<Specific extends AppPageConfig<"/admin/account">> = Specific
-  const handler = {} as typeof import("../../app/admin/account/page.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
 // Validate ../../app/admin/assets/page.tsx
 {
   type __IsExpected<Specific extends AppPageConfig<"/admin/assets">> = Specific
   const handler = {} as typeof import("../../app/admin/assets/page.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../app/admin/bonds/[bondId]/delete/page.tsx
-{
-  type __IsExpected<Specific extends AppPageConfig<"/admin/bonds/[bondId]/delete">> = Specific
-  const handler = {} as typeof import("../../app/admin/bonds/[bondId]/delete/page.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check
