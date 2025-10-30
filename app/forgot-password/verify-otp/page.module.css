@@ -1,0 +1,93 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #3b4a9a;
+  background-image: url('/background-pattern.png');
+  font-family: sans-serif;
+  padding: 20px;
+}
+
+.card {
+  background-color: #ffffff;
+  padding: 40px 50px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 1rem;
+  margin-bottom: 30px;
+}
+
+.otpContainer {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.otpInput {
+  width: 50px;
+  height: 60px;
+  text-align: center;
+  font-size: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  color: #333;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.otpInput:focus {
+  border-color: #3b4a9a;
+  box-shadow: 0 0 0 3px rgba(59, 74, 154, 0.2);
+}
+
+.verifyButton {
+  background-color: #1e2a3a;
+  color: #ffffff;
+  border: none;
+  padding: 15px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
+  /* Add these for the Link component */
+  text-decoration: none;
+  text-align: center;
+}
+
+.verifyButton:hover {
+  background-color: #2a3b52;
+}
+
+.resendText {
+  margin-top: 20px;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.resendLink {
+  background: none;
+  border: none;
+  color: #3b4a9a;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}

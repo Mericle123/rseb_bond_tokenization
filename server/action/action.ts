@@ -15,6 +15,7 @@ import { walletGeneration } from "../cryptography/keypair";
 export async function registerUser(formData: FormData) {
   const national_id = Number(formData.get("national_id"));
   const email = formData.get("email") as string;
+  const name = formData.get("name") as string
   const password = formData.get("password") as string;
   const role = formData.get("role") as Role;
   const salt = generateSalt();
@@ -28,14 +29,14 @@ export async function registerUser(formData: FormData) {
 
   const walletGenerate = await walletGeneration()
   const wallet_address = walletGenerate.suiAddress
-  console.log("walletAddress: ",wallet_address)
   const hashed_mnemonic = walletGenerate.encryptedMnemonic
-  console.log("Mnemonic: ", hashed_mnemonic)
+
 
   try{
   const user = await db.users.create({
     data: {
       national_id,
+      name,
       wallet_address, 
       email,
       password: hashedPassword,

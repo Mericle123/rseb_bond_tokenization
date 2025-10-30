@@ -32,6 +32,10 @@ export default function RegisterPage() {
         <label className="block mb-2 text-gray-700">National ID</label>
         <input type="number" name="national_id" className="w-full p-2 border rounded-lg mb-4" required />
 
+        <label className="block mb-2 text-gray-700">Name</label>
+        <input type="text" name="name" className="w-full p-2 border rounded-lg mb-4" required />
+
+
         <label className="block mb-2 text-gray-700">Email</label>
         <input type="email" name="email" className="w-full p-2 border rounded-lg mb-4" required />
 

@@ -20,12 +20,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 6.17.1
- * Query Engine version: 272a37d34178c2894197e17273bf937f25acdeac
+ * Prisma Client JS version: 6.18.0
+ * Query Engine version: 34b5a692b7bd79939a9a2c3ef97d816e749cda2f
  */
 Prisma.prismaVersion = {
-  client: "6.17.1",
-  engine: "272a37d34178c2894197e17273bf937f25acdeac"
+  client: "6.18.0",
+  engine: "34b5a692b7bd79939a9a2c3ef97d816e749cda2f"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -122,6 +122,7 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 
 exports.Prisma.UsersScalarFieldEnum = {
   id: 'id',
+  name: 'name',
   national_id: 'national_id',
   wallet_address: 'wallet_address',
   salt: 'salt',
@@ -135,13 +136,21 @@ exports.Prisma.UsersScalarFieldEnum = {
 exports.Prisma.BondsScalarFieldEnum = {
   id: 'id',
   bond_object_id: 'bond_object_id',
-  name: 'name',
+  bond_name: 'bond_name',
+  bond_type: 'bond_type',
+  bond_symbol: 'bond_symbol',
+  organization_name: 'organization_name',
   face_value: 'face_value',
-  price: 'price',
+  tl_unit_offered: 'tl_unit_offered',
+  tl_unit_subscribed: 'tl_unit_subscribed',
   maturity: 'maturity',
   status: 'status',
   interest_rate: 'interest_rate',
-  created_at: 'created_at'
+  purpose: 'purpose',
+  market: 'market',
+  created_at: 'created_at',
+  subscription_period: 'subscription_period',
+  subscription_end_date: 'subscription_end_date'
 };
 
 exports.Prisma.EventsScalarFieldEnum = {
@@ -158,8 +167,10 @@ exports.Prisma.SubscriptionsScalarFieldEnum = {
   id: 'id',
   bond_id: 'bond_id',
   user_id: 'user_id',
+  wallet_address: 'wallet_address',
   committed_amount: 'committed_amount',
   tx_hash: 'tx_hash',
+  subscription_amt: 'subscription_amt',
   created_at: 'created_at'
 };
 
@@ -191,9 +202,22 @@ exports.Role = exports.$Enums.Role = {
   user: 'user'
 };
 
+exports.BondType = exports.$Enums.BondType = {
+  government_Bond: 'government_Bond',
+  corporate_Bond: 'corporate_Bond',
+  green_Bond: 'green_Bond',
+  development_Bond: 'development_Bond',
+  domestic_Bond: 'domestic_Bond'
+};
+
 exports.Status = exports.$Enums.Status = {
   open: 'open',
   closed: 'closed'
+};
+
+exports.Market = exports.$Enums.Market = {
+  current: 'current',
+  resale: 'resale'
 };
 
 exports.Type = exports.$Enums.Type = {

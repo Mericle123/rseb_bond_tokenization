@@ -62,7 +62,7 @@ export default function UserNavbar() {
 
             {/* Login */}
             <Link
-              href="/login"
+              href="/auth/login"
               className="ml-2 rounded-full border border-[#6C4FE0]/50 px-4 py-2 text-[#2F2A7B] font-medium hover:bg-[#6C4FE0] hover:text-white transition-colors duration-200 shadow-sm"
             >
               Login
@@ -134,7 +134,7 @@ export default function UserNavbar() {
 
             <div className="px-4 pb-4">
               <Link
-                href="/login"
+                href="/auth/login"
                 onClick={() => setOpen(false)}
                 className="block w-full text-center rounded-full border border-[#6C4FE0]/60 px-4 py-2.5 text-[#2F2A7B] font-semibold hover:bg-[#6C4FE0] hover:text-white transition-colors duration-200 shadow-sm"
               >

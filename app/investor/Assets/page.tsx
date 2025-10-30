@@ -5,6 +5,9 @@ import Image from "next/image";
 import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
 import { Copy, Wallet } from "lucide-react";
 import { motion } from "framer-motion";
+import { getCurrentUser } from "@/server/action/currentUser";
+import { useCurrentUser, UserContext } from "@/context/UserContext";
+
 
 // ========================= Types =========================
 
@@ -107,7 +110,9 @@ function WalletSection({ walletAddress, balance = 0 }: { walletAddress: string; 
 // ========================= Main =========================
 
 export default function AssetsPage() {
-  const walletAddress = "0i4u1290nfkjd809214190poij"; // mock wallet
+  const currentUser = useCurrentUser();
+
+  const walletAddress = currentUser.wallet_address; // mock wallet
 
   const [query, setQuery] = useState("");
   const rows = useMemo(() => INITIAL_ROWS, []);

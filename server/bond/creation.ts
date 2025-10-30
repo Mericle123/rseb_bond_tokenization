@@ -1,29 +1,51 @@
-import { Status } from "@/generated/prisma";
-import { db } from "../db";
+"use server"
+
+import { BondType, Status } from "@/generated/prisma";
+import { Param } from "@/generated/prisma/runtime/library";
+import { db } from "@/server/db";
 import { success } from "zod";
+import { id } from "zod/v4/locales";
 
 export async function bondCreation(formData: FormData) {
-    const bond_object_id = formData.get("bond_object_id") as string
-    const name = formData.get("name") as string
+    const bond_name = formData.get("bondName") as string
     const face_value = formData.get("face_value") as string
-    const price = formData.get("price") as string
-    const maturity = formData.get("maturity") as string
-    const status = formData.get("status") as Status
+    const maturityStr = formData.get("maturity") as string
     const interest_rate = formData.get("interest_rate") as string
+    const bond_type = formData.get("bond_type") as BondType
+    const bond_symbol = formData.get("bondSymbol2")  as string
+    const organization_name  = formData.get("org_name")as string
+    const purpose = formData.get("purpose")  as string
+    const tl_unit = formData.get("totalUnitOffered") as string
 
+    const sub_period = formData.get("subscription_period") as string
+    const subscription_period = Number(sub_period)
+
+    const maturity =  new  Date(maturityStr)
+    
+    const tl_unit_offered = Number(tl_unit)
     const face_v = Number(face_value)
-    const price_numb = Number(price)
-
+    const bond_object_id = "object123"
     try {
+        const now = new Date()
+        const endDate = new Date(now.getTime() + subscription_period * 24 * 60 * 60 * 1000);
+
         const bond = await db.bonds.create({
             data: {
                 bond_object_id,
-                name,
+                bond_type,
+                bond_symbol,
+                organization_name,
+                bond_name,
                 face_value: face_v,
-                price: price_numb,
+                tl_unit_offered,
+                tl_unit_subscribed: 0,
                 maturity,
-                status,
-                interest_rate
+                status: "open",
+                interest_rate,
+                purpose,
+                market: "current",
+                subscription_period,
+                subscription_end_date: endDate
             }
         }
         )
@@ -36,4 +58,67 @@ export async function bondCreation(formData: FormData) {
     catch (error) {
         throw error
     }
+}
+
+export async function fetchBond(){
+    try{
+        const bonds = await db.bonds.findMany()
+
+        if(!bonds){
+            return {error: "No Bonds found"}
+        }
+        return bonds
+    }
+    catch(error){
+        console.log(error)
+        return "No Bonds found"
+    }
+}
+
+
+export  async function fetchBondById(bondId){
+    try{
+        const bond = await db.bonds.findUnique({where: {id: bondId}})
+        if(!bond){
+            return("Such bond doesnt  exist")
+        }
+        return bond
+    }
+    catch(error){
+        console.log(error)
+        return "No such bond found"
+    }
+
+}
+
+export async function subscribeToBond(bondId: string, { userId, walletAddress,  committed_amount, subscription_amt}: any) {
+  return  await  db.$transaction(async (tx) => {
+    const  subscription = await tx.subscriptions.create({
+        data: {
+            wallet_address: walletAddress,
+            committed_amount: Number(committed_amount),
+            subscription_amt: Number(subscription_amt),
+            tx_hash: "0x" + crypto.randomUUID().replace(/-/g, ""), // random placeholder
+            
+            bond: {
+                connect: { id: bondId }, // 👈 this line fixes "Argument `bond` is missing"
+            },
+            user: {
+                connect: {id: userId}
+            }
+            },
+    })
+     await tx.bonds.update({
+        where: {id: bondId},
+        data:{
+            tl_unit_subscribed: {
+                increment: Number(subscription_amt),
+            },
+        },
+
+  })
+  })
+
+ 
+  
 }

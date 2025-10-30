@@ -5,6 +5,8 @@ import Image from "next/image";
 import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
 import { Copy, Wallet, FileText, Currency } from "lucide-react";
 import { motion } from "framer-motion";
+import { getCurrentUser } from "@/server/action/currentUser";
+import { useCurrentUser } from "@/context/UserContext";
 
 /* ========================= Types ========================= */
 
@@ -91,8 +93,12 @@ function WalletStrip({ walletAddress }: { walletAddress: string }) {
 
 /* ========================= Page ========================= */
 
-export default function EarningsPage(currentUser) {
-  const walletAddress = "0i4u1290nfkjd809214190poij"; // mock wallet
+
+
+export default function EarningsPage() {
+  const  currentUser = useCurrentUser();
+
+  const walletAddress = currentUser.wallet_address;
 
   const [query, setQuery] = useState("");
   const rows = useMemo(() => INITIAL_ROWS, []);

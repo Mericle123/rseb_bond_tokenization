@@ -7,7 +7,10 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowLeft } from "lucide-react";
 import { logout } from "@/server/action/action";
-import { useUser } from "@/context/userContext";
+import { useCurrentUser } from "@/context/UserContext";
+
+
+
 
 /* ------------------------------ Helpers ------------------------------ */
 
@@ -20,14 +23,15 @@ function useMounted() {
 /* ----------------------------- Main UI ------------------------------- */
 
 export default function InvestorSideNavbar() {
-  const currentUser = useUser()
+  const currentUser = useCurrentUser();
+  const username = currentUser?.name
   const pathname = usePathname();
   const [accountOpen, setAccountOpen] = useState(false);
 
   const user = {
-    name: "dummy",
-    id: currentUser.national_id,
-    walletAddress: currentUser.wallet_address,
+    name: username,
+    id: currentUser?.national_id,
+    walletAddress: currentUser?.wallet_address,
   };
 
   // Match your folder casing exactly

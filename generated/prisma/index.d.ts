@@ -67,6 +67,25 @@ export const Type: {
 
 export type Type = (typeof Type)[keyof typeof Type]
 
+
+export const BondType: {
+  government_Bond: 'government_Bond',
+  corporate_Bond: 'corporate_Bond',
+  green_Bond: 'green_Bond',
+  development_Bond: 'development_Bond',
+  domestic_Bond: 'domestic_Bond'
+};
+
+export type BondType = (typeof BondType)[keyof typeof BondType]
+
+
+export const Market: {
+  current: 'current',
+  resale: 'resale'
+};
+
+export type Market = (typeof Market)[keyof typeof Market]
+
 }
 
 export type Role = $Enums.Role
@@ -80,6 +99,14 @@ export const Status: typeof $Enums.Status
 export type Type = $Enums.Type
 
 export const Type: typeof $Enums.Type
+
+export type BondType = $Enums.BondType
+
+export const BondType: typeof $Enums.BondType
+
+export type Market = $Enums.Market
+
+export const Market: typeof $Enums.Market
 
 /**
  * ##  Prisma Client ʲˢ
@@ -306,8 +333,8 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 6.17.1
-   * Query Engine version: 272a37d34178c2894197e17273bf937f25acdeac
+   * Prisma Client JS version: 6.18.0
+   * Query Engine version: 34b5a692b7bd79939a9a2c3ef97d816e749cda2f
    */
   export type PrismaVersion = {
     client: string
@@ -320,6 +347,7 @@ export namespace Prisma {
    */
 
 
+  export import Bytes = runtime.Bytes
   export import JsonObject = runtime.JsonObject
   export import JsonArray = runtime.JsonArray
   export import JsonValue = runtime.JsonValue
@@ -1261,6 +1289,112 @@ export namespace Prisma {
    */
 
 
+  /**
+   * Count Type UsersCountOutputType
+   */
+
+  export type UsersCountOutputType = {
+    subscriptions: number
+    events: number
+    transactionsFrom: number
+    transactionsTo: number
+  }
+
+  export type UsersCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    subscriptions?: boolean | UsersCountOutputTypeCountSubscriptionsArgs
+    events?: boolean | UsersCountOutputTypeCountEventsArgs
+    transactionsFrom?: boolean | UsersCountOutputTypeCountTransactionsFromArgs
+    transactionsTo?: boolean | UsersCountOutputTypeCountTransactionsToArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * UsersCountOutputType without action
+   */
+  export type UsersCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UsersCountOutputType
+     */
+    select?: UsersCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * UsersCountOutputType without action
+   */
+  export type UsersCountOutputTypeCountSubscriptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SubscriptionsWhereInput
+  }
+
+  /**
+   * UsersCountOutputType without action
+   */
+  export type UsersCountOutputTypeCountEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EventsWhereInput
+  }
+
+  /**
+   * UsersCountOutputType without action
+   */
+  export type UsersCountOutputTypeCountTransactionsFromArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TransactionsWhereInput
+  }
+
+  /**
+   * UsersCountOutputType without action
+   */
+  export type UsersCountOutputTypeCountTransactionsToArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TransactionsWhereInput
+  }
+
+
+  /**
+   * Count Type BondsCountOutputType
+   */
+
+  export type BondsCountOutputType = {
+    subscriptions: number
+    events: number
+    transactions: number
+  }
+
+  export type BondsCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    subscriptions?: boolean | BondsCountOutputTypeCountSubscriptionsArgs
+    events?: boolean | BondsCountOutputTypeCountEventsArgs
+    transactions?: boolean | BondsCountOutputTypeCountTransactionsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * BondsCountOutputType without action
+   */
+  export type BondsCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondsCountOutputType
+     */
+    select?: BondsCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * BondsCountOutputType without action
+   */
+  export type BondsCountOutputTypeCountSubscriptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SubscriptionsWhereInput
+  }
+
+  /**
+   * BondsCountOutputType without action
+   */
+  export type BondsCountOutputTypeCountEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EventsWhereInput
+  }
+
+  /**
+   * BondsCountOutputType without action
+   */
+  export type BondsCountOutputTypeCountTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TransactionsWhereInput
+  }
+
 
   /**
    * Models
@@ -1288,6 +1422,7 @@ export namespace Prisma {
 
   export type UsersMinAggregateOutputType = {
     id: string | null
+    name: string | null
     national_id: bigint | null
     wallet_address: string | null
     salt: string | null
@@ -1300,6 +1435,7 @@ export namespace Prisma {
 
   export type UsersMaxAggregateOutputType = {
     id: string | null
+    name: string | null
     national_id: bigint | null
     wallet_address: string | null
     salt: string | null
@@ -1312,6 +1448,7 @@ export namespace Prisma {
 
   export type UsersCountAggregateOutputType = {
     id: number
+    name: number
     national_id: number
     wallet_address: number
     salt: number
@@ -1334,6 +1471,7 @@ export namespace Prisma {
 
   export type UsersMinAggregateInputType = {
     id?: true
+    name?: true
     national_id?: true
     wallet_address?: true
     salt?: true
@@ -1346,6 +1484,7 @@ export namespace Prisma {
 
   export type UsersMaxAggregateInputType = {
     id?: true
+    name?: true
     national_id?: true
     wallet_address?: true
     salt?: true
@@ -1358,6 +1497,7 @@ export namespace Prisma {
 
   export type UsersCountAggregateInputType = {
     id?: true
+    name?: true
     national_id?: true
     wallet_address?: true
     salt?: true
@@ -1457,6 +1597,7 @@ export namespace Prisma {
 
   export type UsersGroupByOutputType = {
     id: string
+    name: string | null
     national_id: bigint
     wallet_address: string
     salt: string
@@ -1488,6 +1629,7 @@ export namespace Prisma {
 
   export type UsersSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    name?: boolean
     national_id?: boolean
     wallet_address?: boolean
     salt?: boolean
@@ -1496,10 +1638,16 @@ export namespace Prisma {
     role?: boolean
     hashed_mnemonic?: boolean
     created_at?: boolean
+    subscriptions?: boolean | Users$subscriptionsArgs<ExtArgs>
+    events?: boolean | Users$eventsArgs<ExtArgs>
+    transactionsFrom?: boolean | Users$transactionsFromArgs<ExtArgs>
+    transactionsTo?: boolean | Users$transactionsToArgs<ExtArgs>
+    _count?: boolean | UsersCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["users"]>
 
   export type UsersSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    name?: boolean
     national_id?: boolean
     wallet_address?: boolean
     salt?: boolean
@@ -1512,6 +1660,7 @@ export namespace Prisma {
 
   export type UsersSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    name?: boolean
     national_id?: boolean
     wallet_address?: boolean
     salt?: boolean
@@ -1524,6 +1673,7 @@ export namespace Prisma {
 
   export type UsersSelectScalar = {
     id?: boolean
+    name?: boolean
     national_id?: boolean
     wallet_address?: boolean
     salt?: boolean
@@ -1534,13 +1684,28 @@ export namespace Prisma {
     created_at?: boolean
   }
 
-  export type UsersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "national_id" | "wallet_address" | "salt" | "email" | "password" | "role" | "hashed_mnemonic" | "created_at", ExtArgs["result"]["users"]>
+  export type UsersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "national_id" | "wallet_address" | "salt" | "email" | "password" | "role" | "hashed_mnemonic" | "created_at", ExtArgs["result"]["users"]>
+  export type UsersInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    subscriptions?: boolean | Users$subscriptionsArgs<ExtArgs>
+    events?: boolean | Users$eventsArgs<ExtArgs>
+    transactionsFrom?: boolean | Users$transactionsFromArgs<ExtArgs>
+    transactionsTo?: boolean | Users$transactionsToArgs<ExtArgs>
+    _count?: boolean | UsersCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type UsersIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type UsersIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $UsersPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Users"
-    objects: {}
+    objects: {
+      subscriptions: Prisma.$SubscriptionsPayload<ExtArgs>[]
+      events: Prisma.$EventsPayload<ExtArgs>[]
+      transactionsFrom: Prisma.$TransactionsPayload<ExtArgs>[]
+      transactionsTo: Prisma.$TransactionsPayload<ExtArgs>[]
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: string
+      name: string | null
       national_id: bigint
       wallet_address: string
       salt: string
@@ -1943,6 +2108,10 @@ export namespace Prisma {
    */
   export interface Prisma__UsersClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    subscriptions<T extends Users$subscriptionsArgs<ExtArgs> = {}>(args?: Subset<T, Users$subscriptionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SubscriptionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    events<T extends Users$eventsArgs<ExtArgs> = {}>(args?: Subset<T, Users$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    transactionsFrom<T extends Users$transactionsFromArgs<ExtArgs> = {}>(args?: Subset<T, Users$transactionsFromArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    transactionsTo<T extends Users$transactionsToArgs<ExtArgs> = {}>(args?: Subset<T, Users$transactionsToArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1973,6 +2142,7 @@ export namespace Prisma {
    */
   interface UsersFieldRefs {
     readonly id: FieldRef<"Users", 'String'>
+    readonly name: FieldRef<"Users", 'String'>
     readonly national_id: FieldRef<"Users", 'BigInt'>
     readonly wallet_address: FieldRef<"Users", 'String'>
     readonly salt: FieldRef<"Users", 'String'>
@@ -1998,6 +2168,10 @@ export namespace Prisma {
      */
     omit?: UsersOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UsersInclude<ExtArgs> | null
+    /**
      * Filter, which Users to fetch.
      */
     where: UsersWhereUniqueInput
@@ -2016,6 +2190,10 @@ export namespace Prisma {
      */
     omit?: UsersOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UsersInclude<ExtArgs> | null
+    /**
      * Filter, which Users to fetch.
      */
     where: UsersWhereUniqueInput
@@ -2033,6 +2211,10 @@ export namespace Prisma {
      * Omit specific fields from the Users
      */
     omit?: UsersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UsersInclude<ExtArgs> | null
     /**
      * Filter, which Users to fetch.
      */
@@ -2082,6 +2264,10 @@ export namespace Prisma {
      */
     omit?: UsersOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UsersInclude<ExtArgs> | null
+    /**
      * Filter, which Users to fetch.
      */
     where?: UsersWhereInput
@@ -2130,6 +2316,10 @@ export namespace Prisma {
      */
     omit?: UsersOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UsersInclude<ExtArgs> | null
+    /**
      * Filter, which Users to fetch.
      */
     where?: UsersWhereInput
@@ -2172,6 +2362,10 @@ export namespace Prisma {
      * Omit specific fields from the Users
      */
     omit?: UsersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UsersInclude<ExtArgs> | null
     /**
      * The data needed to create a Users.
      */
@@ -2220,6 +2414,10 @@ export namespace Prisma {
      * Omit specific fields from the Users
      */
     omit?: UsersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UsersInclude<ExtArgs> | null
     /**
      * The data needed to update a Users.
      */
@@ -2287,6 +2485,10 @@ export namespace Prisma {
      */
     omit?: UsersOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UsersInclude<ExtArgs> | null
+    /**
      * The filter to search for the Users to update in case it exists.
      */
     where: UsersWhereUniqueInput
@@ -2313,6 +2515,10 @@ export namespace Prisma {
      */
     omit?: UsersOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UsersInclude<ExtArgs> | null
+    /**
      * Filter which Users to delete.
      */
     where: UsersWhereUniqueInput
@@ -2333,6 +2539,102 @@ export namespace Prisma {
   }
 
   /**
+   * Users.subscriptions
+   */
+  export type Users$subscriptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Subscriptions
+     */
+    select?: SubscriptionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Subscriptions
+     */
+    omit?: SubscriptionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionsInclude<ExtArgs> | null
+    where?: SubscriptionsWhereInput
+    orderBy?: SubscriptionsOrderByWithRelationInput | SubscriptionsOrderByWithRelationInput[]
+    cursor?: SubscriptionsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SubscriptionsScalarFieldEnum | SubscriptionsScalarFieldEnum[]
+  }
+
+  /**
+   * Users.events
+   */
+  export type Users$eventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Events
+     */
+    select?: EventsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Events
+     */
+    omit?: EventsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventsInclude<ExtArgs> | null
+    where?: EventsWhereInput
+    orderBy?: EventsOrderByWithRelationInput | EventsOrderByWithRelationInput[]
+    cursor?: EventsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: EventsScalarFieldEnum | EventsScalarFieldEnum[]
+  }
+
+  /**
+   * Users.transactionsFrom
+   */
+  export type Users$transactionsFromArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transactions
+     */
+    select?: TransactionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transactions
+     */
+    omit?: TransactionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionsInclude<ExtArgs> | null
+    where?: TransactionsWhereInput
+    orderBy?: TransactionsOrderByWithRelationInput | TransactionsOrderByWithRelationInput[]
+    cursor?: TransactionsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TransactionsScalarFieldEnum | TransactionsScalarFieldEnum[]
+  }
+
+  /**
+   * Users.transactionsTo
+   */
+  export type Users$transactionsToArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transactions
+     */
+    select?: TransactionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transactions
+     */
+    omit?: TransactionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionsInclude<ExtArgs> | null
+    where?: TransactionsWhereInput
+    orderBy?: TransactionsOrderByWithRelationInput | TransactionsOrderByWithRelationInput[]
+    cursor?: TransactionsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TransactionsScalarFieldEnum | TransactionsScalarFieldEnum[]
+  }
+
+  /**
    * Users without action
    */
   export type UsersDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2344,6 +2646,10 @@ export namespace Prisma {
      * Omit specific fields from the Users
      */
     omit?: UsersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UsersInclude<ExtArgs> | null
   }
 
 
@@ -2361,96 +2667,152 @@ export namespace Prisma {
 
   export type BondsAvgAggregateOutputType = {
     face_value: number | null
-    price: number | null
+    tl_unit_offered: number | null
+    tl_unit_subscribed: number | null
+    subscription_period: number | null
   }
 
   export type BondsSumAggregateOutputType = {
     face_value: bigint | null
-    price: bigint | null
+    tl_unit_offered: number | null
+    tl_unit_subscribed: number | null
+    subscription_period: number | null
   }
 
   export type BondsMinAggregateOutputType = {
     id: string | null
     bond_object_id: string | null
-    name: string | null
+    bond_name: string | null
+    bond_type: $Enums.BondType | null
+    bond_symbol: string | null
+    organization_name: string | null
     face_value: bigint | null
-    price: bigint | null
+    tl_unit_offered: number | null
+    tl_unit_subscribed: number | null
     maturity: Date | null
     status: $Enums.Status | null
     interest_rate: string | null
+    purpose: string | null
+    market: $Enums.Market | null
     created_at: Date | null
+    subscription_period: number | null
+    subscription_end_date: Date | null
   }
 
   export type BondsMaxAggregateOutputType = {
     id: string | null
     bond_object_id: string | null
-    name: string | null
+    bond_name: string | null
+    bond_type: $Enums.BondType | null
+    bond_symbol: string | null
+    organization_name: string | null
     face_value: bigint | null
-    price: bigint | null
+    tl_unit_offered: number | null
+    tl_unit_subscribed: number | null
     maturity: Date | null
     status: $Enums.Status | null
     interest_rate: string | null
+    purpose: string | null
+    market: $Enums.Market | null
     created_at: Date | null
+    subscription_period: number | null
+    subscription_end_date: Date | null
   }
 
   export type BondsCountAggregateOutputType = {
     id: number
     bond_object_id: number
-    name: number
+    bond_name: number
+    bond_type: number
+    bond_symbol: number
+    organization_name: number
     face_value: number
-    price: number
+    tl_unit_offered: number
+    tl_unit_subscribed: number
     maturity: number
     status: number
     interest_rate: number
+    purpose: number
+    market: number
     created_at: number
+    subscription_period: number
+    subscription_end_date: number
     _all: number
   }
 
 
   export type BondsAvgAggregateInputType = {
     face_value?: true
-    price?: true
+    tl_unit_offered?: true
+    tl_unit_subscribed?: true
+    subscription_period?: true
   }
 
   export type BondsSumAggregateInputType = {
     face_value?: true
-    price?: true
+    tl_unit_offered?: true
+    tl_unit_subscribed?: true
+    subscription_period?: true
   }
 
   export type BondsMinAggregateInputType = {
     id?: true
     bond_object_id?: true
-    name?: true
+    bond_name?: true
+    bond_type?: true
+    bond_symbol?: true
+    organization_name?: true
     face_value?: true
-    price?: true
+    tl_unit_offered?: true
+    tl_unit_subscribed?: true
     maturity?: true
     status?: true
     interest_rate?: true
+    purpose?: true
+    market?: true
     created_at?: true
+    subscription_period?: true
+    subscription_end_date?: true
   }
 
   export type BondsMaxAggregateInputType = {
     id?: true
     bond_object_id?: true
-    name?: true
+    bond_name?: true
+    bond_type?: true
+    bond_symbol?: true
+    organization_name?: true
     face_value?: true
-    price?: true
+    tl_unit_offered?: true
+    tl_unit_subscribed?: true
     maturity?: true
     status?: true
     interest_rate?: true
+    purpose?: true
+    market?: true
     created_at?: true
+    subscription_period?: true
+    subscription_end_date?: true
   }
 
   export type BondsCountAggregateInputType = {
     id?: true
     bond_object_id?: true
-    name?: true
+    bond_name?: true
+    bond_type?: true
+    bond_symbol?: true
+    organization_name?: true
     face_value?: true
-    price?: true
+    tl_unit_offered?: true
+    tl_unit_subscribed?: true
     maturity?: true
     status?: true
     interest_rate?: true
+    purpose?: true
+    market?: true
     created_at?: true
+    subscription_period?: true
+    subscription_end_date?: true
     _all?: true
   }
 
@@ -2542,14 +2904,22 @@ export namespace Prisma {
 
   export type BondsGroupByOutputType = {
     id: string
-    bond_object_id: string
-    name: string
+    bond_object_id: string | null
+    bond_name: string
+    bond_type: $Enums.BondType
+    bond_symbol: string
+    organization_name: string
     face_value: bigint
-    price: bigint
+    tl_unit_offered: number
+    tl_unit_subscribed: number | null
     maturity: Date
     status: $Enums.Status
     interest_rate: string
+    purpose: string
+    market: $Enums.Market | null
     created_at: Date
+    subscription_period: number
+    subscription_end_date: Date
     _count: BondsCountAggregateOutputType | null
     _avg: BondsAvgAggregateOutputType | null
     _sum: BondsSumAggregateOutputType | null
@@ -2574,66 +2944,122 @@ export namespace Prisma {
   export type BondsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     bond_object_id?: boolean
-    name?: boolean
+    bond_name?: boolean
+    bond_type?: boolean
+    bond_symbol?: boolean
+    organization_name?: boolean
     face_value?: boolean
-    price?: boolean
+    tl_unit_offered?: boolean
+    tl_unit_subscribed?: boolean
     maturity?: boolean
     status?: boolean
     interest_rate?: boolean
+    purpose?: boolean
+    market?: boolean
     created_at?: boolean
+    subscription_period?: boolean
+    subscription_end_date?: boolean
+    subscriptions?: boolean | Bonds$subscriptionsArgs<ExtArgs>
+    events?: boolean | Bonds$eventsArgs<ExtArgs>
+    transactions?: boolean | Bonds$transactionsArgs<ExtArgs>
+    _count?: boolean | BondsCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["bonds"]>
 
   export type BondsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     bond_object_id?: boolean
-    name?: boolean
+    bond_name?: boolean
+    bond_type?: boolean
+    bond_symbol?: boolean
+    organization_name?: boolean
     face_value?: boolean
-    price?: boolean
+    tl_unit_offered?: boolean
+    tl_unit_subscribed?: boolean
     maturity?: boolean
     status?: boolean
     interest_rate?: boolean
+    purpose?: boolean
+    market?: boolean
     created_at?: boolean
+    subscription_period?: boolean
+    subscription_end_date?: boolean
   }, ExtArgs["result"]["bonds"]>
 
   export type BondsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     bond_object_id?: boolean
-    name?: boolean
+    bond_name?: boolean
+    bond_type?: boolean
+    bond_symbol?: boolean
+    organization_name?: boolean
     face_value?: boolean
-    price?: boolean
+    tl_unit_offered?: boolean
+    tl_unit_subscribed?: boolean
     maturity?: boolean
     status?: boolean
     interest_rate?: boolean
+    purpose?: boolean
+    market?: boolean
     created_at?: boolean
+    subscription_period?: boolean
+    subscription_end_date?: boolean
   }, ExtArgs["result"]["bonds"]>
 
   export type BondsSelectScalar = {
     id?: boolean
     bond_object_id?: boolean
-    name?: boolean
+    bond_name?: boolean
+    bond_type?: boolean
+    bond_symbol?: boolean
+    organization_name?: boolean
     face_value?: boolean
-    price?: boolean
+    tl_unit_offered?: boolean
+    tl_unit_subscribed?: boolean
     maturity?: boolean
     status?: boolean
     interest_rate?: boolean
+    purpose?: boolean
+    market?: boolean
     created_at?: boolean
+    subscription_period?: boolean
+    subscription_end_date?: boolean
   }
 
-  export type BondsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "bond_object_id" | "name" | "face_value" | "price" | "maturity" | "status" | "interest_rate" | "created_at", ExtArgs["result"]["bonds"]>
+  export type BondsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "bond_object_id" | "bond_name" | "bond_type" | "bond_symbol" | "organization_name" | "face_value" | "tl_unit_offered" | "tl_unit_subscribed" | "maturity" | "status" | "interest_rate" | "purpose" | "market" | "created_at" | "subscription_period" | "subscription_end_date", ExtArgs["result"]["bonds"]>
+  export type BondsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    subscriptions?: boolean | Bonds$subscriptionsArgs<ExtArgs>
+    events?: boolean | Bonds$eventsArgs<ExtArgs>
+    transactions?: boolean | Bonds$transactionsArgs<ExtArgs>
+    _count?: boolean | BondsCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type BondsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type BondsIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $BondsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Bonds"
-    objects: {}
+    objects: {
+      subscriptions: Prisma.$SubscriptionsPayload<ExtArgs>[]
+      events: Prisma.$EventsPayload<ExtArgs>[]
+      transactions: Prisma.$TransactionsPayload<ExtArgs>[]
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: string
-      bond_object_id: string
-      name: string
+      bond_object_id: string | null
+      bond_name: string
+      bond_type: $Enums.BondType
+      bond_symbol: string
+      organization_name: string
       face_value: bigint
-      price: bigint
+      tl_unit_offered: number
+      tl_unit_subscribed: number | null
       maturity: Date
       status: $Enums.Status
       interest_rate: string
+      purpose: string
+      market: $Enums.Market | null
       created_at: Date
+      subscription_period: number
+      subscription_end_date: Date
     }, ExtArgs["result"]["bonds"]>
     composites: {}
   }
@@ -3028,6 +3454,9 @@ export namespace Prisma {
    */
   export interface Prisma__BondsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    subscriptions<T extends Bonds$subscriptionsArgs<ExtArgs> = {}>(args?: Subset<T, Bonds$subscriptionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SubscriptionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    events<T extends Bonds$eventsArgs<ExtArgs> = {}>(args?: Subset<T, Bonds$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    transactions<T extends Bonds$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, Bonds$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3059,13 +3488,21 @@ export namespace Prisma {
   interface BondsFieldRefs {
     readonly id: FieldRef<"Bonds", 'String'>
     readonly bond_object_id: FieldRef<"Bonds", 'String'>
-    readonly name: FieldRef<"Bonds", 'String'>
+    readonly bond_name: FieldRef<"Bonds", 'String'>
+    readonly bond_type: FieldRef<"Bonds", 'BondType'>
+    readonly bond_symbol: FieldRef<"Bonds", 'String'>
+    readonly organization_name: FieldRef<"Bonds", 'String'>
     readonly face_value: FieldRef<"Bonds", 'BigInt'>
-    readonly price: FieldRef<"Bonds", 'BigInt'>
+    readonly tl_unit_offered: FieldRef<"Bonds", 'Int'>
+    readonly tl_unit_subscribed: FieldRef<"Bonds", 'Int'>
     readonly maturity: FieldRef<"Bonds", 'DateTime'>
     readonly status: FieldRef<"Bonds", 'Status'>
     readonly interest_rate: FieldRef<"Bonds", 'String'>
+    readonly purpose: FieldRef<"Bonds", 'String'>
+    readonly market: FieldRef<"Bonds", 'Market'>
     readonly created_at: FieldRef<"Bonds", 'DateTime'>
+    readonly subscription_period: FieldRef<"Bonds", 'Int'>
+    readonly subscription_end_date: FieldRef<"Bonds", 'DateTime'>
   }
     
 
@@ -3082,6 +3519,10 @@ export namespace Prisma {
      * Omit specific fields from the Bonds
      */
     omit?: BondsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondsInclude<ExtArgs> | null
     /**
      * Filter, which Bonds to fetch.
      */
@@ -3101,6 +3542,10 @@ export namespace Prisma {
      */
     omit?: BondsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondsInclude<ExtArgs> | null
+    /**
      * Filter, which Bonds to fetch.
      */
     where: BondsWhereUniqueInput
@@ -3118,6 +3563,10 @@ export namespace Prisma {
      * Omit specific fields from the Bonds
      */
     omit?: BondsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondsInclude<ExtArgs> | null
     /**
      * Filter, which Bonds to fetch.
      */
@@ -3167,6 +3616,10 @@ export namespace Prisma {
      */
     omit?: BondsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondsInclude<ExtArgs> | null
+    /**
      * Filter, which Bonds to fetch.
      */
     where?: BondsWhereInput
@@ -3215,6 +3668,10 @@ export namespace Prisma {
      */
     omit?: BondsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondsInclude<ExtArgs> | null
+    /**
      * Filter, which Bonds to fetch.
      */
     where?: BondsWhereInput
@@ -3257,6 +3714,10 @@ export namespace Prisma {
      * Omit specific fields from the Bonds
      */
     omit?: BondsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondsInclude<ExtArgs> | null
     /**
      * The data needed to create a Bonds.
      */
@@ -3305,6 +3766,10 @@ export namespace Prisma {
      * Omit specific fields from the Bonds
      */
     omit?: BondsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondsInclude<ExtArgs> | null
     /**
      * The data needed to update a Bonds.
      */
@@ -3372,6 +3837,10 @@ export namespace Prisma {
      */
     omit?: BondsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondsInclude<ExtArgs> | null
+    /**
      * The filter to search for the Bonds to update in case it exists.
      */
     where: BondsWhereUniqueInput
@@ -3398,6 +3867,10 @@ export namespace Prisma {
      */
     omit?: BondsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondsInclude<ExtArgs> | null
+    /**
      * Filter which Bonds to delete.
      */
     where: BondsWhereUniqueInput
@@ -3418,6 +3891,78 @@ export namespace Prisma {
   }
 
   /**
+   * Bonds.subscriptions
+   */
+  export type Bonds$subscriptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Subscriptions
+     */
+    select?: SubscriptionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Subscriptions
+     */
+    omit?: SubscriptionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionsInclude<ExtArgs> | null
+    where?: SubscriptionsWhereInput
+    orderBy?: SubscriptionsOrderByWithRelationInput | SubscriptionsOrderByWithRelationInput[]
+    cursor?: SubscriptionsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SubscriptionsScalarFieldEnum | SubscriptionsScalarFieldEnum[]
+  }
+
+  /**
+   * Bonds.events
+   */
+  export type Bonds$eventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Events
+     */
+    select?: EventsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Events
+     */
+    omit?: EventsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventsInclude<ExtArgs> | null
+    where?: EventsWhereInput
+    orderBy?: EventsOrderByWithRelationInput | EventsOrderByWithRelationInput[]
+    cursor?: EventsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: EventsScalarFieldEnum | EventsScalarFieldEnum[]
+  }
+
+  /**
+   * Bonds.transactions
+   */
+  export type Bonds$transactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transactions
+     */
+    select?: TransactionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transactions
+     */
+    omit?: TransactionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionsInclude<ExtArgs> | null
+    where?: TransactionsWhereInput
+    orderBy?: TransactionsOrderByWithRelationInput | TransactionsOrderByWithRelationInput[]
+    cursor?: TransactionsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TransactionsScalarFieldEnum | TransactionsScalarFieldEnum[]
+  }
+
+  /**
    * Bonds without action
    */
   export type BondsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3429,6 +3974,10 @@ export namespace Prisma {
      * Omit specific fields from the Bonds
      */
     omit?: BondsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondsInclude<ExtArgs> | null
   }
 
 
@@ -3612,6 +4161,8 @@ export namespace Prisma {
     details?: boolean
     tx_hash?: boolean
     created_at?: boolean
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    user?: boolean | UsersDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["events"]>
 
   export type EventsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -3622,6 +4173,8 @@ export namespace Prisma {
     details?: boolean
     tx_hash?: boolean
     created_at?: boolean
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    user?: boolean | UsersDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["events"]>
 
   export type EventsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -3632,6 +4185,8 @@ export namespace Prisma {
     details?: boolean
     tx_hash?: boolean
     created_at?: boolean
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    user?: boolean | UsersDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["events"]>
 
   export type EventsSelectScalar = {
@@ -3645,10 +4200,25 @@ export namespace Prisma {
   }
 
   export type EventsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "type" | "bond_id" | "user_id" | "details" | "tx_hash" | "created_at", ExtArgs["result"]["events"]>
+  export type EventsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    user?: boolean | UsersDefaultArgs<ExtArgs>
+  }
+  export type EventsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    user?: boolean | UsersDefaultArgs<ExtArgs>
+  }
+  export type EventsIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    user?: boolean | UsersDefaultArgs<ExtArgs>
+  }
 
   export type $EventsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Events"
-    objects: {}
+    objects: {
+      bond: Prisma.$BondsPayload<ExtArgs>
+      user: Prisma.$UsersPayload<ExtArgs>
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       type: $Enums.Type
@@ -4051,6 +4621,8 @@ export namespace Prisma {
    */
   export interface Prisma__EventsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    bond<T extends BondsDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BondsDefaultArgs<ExtArgs>>): Prisma__BondsClient<$Result.GetResult<Prisma.$BondsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    user<T extends UsersDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UsersDefaultArgs<ExtArgs>>): Prisma__UsersClient<$Result.GetResult<Prisma.$UsersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4104,6 +4676,10 @@ export namespace Prisma {
      */
     omit?: EventsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventsInclude<ExtArgs> | null
+    /**
      * Filter, which Events to fetch.
      */
     where: EventsWhereUniqueInput
@@ -4122,6 +4698,10 @@ export namespace Prisma {
      */
     omit?: EventsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventsInclude<ExtArgs> | null
+    /**
      * Filter, which Events to fetch.
      */
     where: EventsWhereUniqueInput
@@ -4139,6 +4719,10 @@ export namespace Prisma {
      * Omit specific fields from the Events
      */
     omit?: EventsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventsInclude<ExtArgs> | null
     /**
      * Filter, which Events to fetch.
      */
@@ -4188,6 +4772,10 @@ export namespace Prisma {
      */
     omit?: EventsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventsInclude<ExtArgs> | null
+    /**
      * Filter, which Events to fetch.
      */
     where?: EventsWhereInput
@@ -4236,6 +4824,10 @@ export namespace Prisma {
      */
     omit?: EventsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventsInclude<ExtArgs> | null
+    /**
      * Filter, which Events to fetch.
      */
     where?: EventsWhereInput
@@ -4279,6 +4871,10 @@ export namespace Prisma {
      */
     omit?: EventsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventsInclude<ExtArgs> | null
+    /**
      * The data needed to create a Events.
      */
     data: XOR<EventsCreateInput, EventsUncheckedCreateInput>
@@ -4312,6 +4908,10 @@ export namespace Prisma {
      */
     data: EventsCreateManyInput | EventsCreateManyInput[]
     skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventsIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -4326,6 +4926,10 @@ export namespace Prisma {
      * Omit specific fields from the Events
      */
     omit?: EventsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventsInclude<ExtArgs> | null
     /**
      * The data needed to update a Events.
      */
@@ -4378,6 +4982,10 @@ export namespace Prisma {
      * Limit how many Events to update.
      */
     limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventsIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -4392,6 +5000,10 @@ export namespace Prisma {
      * Omit specific fields from the Events
      */
     omit?: EventsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventsInclude<ExtArgs> | null
     /**
      * The filter to search for the Events to update in case it exists.
      */
@@ -4418,6 +5030,10 @@ export namespace Prisma {
      * Omit specific fields from the Events
      */
     omit?: EventsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventsInclude<ExtArgs> | null
     /**
      * Filter which Events to delete.
      */
@@ -4450,6 +5066,10 @@ export namespace Prisma {
      * Omit specific fields from the Events
      */
     omit?: EventsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventsInclude<ExtArgs> | null
   }
 
 
@@ -4467,18 +5087,22 @@ export namespace Prisma {
 
   export type SubscriptionsAvgAggregateOutputType = {
     committed_amount: number | null
+    subscription_amt: number | null
   }
 
   export type SubscriptionsSumAggregateOutputType = {
     committed_amount: bigint | null
+    subscription_amt: bigint | null
   }
 
   export type SubscriptionsMinAggregateOutputType = {
     id: string | null
     bond_id: string | null
     user_id: string | null
+    wallet_address: string | null
     committed_amount: bigint | null
     tx_hash: string | null
+    subscription_amt: bigint | null
     created_at: Date | null
   }
 
@@ -4486,8 +5110,10 @@ export namespace Prisma {
     id: string | null
     bond_id: string | null
     user_id: string | null
+    wallet_address: string | null
     committed_amount: bigint | null
     tx_hash: string | null
+    subscription_amt: bigint | null
     created_at: Date | null
   }
 
@@ -4495,8 +5121,10 @@ export namespace Prisma {
     id: number
     bond_id: number
     user_id: number
+    wallet_address: number
     committed_amount: number
     tx_hash: number
+    subscription_amt: number
     created_at: number
     _all: number
   }
@@ -4504,18 +5132,22 @@ export namespace Prisma {
 
   export type SubscriptionsAvgAggregateInputType = {
     committed_amount?: true
+    subscription_amt?: true
   }
 
   export type SubscriptionsSumAggregateInputType = {
     committed_amount?: true
+    subscription_amt?: true
   }
 
   export type SubscriptionsMinAggregateInputType = {
     id?: true
     bond_id?: true
     user_id?: true
+    wallet_address?: true
     committed_amount?: true
     tx_hash?: true
+    subscription_amt?: true
     created_at?: true
   }
 
@@ -4523,8 +5155,10 @@ export namespace Prisma {
     id?: true
     bond_id?: true
     user_id?: true
+    wallet_address?: true
     committed_amount?: true
     tx_hash?: true
+    subscription_amt?: true
     created_at?: true
   }
 
@@ -4532,8 +5166,10 @@ export namespace Prisma {
     id?: true
     bond_id?: true
     user_id?: true
+    wallet_address?: true
     committed_amount?: true
     tx_hash?: true
+    subscription_amt?: true
     created_at?: true
     _all?: true
   }
@@ -4628,8 +5264,10 @@ export namespace Prisma {
     id: string
     bond_id: string
     user_id: string
+    wallet_address: string
     committed_amount: bigint
     tx_hash: string
+    subscription_amt: bigint | null
     created_at: Date
     _count: SubscriptionsCountAggregateOutputType | null
     _avg: SubscriptionsAvgAggregateOutputType | null
@@ -4656,49 +5294,80 @@ export namespace Prisma {
     id?: boolean
     bond_id?: boolean
     user_id?: boolean
+    wallet_address?: boolean
     committed_amount?: boolean
     tx_hash?: boolean
+    subscription_amt?: boolean
     created_at?: boolean
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    user?: boolean | UsersDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["subscriptions"]>
 
   export type SubscriptionsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     bond_id?: boolean
     user_id?: boolean
+    wallet_address?: boolean
     committed_amount?: boolean
     tx_hash?: boolean
+    subscription_amt?: boolean
     created_at?: boolean
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    user?: boolean | UsersDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["subscriptions"]>
 
   export type SubscriptionsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     bond_id?: boolean
     user_id?: boolean
+    wallet_address?: boolean
     committed_amount?: boolean
     tx_hash?: boolean
+    subscription_amt?: boolean
     created_at?: boolean
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    user?: boolean | UsersDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["subscriptions"]>
 
   export type SubscriptionsSelectScalar = {
     id?: boolean
     bond_id?: boolean
     user_id?: boolean
+    wallet_address?: boolean
     committed_amount?: boolean
     tx_hash?: boolean
+    subscription_amt?: boolean
     created_at?: boolean
   }
 
-  export type SubscriptionsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "bond_id" | "user_id" | "committed_amount" | "tx_hash" | "created_at", ExtArgs["result"]["subscriptions"]>
+  export type SubscriptionsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "bond_id" | "user_id" | "wallet_address" | "committed_amount" | "tx_hash" | "subscription_amt" | "created_at", ExtArgs["result"]["subscriptions"]>
+  export type SubscriptionsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    user?: boolean | UsersDefaultArgs<ExtArgs>
+  }
+  export type SubscriptionsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    user?: boolean | UsersDefaultArgs<ExtArgs>
+  }
+  export type SubscriptionsIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    user?: boolean | UsersDefaultArgs<ExtArgs>
+  }
 
   export type $SubscriptionsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Subscriptions"
-    objects: {}
+    objects: {
+      bond: Prisma.$BondsPayload<ExtArgs>
+      user: Prisma.$UsersPayload<ExtArgs>
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       bond_id: string
       user_id: string
+      wallet_address: string
       committed_amount: bigint
       tx_hash: string
+      subscription_amt: bigint | null
       created_at: Date
     }, ExtArgs["result"]["subscriptions"]>
     composites: {}
@@ -5094,6 +5763,8 @@ export namespace Prisma {
    */
   export interface Prisma__SubscriptionsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    bond<T extends BondsDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BondsDefaultArgs<ExtArgs>>): Prisma__BondsClient<$Result.GetResult<Prisma.$BondsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    user<T extends UsersDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UsersDefaultArgs<ExtArgs>>): Prisma__UsersClient<$Result.GetResult<Prisma.$UsersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5126,8 +5797,10 @@ export namespace Prisma {
     readonly id: FieldRef<"Subscriptions", 'String'>
     readonly bond_id: FieldRef<"Subscriptions", 'String'>
     readonly user_id: FieldRef<"Subscriptions", 'String'>
+    readonly wallet_address: FieldRef<"Subscriptions", 'String'>
     readonly committed_amount: FieldRef<"Subscriptions", 'BigInt'>
     readonly tx_hash: FieldRef<"Subscriptions", 'String'>
+    readonly subscription_amt: FieldRef<"Subscriptions", 'BigInt'>
     readonly created_at: FieldRef<"Subscriptions", 'DateTime'>
   }
     
@@ -5145,6 +5818,10 @@ export namespace Prisma {
      * Omit specific fields from the Subscriptions
      */
     omit?: SubscriptionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionsInclude<ExtArgs> | null
     /**
      * Filter, which Subscriptions to fetch.
      */
@@ -5164,6 +5841,10 @@ export namespace Prisma {
      */
     omit?: SubscriptionsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionsInclude<ExtArgs> | null
+    /**
      * Filter, which Subscriptions to fetch.
      */
     where: SubscriptionsWhereUniqueInput
@@ -5181,6 +5862,10 @@ export namespace Prisma {
      * Omit specific fields from the Subscriptions
      */
     omit?: SubscriptionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionsInclude<ExtArgs> | null
     /**
      * Filter, which Subscriptions to fetch.
      */
@@ -5230,6 +5915,10 @@ export namespace Prisma {
      */
     omit?: SubscriptionsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionsInclude<ExtArgs> | null
+    /**
      * Filter, which Subscriptions to fetch.
      */
     where?: SubscriptionsWhereInput
@@ -5278,6 +5967,10 @@ export namespace Prisma {
      */
     omit?: SubscriptionsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionsInclude<ExtArgs> | null
+    /**
      * Filter, which Subscriptions to fetch.
      */
     where?: SubscriptionsWhereInput
@@ -5321,6 +6014,10 @@ export namespace Prisma {
      */
     omit?: SubscriptionsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionsInclude<ExtArgs> | null
+    /**
      * The data needed to create a Subscriptions.
      */
     data: XOR<SubscriptionsCreateInput, SubscriptionsUncheckedCreateInput>
@@ -5354,6 +6051,10 @@ export namespace Prisma {
      */
     data: SubscriptionsCreateManyInput | SubscriptionsCreateManyInput[]
     skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionsIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -5368,6 +6069,10 @@ export namespace Prisma {
      * Omit specific fields from the Subscriptions
      */
     omit?: SubscriptionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionsInclude<ExtArgs> | null
     /**
      * The data needed to update a Subscriptions.
      */
@@ -5420,6 +6125,10 @@ export namespace Prisma {
      * Limit how many Subscriptions to update.
      */
     limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionsIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -5434,6 +6143,10 @@ export namespace Prisma {
      * Omit specific fields from the Subscriptions
      */
     omit?: SubscriptionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionsInclude<ExtArgs> | null
     /**
      * The filter to search for the Subscriptions to update in case it exists.
      */
@@ -5460,6 +6173,10 @@ export namespace Prisma {
      * Omit specific fields from the Subscriptions
      */
     omit?: SubscriptionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionsInclude<ExtArgs> | null
     /**
      * Filter which Subscriptions to delete.
      */
@@ -5492,6 +6209,10 @@ export namespace Prisma {
      * Omit specific fields from the Subscriptions
      */
     omit?: SubscriptionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionsInclude<ExtArgs> | null
   }
 
 
@@ -5667,6 +6388,9 @@ export namespace Prisma {
     user_to?: boolean
     tx_hash?: boolean
     created_at?: boolean
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    from?: boolean | UsersDefaultArgs<ExtArgs>
+    to?: boolean | UsersDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["transactions"]>
 
   export type TransactionsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -5676,6 +6400,9 @@ export namespace Prisma {
     user_to?: boolean
     tx_hash?: boolean
     created_at?: boolean
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    from?: boolean | UsersDefaultArgs<ExtArgs>
+    to?: boolean | UsersDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["transactions"]>
 
   export type TransactionsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -5685,6 +6412,9 @@ export namespace Prisma {
     user_to?: boolean
     tx_hash?: boolean
     created_at?: boolean
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    from?: boolean | UsersDefaultArgs<ExtArgs>
+    to?: boolean | UsersDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["transactions"]>
 
   export type TransactionsSelectScalar = {
@@ -5697,10 +6427,29 @@ export namespace Prisma {
   }
 
   export type TransactionsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "bond_id" | "user_from" | "user_to" | "tx_hash" | "created_at", ExtArgs["result"]["transactions"]>
+  export type TransactionsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    from?: boolean | UsersDefaultArgs<ExtArgs>
+    to?: boolean | UsersDefaultArgs<ExtArgs>
+  }
+  export type TransactionsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    from?: boolean | UsersDefaultArgs<ExtArgs>
+    to?: boolean | UsersDefaultArgs<ExtArgs>
+  }
+  export type TransactionsIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    bond?: boolean | BondsDefaultArgs<ExtArgs>
+    from?: boolean | UsersDefaultArgs<ExtArgs>
+    to?: boolean | UsersDefaultArgs<ExtArgs>
+  }
 
   export type $TransactionsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Transactions"
-    objects: {}
+    objects: {
+      bond: Prisma.$BondsPayload<ExtArgs>
+      from: Prisma.$UsersPayload<ExtArgs>
+      to: Prisma.$UsersPayload<ExtArgs>
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       bond_id: string
@@ -6102,6 +6851,9 @@ export namespace Prisma {
    */
   export interface Prisma__TransactionsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    bond<T extends BondsDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BondsDefaultArgs<ExtArgs>>): Prisma__BondsClient<$Result.GetResult<Prisma.$BondsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    from<T extends UsersDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UsersDefaultArgs<ExtArgs>>): Prisma__UsersClient<$Result.GetResult<Prisma.$UsersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    to<T extends UsersDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UsersDefaultArgs<ExtArgs>>): Prisma__UsersClient<$Result.GetResult<Prisma.$UsersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6154,6 +6906,10 @@ export namespace Prisma {
      */
     omit?: TransactionsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionsInclude<ExtArgs> | null
+    /**
      * Filter, which Transactions to fetch.
      */
     where: TransactionsWhereUniqueInput
@@ -6172,6 +6928,10 @@ export namespace Prisma {
      */
     omit?: TransactionsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionsInclude<ExtArgs> | null
+    /**
      * Filter, which Transactions to fetch.
      */
     where: TransactionsWhereUniqueInput
@@ -6189,6 +6949,10 @@ export namespace Prisma {
      * Omit specific fields from the Transactions
      */
     omit?: TransactionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionsInclude<ExtArgs> | null
     /**
      * Filter, which Transactions to fetch.
      */
@@ -6238,6 +7002,10 @@ export namespace Prisma {
      */
     omit?: TransactionsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionsInclude<ExtArgs> | null
+    /**
      * Filter, which Transactions to fetch.
      */
     where?: TransactionsWhereInput
@@ -6286,6 +7054,10 @@ export namespace Prisma {
      */
     omit?: TransactionsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionsInclude<ExtArgs> | null
+    /**
      * Filter, which Transactions to fetch.
      */
     where?: TransactionsWhereInput
@@ -6329,6 +7101,10 @@ export namespace Prisma {
      */
     omit?: TransactionsOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionsInclude<ExtArgs> | null
+    /**
      * The data needed to create a Transactions.
      */
     data: XOR<TransactionsCreateInput, TransactionsUncheckedCreateInput>
@@ -6362,6 +7138,10 @@ export namespace Prisma {
      */
     data: TransactionsCreateManyInput | TransactionsCreateManyInput[]
     skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionsIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -6376,6 +7156,10 @@ export namespace Prisma {
      * Omit specific fields from the Transactions
      */
     omit?: TransactionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionsInclude<ExtArgs> | null
     /**
      * The data needed to update a Transactions.
      */
@@ -6428,6 +7212,10 @@ export namespace Prisma {
      * Limit how many Transactions to update.
      */
     limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionsIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -6442,6 +7230,10 @@ export namespace Prisma {
      * Omit specific fields from the Transactions
      */
     omit?: TransactionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionsInclude<ExtArgs> | null
     /**
      * The filter to search for the Transactions to update in case it exists.
      */
@@ -6468,6 +7260,10 @@ export namespace Prisma {
      * Omit specific fields from the Transactions
      */
     omit?: TransactionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionsInclude<ExtArgs> | null
     /**
      * Filter which Transactions to delete.
      */
@@ -6500,6 +7296,10 @@ export namespace Prisma {
      * Omit specific fields from the Transactions
      */
     omit?: TransactionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionsInclude<ExtArgs> | null
   }
 
 
@@ -6519,6 +7319,7 @@ export namespace Prisma {
 
   export const UsersScalarFieldEnum: {
     id: 'id',
+    name: 'name',
     national_id: 'national_id',
     wallet_address: 'wallet_address',
     salt: 'salt',
@@ -6535,13 +7336,21 @@ export namespace Prisma {
   export const BondsScalarFieldEnum: {
     id: 'id',
     bond_object_id: 'bond_object_id',
-    name: 'name',
+    bond_name: 'bond_name',
+    bond_type: 'bond_type',
+    bond_symbol: 'bond_symbol',
+    organization_name: 'organization_name',
     face_value: 'face_value',
-    price: 'price',
+    tl_unit_offered: 'tl_unit_offered',
+    tl_unit_subscribed: 'tl_unit_subscribed',
     maturity: 'maturity',
     status: 'status',
     interest_rate: 'interest_rate',
-    created_at: 'created_at'
+    purpose: 'purpose',
+    market: 'market',
+    created_at: 'created_at',
+    subscription_period: 'subscription_period',
+    subscription_end_date: 'subscription_end_date'
   };
 
   export type BondsScalarFieldEnum = (typeof BondsScalarFieldEnum)[keyof typeof BondsScalarFieldEnum]
@@ -6564,8 +7373,10 @@ export namespace Prisma {
     id: 'id',
     bond_id: 'bond_id',
     user_id: 'user_id',
+    wallet_address: 'wallet_address',
     committed_amount: 'committed_amount',
     tx_hash: 'tx_hash',
+    subscription_amt: 'subscription_amt',
     created_at: 'created_at'
   };
 
@@ -6670,30 +7481,16 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'Status'
+   * Reference to a field of type 'BondType'
    */
-  export type EnumStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Status'>
+  export type EnumBondTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BondType'>
     
 
 
   /**
-   * Reference to a field of type 'Status[]'
+   * Reference to a field of type 'BondType[]'
    */
-  export type ListEnumStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Status[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'Type'
-   */
-  export type EnumTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Type'>
-    
-
-
-  /**
-   * Reference to a field of type 'Type[]'
-   */
-  export type ListEnumTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Type[]'>
+  export type ListEnumBondTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BondType[]'>
     
 
 
@@ -6708,6 +7505,48 @@ export namespace Prisma {
    * Reference to a field of type 'Int[]'
    */
   export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Status'
+   */
+  export type EnumStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Status'>
+    
+
+
+  /**
+   * Reference to a field of type 'Status[]'
+   */
+  export type ListEnumStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Status[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Market'
+   */
+  export type EnumMarketFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Market'>
+    
+
+
+  /**
+   * Reference to a field of type 'Market[]'
+   */
+  export type ListEnumMarketFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Market[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Type'
+   */
+  export type EnumTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Type'>
+    
+
+
+  /**
+   * Reference to a field of type 'Type[]'
+   */
+  export type ListEnumTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Type[]'>
     
 
 
@@ -6733,6 +7572,7 @@ export namespace Prisma {
     OR?: UsersWhereInput[]
     NOT?: UsersWhereInput | UsersWhereInput[]
     id?: StringFilter<"Users"> | string
+    name?: StringNullableFilter<"Users"> | string | null
     national_id?: BigIntFilter<"Users"> | bigint | number
     wallet_address?: StringFilter<"Users"> | string
     salt?: StringFilter<"Users"> | string
@@ -6741,10 +7581,15 @@ export namespace Prisma {
     role?: EnumRoleFilter<"Users"> | $Enums.Role
     hashed_mnemonic?: StringNullableFilter<"Users"> | string | null
     created_at?: DateTimeFilter<"Users"> | Date | string
+    subscriptions?: SubscriptionsListRelationFilter
+    events?: EventsListRelationFilter
+    transactionsFrom?: TransactionsListRelationFilter
+    transactionsTo?: TransactionsListRelationFilter
   }
 
   export type UsersOrderByWithRelationInput = {
     id?: SortOrder
+    name?: SortOrderInput | SortOrder
     national_id?: SortOrder
     wallet_address?: SortOrder
     salt?: SortOrder
@@ -6753,6 +7598,10 @@ export namespace Prisma {
     role?: SortOrder
     hashed_mnemonic?: SortOrderInput | SortOrder
     created_at?: SortOrder
+    subscriptions?: SubscriptionsOrderByRelationAggregateInput
+    events?: EventsOrderByRelationAggregateInput
+    transactionsFrom?: TransactionsOrderByRelationAggregateInput
+    transactionsTo?: TransactionsOrderByRelationAggregateInput
   }
 
   export type UsersWhereUniqueInput = Prisma.AtLeast<{
@@ -6763,15 +7612,21 @@ export namespace Prisma {
     AND?: UsersWhereInput | UsersWhereInput[]
     OR?: UsersWhereInput[]
     NOT?: UsersWhereInput | UsersWhereInput[]
+    name?: StringNullableFilter<"Users"> | string | null
     salt?: StringFilter<"Users"> | string
     password?: StringNullableFilter<"Users"> | string | null
     role?: EnumRoleFilter<"Users"> | $Enums.Role
     hashed_mnemonic?: StringNullableFilter<"Users"> | string | null
     created_at?: DateTimeFilter<"Users"> | Date | string
+    subscriptions?: SubscriptionsListRelationFilter
+    events?: EventsListRelationFilter
+    transactionsFrom?: TransactionsListRelationFilter
+    transactionsTo?: TransactionsListRelationFilter
   }, "id" | "national_id" | "wallet_address" | "email">
 
   export type UsersOrderByWithAggregationInput = {
     id?: SortOrder
+    name?: SortOrderInput | SortOrder
     national_id?: SortOrder
     wallet_address?: SortOrder
     salt?: SortOrder
@@ -6792,6 +7647,7 @@ export namespace Prisma {
     OR?: UsersScalarWhereWithAggregatesInput[]
     NOT?: UsersScalarWhereWithAggregatesInput | UsersScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Users"> | string
+    name?: StringNullableWithAggregatesFilter<"Users"> | string | null
     national_id?: BigIntWithAggregatesFilter<"Users"> | bigint | number
     wallet_address?: StringWithAggregatesFilter<"Users"> | string
     salt?: StringWithAggregatesFilter<"Users"> | string
@@ -6807,26 +7663,48 @@ export namespace Prisma {
     OR?: BondsWhereInput[]
     NOT?: BondsWhereInput | BondsWhereInput[]
     id?: StringFilter<"Bonds"> | string
-    bond_object_id?: StringFilter<"Bonds"> | string
-    name?: StringFilter<"Bonds"> | string
+    bond_object_id?: StringNullableFilter<"Bonds"> | string | null
+    bond_name?: StringFilter<"Bonds"> | string
+    bond_type?: EnumBondTypeFilter<"Bonds"> | $Enums.BondType
+    bond_symbol?: StringFilter<"Bonds"> | string
+    organization_name?: StringFilter<"Bonds"> | string
     face_value?: BigIntFilter<"Bonds"> | bigint | number
-    price?: BigIntFilter<"Bonds"> | bigint | number
+    tl_unit_offered?: IntFilter<"Bonds"> | number
+    tl_unit_subscribed?: IntNullableFilter<"Bonds"> | number | null
     maturity?: DateTimeFilter<"Bonds"> | Date | string
     status?: EnumStatusFilter<"Bonds"> | $Enums.Status
     interest_rate?: StringFilter<"Bonds"> | string
+    purpose?: StringFilter<"Bonds"> | string
+    market?: EnumMarketNullableFilter<"Bonds"> | $Enums.Market | null
     created_at?: DateTimeFilter<"Bonds"> | Date | string
+    subscription_period?: IntFilter<"Bonds"> | number
+    subscription_end_date?: DateTimeFilter<"Bonds"> | Date | string
+    subscriptions?: SubscriptionsListRelationFilter
+    events?: EventsListRelationFilter
+    transactions?: TransactionsListRelationFilter
   }
 
   export type BondsOrderByWithRelationInput = {
     id?: SortOrder
-    bond_object_id?: SortOrder
-    name?: SortOrder
+    bond_object_id?: SortOrderInput | SortOrder
+    bond_name?: SortOrder
+    bond_type?: SortOrder
+    bond_symbol?: SortOrder
+    organization_name?: SortOrder
     face_value?: SortOrder
-    price?: SortOrder
+    tl_unit_offered?: SortOrder
+    tl_unit_subscribed?: SortOrderInput | SortOrder
     maturity?: SortOrder
     status?: SortOrder
     interest_rate?: SortOrder
+    purpose?: SortOrder
+    market?: SortOrderInput | SortOrder
     created_at?: SortOrder
+    subscription_period?: SortOrder
+    subscription_end_date?: SortOrder
+    subscriptions?: SubscriptionsOrderByRelationAggregateInput
+    events?: EventsOrderByRelationAggregateInput
+    transactions?: TransactionsOrderByRelationAggregateInput
   }
 
   export type BondsWhereUniqueInput = Prisma.AtLeast<{
@@ -6834,26 +7712,45 @@ export namespace Prisma {
     AND?: BondsWhereInput | BondsWhereInput[]
     OR?: BondsWhereInput[]
     NOT?: BondsWhereInput | BondsWhereInput[]
-    bond_object_id?: StringFilter<"Bonds"> | string
-    name?: StringFilter<"Bonds"> | string
+    bond_object_id?: StringNullableFilter<"Bonds"> | string | null
+    bond_name?: StringFilter<"Bonds"> | string
+    bond_type?: EnumBondTypeFilter<"Bonds"> | $Enums.BondType
+    bond_symbol?: StringFilter<"Bonds"> | string
+    organization_name?: StringFilter<"Bonds"> | string
     face_value?: BigIntFilter<"Bonds"> | bigint | number
-    price?: BigIntFilter<"Bonds"> | bigint | number
+    tl_unit_offered?: IntFilter<"Bonds"> | number
+    tl_unit_subscribed?: IntNullableFilter<"Bonds"> | number | null
     maturity?: DateTimeFilter<"Bonds"> | Date | string
     status?: EnumStatusFilter<"Bonds"> | $Enums.Status
     interest_rate?: StringFilter<"Bonds"> | string
+    purpose?: StringFilter<"Bonds"> | string
+    market?: EnumMarketNullableFilter<"Bonds"> | $Enums.Market | null
     created_at?: DateTimeFilter<"Bonds"> | Date | string
+    subscription_period?: IntFilter<"Bonds"> | number
+    subscription_end_date?: DateTimeFilter<"Bonds"> | Date | string
+    subscriptions?: SubscriptionsListRelationFilter
+    events?: EventsListRelationFilter
+    transactions?: TransactionsListRelationFilter
   }, "id">
 
   export type BondsOrderByWithAggregationInput = {
     id?: SortOrder
-    bond_object_id?: SortOrder
-    name?: SortOrder
+    bond_object_id?: SortOrderInput | SortOrder
+    bond_name?: SortOrder
+    bond_type?: SortOrder
+    bond_symbol?: SortOrder
+    organization_name?: SortOrder
     face_value?: SortOrder
-    price?: SortOrder
+    tl_unit_offered?: SortOrder
+    tl_unit_subscribed?: SortOrderInput | SortOrder
     maturity?: SortOrder
     status?: SortOrder
     interest_rate?: SortOrder
+    purpose?: SortOrder
+    market?: SortOrderInput | SortOrder
     created_at?: SortOrder
+    subscription_period?: SortOrder
+    subscription_end_date?: SortOrder
     _count?: BondsCountOrderByAggregateInput
     _avg?: BondsAvgOrderByAggregateInput
     _max?: BondsMaxOrderByAggregateInput
@@ -6866,14 +7763,22 @@ export namespace Prisma {
     OR?: BondsScalarWhereWithAggregatesInput[]
     NOT?: BondsScalarWhereWithAggregatesInput | BondsScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Bonds"> | string
-    bond_object_id?: StringWithAggregatesFilter<"Bonds"> | string
-    name?: StringWithAggregatesFilter<"Bonds"> | string
+    bond_object_id?: StringNullableWithAggregatesFilter<"Bonds"> | string | null
+    bond_name?: StringWithAggregatesFilter<"Bonds"> | string
+    bond_type?: EnumBondTypeWithAggregatesFilter<"Bonds"> | $Enums.BondType
+    bond_symbol?: StringWithAggregatesFilter<"Bonds"> | string
+    organization_name?: StringWithAggregatesFilter<"Bonds"> | string
     face_value?: BigIntWithAggregatesFilter<"Bonds"> | bigint | number
-    price?: BigIntWithAggregatesFilter<"Bonds"> | bigint | number
+    tl_unit_offered?: IntWithAggregatesFilter<"Bonds"> | number
+    tl_unit_subscribed?: IntNullableWithAggregatesFilter<"Bonds"> | number | null
     maturity?: DateTimeWithAggregatesFilter<"Bonds"> | Date | string
     status?: EnumStatusWithAggregatesFilter<"Bonds"> | $Enums.Status
     interest_rate?: StringWithAggregatesFilter<"Bonds"> | string
+    purpose?: StringWithAggregatesFilter<"Bonds"> | string
+    market?: EnumMarketNullableWithAggregatesFilter<"Bonds"> | $Enums.Market | null
     created_at?: DateTimeWithAggregatesFilter<"Bonds"> | Date | string
+    subscription_period?: IntWithAggregatesFilter<"Bonds"> | number
+    subscription_end_date?: DateTimeWithAggregatesFilter<"Bonds"> | Date | string
   }
 
   export type EventsWhereInput = {
@@ -6887,6 +7792,8 @@ export namespace Prisma {
     details?: StringFilter<"Events"> | string
     tx_hash?: StringFilter<"Events"> | string
     created_at?: DateTimeFilter<"Events"> | Date | string
+    bond?: XOR<BondsScalarRelationFilter, BondsWhereInput>
+    user?: XOR<UsersScalarRelationFilter, UsersWhereInput>
   }
 
   export type EventsOrderByWithRelationInput = {
@@ -6897,6 +7804,8 @@ export namespace Prisma {
     details?: SortOrder
     tx_hash?: SortOrder
     created_at?: SortOrder
+    bond?: BondsOrderByWithRelationInput
+    user?: UsersOrderByWithRelationInput
   }
 
   export type EventsWhereUniqueInput = Prisma.AtLeast<{
@@ -6910,6 +7819,8 @@ export namespace Prisma {
     details?: StringFilter<"Events"> | string
     tx_hash?: StringFilter<"Events"> | string
     created_at?: DateTimeFilter<"Events"> | Date | string
+    bond?: XOR<BondsScalarRelationFilter, BondsWhereInput>
+    user?: XOR<UsersScalarRelationFilter, UsersWhereInput>
   }, "id">
 
   export type EventsOrderByWithAggregationInput = {
@@ -6945,18 +7856,26 @@ export namespace Prisma {
     id?: StringFilter<"Subscriptions"> | string
     bond_id?: StringFilter<"Subscriptions"> | string
     user_id?: StringFilter<"Subscriptions"> | string
+    wallet_address?: StringFilter<"Subscriptions"> | string
     committed_amount?: BigIntFilter<"Subscriptions"> | bigint | number
     tx_hash?: StringFilter<"Subscriptions"> | string
+    subscription_amt?: BigIntNullableFilter<"Subscriptions"> | bigint | number | null
     created_at?: DateTimeFilter<"Subscriptions"> | Date | string
+    bond?: XOR<BondsScalarRelationFilter, BondsWhereInput>
+    user?: XOR<UsersScalarRelationFilter, UsersWhereInput>
   }
 
   export type SubscriptionsOrderByWithRelationInput = {
     id?: SortOrder
     bond_id?: SortOrder
     user_id?: SortOrder
+    wallet_address?: SortOrder
     committed_amount?: SortOrder
     tx_hash?: SortOrder
+    subscription_amt?: SortOrderInput | SortOrder
     created_at?: SortOrder
+    bond?: BondsOrderByWithRelationInput
+    user?: UsersOrderByWithRelationInput
   }
 
   export type SubscriptionsWhereUniqueInput = Prisma.AtLeast<{
@@ -6966,17 +7885,23 @@ export namespace Prisma {
     NOT?: SubscriptionsWhereInput | SubscriptionsWhereInput[]
     bond_id?: StringFilter<"Subscriptions"> | string
     user_id?: StringFilter<"Subscriptions"> | string
+    wallet_address?: StringFilter<"Subscriptions"> | string
     committed_amount?: BigIntFilter<"Subscriptions"> | bigint | number
     tx_hash?: StringFilter<"Subscriptions"> | string
+    subscription_amt?: BigIntNullableFilter<"Subscriptions"> | bigint | number | null
     created_at?: DateTimeFilter<"Subscriptions"> | Date | string
+    bond?: XOR<BondsScalarRelationFilter, BondsWhereInput>
+    user?: XOR<UsersScalarRelationFilter, UsersWhereInput>
   }, "id">
 
   export type SubscriptionsOrderByWithAggregationInput = {
     id?: SortOrder
     bond_id?: SortOrder
     user_id?: SortOrder
+    wallet_address?: SortOrder
     committed_amount?: SortOrder
     tx_hash?: SortOrder
+    subscription_amt?: SortOrderInput | SortOrder
     created_at?: SortOrder
     _count?: SubscriptionsCountOrderByAggregateInput
     _avg?: SubscriptionsAvgOrderByAggregateInput
@@ -6992,8 +7917,10 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Subscriptions"> | string
     bond_id?: StringWithAggregatesFilter<"Subscriptions"> | string
     user_id?: StringWithAggregatesFilter<"Subscriptions"> | string
+    wallet_address?: StringWithAggregatesFilter<"Subscriptions"> | string
     committed_amount?: BigIntWithAggregatesFilter<"Subscriptions"> | bigint | number
     tx_hash?: StringWithAggregatesFilter<"Subscriptions"> | string
+    subscription_amt?: BigIntNullableWithAggregatesFilter<"Subscriptions"> | bigint | number | null
     created_at?: DateTimeWithAggregatesFilter<"Subscriptions"> | Date | string
   }
 
@@ -7007,6 +7934,9 @@ export namespace Prisma {
     user_to?: StringFilter<"Transactions"> | string
     tx_hash?: StringFilter<"Transactions"> | string
     created_at?: DateTimeFilter<"Transactions"> | Date | string
+    bond?: XOR<BondsScalarRelationFilter, BondsWhereInput>
+    from?: XOR<UsersScalarRelationFilter, UsersWhereInput>
+    to?: XOR<UsersScalarRelationFilter, UsersWhereInput>
   }
 
   export type TransactionsOrderByWithRelationInput = {
@@ -7016,6 +7946,9 @@ export namespace Prisma {
     user_to?: SortOrder
     tx_hash?: SortOrder
     created_at?: SortOrder
+    bond?: BondsOrderByWithRelationInput
+    from?: UsersOrderByWithRelationInput
+    to?: UsersOrderByWithRelationInput
   }
 
   export type TransactionsWhereUniqueInput = Prisma.AtLeast<{
@@ -7028,6 +7961,9 @@ export namespace Prisma {
     user_to?: StringFilter<"Transactions"> | string
     tx_hash?: StringFilter<"Transactions"> | string
     created_at?: DateTimeFilter<"Transactions"> | Date | string
+    bond?: XOR<BondsScalarRelationFilter, BondsWhereInput>
+    from?: XOR<UsersScalarRelationFilter, UsersWhereInput>
+    to?: XOR<UsersScalarRelationFilter, UsersWhereInput>
   }, "id">
 
   export type TransactionsOrderByWithAggregationInput = {
@@ -7056,6 +7992,7 @@ export namespace Prisma {
 
   export type UsersCreateInput = {
     id?: string
+    name?: string | null
     national_id: bigint | number
     wallet_address: string
     salt: string
@@ -7064,10 +8001,15 @@ export namespace Prisma {
     role: $Enums.Role
     hashed_mnemonic?: string | null
     created_at?: Date | string
+    subscriptions?: SubscriptionsCreateNestedManyWithoutUserInput
+    events?: EventsCreateNestedManyWithoutUserInput
+    transactionsFrom?: TransactionsCreateNestedManyWithoutFromInput
+    transactionsTo?: TransactionsCreateNestedManyWithoutToInput
   }
 
   export type UsersUncheckedCreateInput = {
     id?: string
+    name?: string | null
     national_id: bigint | number
     wallet_address: string
     salt: string
@@ -7076,10 +8018,15 @@ export namespace Prisma {
     role: $Enums.Role
     hashed_mnemonic?: string | null
     created_at?: Date | string
+    subscriptions?: SubscriptionsUncheckedCreateNestedManyWithoutUserInput
+    events?: EventsUncheckedCreateNestedManyWithoutUserInput
+    transactionsFrom?: TransactionsUncheckedCreateNestedManyWithoutFromInput
+    transactionsTo?: TransactionsUncheckedCreateNestedManyWithoutToInput
   }
 
   export type UsersUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
     national_id?: BigIntFieldUpdateOperationsInput | bigint | number
     wallet_address?: StringFieldUpdateOperationsInput | string
     salt?: StringFieldUpdateOperationsInput | string
@@ -7088,10 +8035,15 @@ export namespace Prisma {
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscriptions?: SubscriptionsUpdateManyWithoutUserNestedInput
+    events?: EventsUpdateManyWithoutUserNestedInput
+    transactionsFrom?: TransactionsUpdateManyWithoutFromNestedInput
+    transactionsTo?: TransactionsUpdateManyWithoutToNestedInput
   }
 
   export type UsersUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
     national_id?: BigIntFieldUpdateOperationsInput | bigint | number
     wallet_address?: StringFieldUpdateOperationsInput | string
     salt?: StringFieldUpdateOperationsInput | string
@@ -7100,10 +8052,15 @@ export namespace Prisma {
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscriptions?: SubscriptionsUncheckedUpdateManyWithoutUserNestedInput
+    events?: EventsUncheckedUpdateManyWithoutUserNestedInput
+    transactionsFrom?: TransactionsUncheckedUpdateManyWithoutFromNestedInput
+    transactionsTo?: TransactionsUncheckedUpdateManyWithoutToNestedInput
   }
 
   export type UsersCreateManyInput = {
     id?: string
+    name?: string | null
     national_id: bigint | number
     wallet_address: string
     salt: string
@@ -7116,6 +8073,7 @@ export namespace Prisma {
 
   export type UsersUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
     national_id?: BigIntFieldUpdateOperationsInput | bigint | number
     wallet_address?: StringFieldUpdateOperationsInput | string
     salt?: StringFieldUpdateOperationsInput | string
@@ -7128,6 +8086,7 @@ export namespace Prisma {
 
   export type UsersUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
     national_id?: BigIntFieldUpdateOperationsInput | bigint | number
     wallet_address?: StringFieldUpdateOperationsInput | string
     salt?: StringFieldUpdateOperationsInput | string
@@ -7140,96 +8099,164 @@ export namespace Prisma {
 
   export type BondsCreateInput = {
     id?: string
-    bond_object_id: string
-    name: string
+    bond_object_id?: string | null
+    bond_name: string
+    bond_type: $Enums.BondType
+    bond_symbol: string
+    organization_name: string
     face_value: bigint | number
-    price: bigint | number
+    tl_unit_offered: number
+    tl_unit_subscribed?: number | null
     maturity: Date | string
     status: $Enums.Status
     interest_rate: string
+    purpose: string
+    market?: $Enums.Market | null
     created_at?: Date | string
+    subscription_period: number
+    subscription_end_date: Date | string
+    subscriptions?: SubscriptionsCreateNestedManyWithoutBondInput
+    events?: EventsCreateNestedManyWithoutBondInput
+    transactions?: TransactionsCreateNestedManyWithoutBondInput
   }
 
   export type BondsUncheckedCreateInput = {
     id?: string
-    bond_object_id: string
-    name: string
+    bond_object_id?: string | null
+    bond_name: string
+    bond_type: $Enums.BondType
+    bond_symbol: string
+    organization_name: string
     face_value: bigint | number
-    price: bigint | number
+    tl_unit_offered: number
+    tl_unit_subscribed?: number | null
     maturity: Date | string
     status: $Enums.Status
     interest_rate: string
+    purpose: string
+    market?: $Enums.Market | null
     created_at?: Date | string
+    subscription_period: number
+    subscription_end_date: Date | string
+    subscriptions?: SubscriptionsUncheckedCreateNestedManyWithoutBondInput
+    events?: EventsUncheckedCreateNestedManyWithoutBondInput
+    transactions?: TransactionsUncheckedCreateNestedManyWithoutBondInput
   }
 
   export type BondsUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    bond_object_id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
+    bond_object_id?: NullableStringFieldUpdateOperationsInput | string | null
+    bond_name?: StringFieldUpdateOperationsInput | string
+    bond_type?: EnumBondTypeFieldUpdateOperationsInput | $Enums.BondType
+    bond_symbol?: StringFieldUpdateOperationsInput | string
+    organization_name?: StringFieldUpdateOperationsInput | string
     face_value?: BigIntFieldUpdateOperationsInput | bigint | number
-    price?: BigIntFieldUpdateOperationsInput | bigint | number
+    tl_unit_offered?: IntFieldUpdateOperationsInput | number
+    tl_unit_subscribed?: NullableIntFieldUpdateOperationsInput | number | null
     maturity?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     interest_rate?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    market?: NullableEnumMarketFieldUpdateOperationsInput | $Enums.Market | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscription_period?: IntFieldUpdateOperationsInput | number
+    subscription_end_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscriptions?: SubscriptionsUpdateManyWithoutBondNestedInput
+    events?: EventsUpdateManyWithoutBondNestedInput
+    transactions?: TransactionsUpdateManyWithoutBondNestedInput
   }
 
   export type BondsUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    bond_object_id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
+    bond_object_id?: NullableStringFieldUpdateOperationsInput | string | null
+    bond_name?: StringFieldUpdateOperationsInput | string
+    bond_type?: EnumBondTypeFieldUpdateOperationsInput | $Enums.BondType
+    bond_symbol?: StringFieldUpdateOperationsInput | string
+    organization_name?: StringFieldUpdateOperationsInput | string
     face_value?: BigIntFieldUpdateOperationsInput | bigint | number
-    price?: BigIntFieldUpdateOperationsInput | bigint | number
+    tl_unit_offered?: IntFieldUpdateOperationsInput | number
+    tl_unit_subscribed?: NullableIntFieldUpdateOperationsInput | number | null
     maturity?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     interest_rate?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    market?: NullableEnumMarketFieldUpdateOperationsInput | $Enums.Market | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscription_period?: IntFieldUpdateOperationsInput | number
+    subscription_end_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscriptions?: SubscriptionsUncheckedUpdateManyWithoutBondNestedInput
+    events?: EventsUncheckedUpdateManyWithoutBondNestedInput
+    transactions?: TransactionsUncheckedUpdateManyWithoutBondNestedInput
   }
 
   export type BondsCreateManyInput = {
     id?: string
-    bond_object_id: string
-    name: string
+    bond_object_id?: string | null
+    bond_name: string
+    bond_type: $Enums.BondType
+    bond_symbol: string
+    organization_name: string
     face_value: bigint | number
-    price: bigint | number
+    tl_unit_offered: number
+    tl_unit_subscribed?: number | null
     maturity: Date | string
     status: $Enums.Status
     interest_rate: string
+    purpose: string
+    market?: $Enums.Market | null
     created_at?: Date | string
+    subscription_period: number
+    subscription_end_date: Date | string
   }
 
   export type BondsUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    bond_object_id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
+    bond_object_id?: NullableStringFieldUpdateOperationsInput | string | null
+    bond_name?: StringFieldUpdateOperationsInput | string
+    bond_type?: EnumBondTypeFieldUpdateOperationsInput | $Enums.BondType
+    bond_symbol?: StringFieldUpdateOperationsInput | string
+    organization_name?: StringFieldUpdateOperationsInput | string
     face_value?: BigIntFieldUpdateOperationsInput | bigint | number
-    price?: BigIntFieldUpdateOperationsInput | bigint | number
+    tl_unit_offered?: IntFieldUpdateOperationsInput | number
+    tl_unit_subscribed?: NullableIntFieldUpdateOperationsInput | number | null
     maturity?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     interest_rate?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    market?: NullableEnumMarketFieldUpdateOperationsInput | $Enums.Market | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscription_period?: IntFieldUpdateOperationsInput | number
+    subscription_end_date?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type BondsUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
-    bond_object_id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
+    bond_object_id?: NullableStringFieldUpdateOperationsInput | string | null
+    bond_name?: StringFieldUpdateOperationsInput | string
+    bond_type?: EnumBondTypeFieldUpdateOperationsInput | $Enums.BondType
+    bond_symbol?: StringFieldUpdateOperationsInput | string
+    organization_name?: StringFieldUpdateOperationsInput | string
     face_value?: BigIntFieldUpdateOperationsInput | bigint | number
-    price?: BigIntFieldUpdateOperationsInput | bigint | number
+    tl_unit_offered?: IntFieldUpdateOperationsInput | number
+    tl_unit_subscribed?: NullableIntFieldUpdateOperationsInput | number | null
     maturity?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     interest_rate?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    market?: NullableEnumMarketFieldUpdateOperationsInput | $Enums.Market | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscription_period?: IntFieldUpdateOperationsInput | number
+    subscription_end_date?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type EventsCreateInput = {
     id?: string
     type: $Enums.Type
-    bond_id: string
-    user_id: string
     details: string
     tx_hash: string
     created_at?: Date | string
+    bond: BondsCreateNestedOneWithoutEventsInput
+    user: UsersCreateNestedOneWithoutEventsInput
   }
 
   export type EventsUncheckedCreateInput = {
@@ -7245,11 +8272,11 @@ export namespace Prisma {
   export type EventsUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     type?: EnumTypeFieldUpdateOperationsInput | $Enums.Type
-    bond_id?: StringFieldUpdateOperationsInput | string
-    user_id?: StringFieldUpdateOperationsInput | string
     details?: StringFieldUpdateOperationsInput | string
     tx_hash?: StringFieldUpdateOperationsInput | string
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    bond?: BondsUpdateOneRequiredWithoutEventsNestedInput
+    user?: UsersUpdateOneRequiredWithoutEventsNestedInput
   }
 
   export type EventsUncheckedUpdateInput = {
@@ -7275,8 +8302,6 @@ export namespace Prisma {
   export type EventsUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     type?: EnumTypeFieldUpdateOperationsInput | $Enums.Type
-    bond_id?: StringFieldUpdateOperationsInput | string
-    user_id?: StringFieldUpdateOperationsInput | string
     details?: StringFieldUpdateOperationsInput | string
     tx_hash?: StringFieldUpdateOperationsInput | string
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -7294,37 +8319,45 @@ export namespace Prisma {
 
   export type SubscriptionsCreateInput = {
     id?: string
-    bond_id: string
-    user_id: string
+    wallet_address: string
     committed_amount: bigint | number
     tx_hash: string
+    subscription_amt?: bigint | number | null
     created_at?: Date | string
+    bond: BondsCreateNestedOneWithoutSubscriptionsInput
+    user: UsersCreateNestedOneWithoutSubscriptionsInput
   }
 
   export type SubscriptionsUncheckedCreateInput = {
     id?: string
     bond_id: string
     user_id: string
+    wallet_address: string
     committed_amount: bigint | number
     tx_hash: string
+    subscription_amt?: bigint | number | null
     created_at?: Date | string
   }
 
   export type SubscriptionsUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    bond_id?: StringFieldUpdateOperationsInput | string
-    user_id?: StringFieldUpdateOperationsInput | string
+    wallet_address?: StringFieldUpdateOperationsInput | string
     committed_amount?: BigIntFieldUpdateOperationsInput | bigint | number
     tx_hash?: StringFieldUpdateOperationsInput | string
+    subscription_amt?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    bond?: BondsUpdateOneRequiredWithoutSubscriptionsNestedInput
+    user?: UsersUpdateOneRequiredWithoutSubscriptionsNestedInput
   }
 
   export type SubscriptionsUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     bond_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
+    wallet_address?: StringFieldUpdateOperationsInput | string
     committed_amount?: BigIntFieldUpdateOperationsInput | bigint | number
     tx_hash?: StringFieldUpdateOperationsInput | string
+    subscription_amt?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -7332,17 +8365,19 @@ export namespace Prisma {
     id?: string
     bond_id: string
     user_id: string
+    wallet_address: string
     committed_amount: bigint | number
     tx_hash: string
+    subscription_amt?: bigint | number | null
     created_at?: Date | string
   }
 
   export type SubscriptionsUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    bond_id?: StringFieldUpdateOperationsInput | string
-    user_id?: StringFieldUpdateOperationsInput | string
+    wallet_address?: StringFieldUpdateOperationsInput | string
     committed_amount?: BigIntFieldUpdateOperationsInput | bigint | number
     tx_hash?: StringFieldUpdateOperationsInput | string
+    subscription_amt?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -7350,18 +8385,20 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     bond_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
+    wallet_address?: StringFieldUpdateOperationsInput | string
     committed_amount?: BigIntFieldUpdateOperationsInput | bigint | number
     tx_hash?: StringFieldUpdateOperationsInput | string
+    subscription_amt?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TransactionsCreateInput = {
     id?: string
-    bond_id: string
-    user_from: string
-    user_to: string
     tx_hash: string
     created_at?: Date | string
+    bond: BondsCreateNestedOneWithoutTransactionsInput
+    from: UsersCreateNestedOneWithoutTransactionsFromInput
+    to: UsersCreateNestedOneWithoutTransactionsToInput
   }
 
   export type TransactionsUncheckedCreateInput = {
@@ -7375,11 +8412,11 @@ export namespace Prisma {
 
   export type TransactionsUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    bond_id?: StringFieldUpdateOperationsInput | string
-    user_from?: StringFieldUpdateOperationsInput | string
-    user_to?: StringFieldUpdateOperationsInput | string
     tx_hash?: StringFieldUpdateOperationsInput | string
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    bond?: BondsUpdateOneRequiredWithoutTransactionsNestedInput
+    from?: UsersUpdateOneRequiredWithoutTransactionsFromNestedInput
+    to?: UsersUpdateOneRequiredWithoutTransactionsToNestedInput
   }
 
   export type TransactionsUncheckedUpdateInput = {
@@ -7402,9 +8439,6 @@ export namespace Prisma {
 
   export type TransactionsUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    bond_id?: StringFieldUpdateOperationsInput | string
-    user_from?: StringFieldUpdateOperationsInput | string
-    user_to?: StringFieldUpdateOperationsInput | string
     tx_hash?: StringFieldUpdateOperationsInput | string
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -7433,17 +8467,6 @@ export namespace Prisma {
     not?: NestedStringFilter<$PrismaModel> | string
   }
 
-  export type BigIntFilter<$PrismaModel = never> = {
-    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
-    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
-    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    not?: NestedBigIntFilter<$PrismaModel> | bigint | number
-  }
-
   export type StringNullableFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
     in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
@@ -7457,6 +8480,17 @@ export namespace Prisma {
     endsWith?: string | StringFieldRefInput<$PrismaModel>
     mode?: QueryMode
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
+  }
+
+  export type BigIntFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntFilter<$PrismaModel> | bigint | number
   }
 
   export type EnumRoleFilter<$PrismaModel = never> = {
@@ -7477,13 +8511,44 @@ export namespace Prisma {
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
+  export type SubscriptionsListRelationFilter = {
+    every?: SubscriptionsWhereInput
+    some?: SubscriptionsWhereInput
+    none?: SubscriptionsWhereInput
+  }
+
+  export type EventsListRelationFilter = {
+    every?: EventsWhereInput
+    some?: EventsWhereInput
+    none?: EventsWhereInput
+  }
+
+  export type TransactionsListRelationFilter = {
+    every?: TransactionsWhereInput
+    some?: TransactionsWhereInput
+    none?: TransactionsWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
   }
 
+  export type SubscriptionsOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type EventsOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type TransactionsOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type UsersCountOrderByAggregateInput = {
     id?: SortOrder
+    name?: SortOrder
     national_id?: SortOrder
     wallet_address?: SortOrder
     salt?: SortOrder
@@ -7500,6 +8565,7 @@ export namespace Prisma {
 
   export type UsersMaxOrderByAggregateInput = {
     id?: SortOrder
+    name?: SortOrder
     national_id?: SortOrder
     wallet_address?: SortOrder
     salt?: SortOrder
@@ -7512,6 +8578,7 @@ export namespace Prisma {
 
   export type UsersMinOrderByAggregateInput = {
     id?: SortOrder
+    name?: SortOrder
     national_id?: SortOrder
     wallet_address?: SortOrder
     salt?: SortOrder
@@ -7544,22 +8611,6 @@ export namespace Prisma {
     _max?: NestedStringFilter<$PrismaModel>
   }
 
-  export type BigIntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
-    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
-    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    not?: NestedBigIntWithAggregatesFilter<$PrismaModel> | bigint | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedBigIntFilter<$PrismaModel>
-    _min?: NestedBigIntFilter<$PrismaModel>
-    _max?: NestedBigIntFilter<$PrismaModel>
-  }
-
   export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
     in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
@@ -7576,6 +8627,22 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedStringNullableFilter<$PrismaModel>
     _max?: NestedStringNullableFilter<$PrismaModel>
+  }
+
+  export type BigIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntWithAggregatesFilter<$PrismaModel> | bigint | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedBigIntFilter<$PrismaModel>
+    _min?: NestedBigIntFilter<$PrismaModel>
+    _max?: NestedBigIntFilter<$PrismaModel>
   }
 
   export type EnumRoleWithAggregatesFilter<$PrismaModel = never> = {
@@ -7602,6 +8669,35 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type EnumBondTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.BondType | EnumBondTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BondType[] | ListEnumBondTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BondType[] | ListEnumBondTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumBondTypeFilter<$PrismaModel> | $Enums.BondType
+  }
+
+  export type IntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type EnumStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.Status | EnumStatusFieldRefInput<$PrismaModel>
     in?: $Enums.Status[] | ListEnumStatusFieldRefInput<$PrismaModel>
@@ -7609,50 +8705,127 @@ export namespace Prisma {
     not?: NestedEnumStatusFilter<$PrismaModel> | $Enums.Status
   }
 
+  export type EnumMarketNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.Market | EnumMarketFieldRefInput<$PrismaModel> | null
+    in?: $Enums.Market[] | ListEnumMarketFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.Market[] | ListEnumMarketFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumMarketNullableFilter<$PrismaModel> | $Enums.Market | null
+  }
+
   export type BondsCountOrderByAggregateInput = {
     id?: SortOrder
     bond_object_id?: SortOrder
-    name?: SortOrder
+    bond_name?: SortOrder
+    bond_type?: SortOrder
+    bond_symbol?: SortOrder
+    organization_name?: SortOrder
     face_value?: SortOrder
-    price?: SortOrder
+    tl_unit_offered?: SortOrder
+    tl_unit_subscribed?: SortOrder
     maturity?: SortOrder
     status?: SortOrder
     interest_rate?: SortOrder
+    purpose?: SortOrder
+    market?: SortOrder
     created_at?: SortOrder
+    subscription_period?: SortOrder
+    subscription_end_date?: SortOrder
   }
 
   export type BondsAvgOrderByAggregateInput = {
     face_value?: SortOrder
-    price?: SortOrder
+    tl_unit_offered?: SortOrder
+    tl_unit_subscribed?: SortOrder
+    subscription_period?: SortOrder
   }
 
   export type BondsMaxOrderByAggregateInput = {
     id?: SortOrder
     bond_object_id?: SortOrder
-    name?: SortOrder
+    bond_name?: SortOrder
+    bond_type?: SortOrder
+    bond_symbol?: SortOrder
+    organization_name?: SortOrder
     face_value?: SortOrder
-    price?: SortOrder
+    tl_unit_offered?: SortOrder
+    tl_unit_subscribed?: SortOrder
     maturity?: SortOrder
     status?: SortOrder
     interest_rate?: SortOrder
+    purpose?: SortOrder
+    market?: SortOrder
     created_at?: SortOrder
+    subscription_period?: SortOrder
+    subscription_end_date?: SortOrder
   }
 
   export type BondsMinOrderByAggregateInput = {
     id?: SortOrder
     bond_object_id?: SortOrder
-    name?: SortOrder
+    bond_name?: SortOrder
+    bond_type?: SortOrder
+    bond_symbol?: SortOrder
+    organization_name?: SortOrder
     face_value?: SortOrder
-    price?: SortOrder
+    tl_unit_offered?: SortOrder
+    tl_unit_subscribed?: SortOrder
     maturity?: SortOrder
     status?: SortOrder
     interest_rate?: SortOrder
+    purpose?: SortOrder
+    market?: SortOrder
     created_at?: SortOrder
+    subscription_period?: SortOrder
+    subscription_end_date?: SortOrder
   }
 
   export type BondsSumOrderByAggregateInput = {
     face_value?: SortOrder
-    price?: SortOrder
+    tl_unit_offered?: SortOrder
+    tl_unit_subscribed?: SortOrder
+    subscription_period?: SortOrder
+  }
+
+  export type EnumBondTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BondType | EnumBondTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BondType[] | ListEnumBondTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BondType[] | ListEnumBondTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumBondTypeWithAggregatesFilter<$PrismaModel> | $Enums.BondType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBondTypeFilter<$PrismaModel>
+    _max?: NestedEnumBondTypeFilter<$PrismaModel>
+  }
+
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type EnumStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -7665,11 +8838,31 @@ export namespace Prisma {
     _max?: NestedEnumStatusFilter<$PrismaModel>
   }
 
+  export type EnumMarketNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.Market | EnumMarketFieldRefInput<$PrismaModel> | null
+    in?: $Enums.Market[] | ListEnumMarketFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.Market[] | ListEnumMarketFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumMarketNullableWithAggregatesFilter<$PrismaModel> | $Enums.Market | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumMarketNullableFilter<$PrismaModel>
+    _max?: NestedEnumMarketNullableFilter<$PrismaModel>
+  }
+
   export type EnumTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.Type | EnumTypeFieldRefInput<$PrismaModel>
     in?: $Enums.Type[] | ListEnumTypeFieldRefInput<$PrismaModel>
     notIn?: $Enums.Type[] | ListEnumTypeFieldRefInput<$PrismaModel>
     not?: NestedEnumTypeFilter<$PrismaModel> | $Enums.Type
+  }
+
+  export type BondsScalarRelationFilter = {
+    is?: BondsWhereInput
+    isNot?: BondsWhereInput
+  }
+
+  export type UsersScalarRelationFilter = {
+    is?: UsersWhereInput
+    isNot?: UsersWhereInput
   }
 
   export type EventsCountOrderByAggregateInput = {
@@ -7712,25 +8905,41 @@ export namespace Prisma {
     _max?: NestedEnumTypeFilter<$PrismaModel>
   }
 
+  export type BigIntNullableFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel> | null
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel> | null
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel> | null
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntNullableFilter<$PrismaModel> | bigint | number | null
+  }
+
   export type SubscriptionsCountOrderByAggregateInput = {
     id?: SortOrder
     bond_id?: SortOrder
     user_id?: SortOrder
+    wallet_address?: SortOrder
     committed_amount?: SortOrder
     tx_hash?: SortOrder
+    subscription_amt?: SortOrder
     created_at?: SortOrder
   }
 
   export type SubscriptionsAvgOrderByAggregateInput = {
     committed_amount?: SortOrder
+    subscription_amt?: SortOrder
   }
 
   export type SubscriptionsMaxOrderByAggregateInput = {
     id?: SortOrder
     bond_id?: SortOrder
     user_id?: SortOrder
+    wallet_address?: SortOrder
     committed_amount?: SortOrder
     tx_hash?: SortOrder
+    subscription_amt?: SortOrder
     created_at?: SortOrder
   }
 
@@ -7738,13 +8947,32 @@ export namespace Prisma {
     id?: SortOrder
     bond_id?: SortOrder
     user_id?: SortOrder
+    wallet_address?: SortOrder
     committed_amount?: SortOrder
     tx_hash?: SortOrder
+    subscription_amt?: SortOrder
     created_at?: SortOrder
   }
 
   export type SubscriptionsSumOrderByAggregateInput = {
     committed_amount?: SortOrder
+    subscription_amt?: SortOrder
+  }
+
+  export type BigIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel> | null
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel> | null
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel> | null
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntNullableWithAggregatesFilter<$PrismaModel> | bigint | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedBigIntNullableFilter<$PrismaModel>
+    _min?: NestedBigIntNullableFilter<$PrismaModel>
+    _max?: NestedBigIntNullableFilter<$PrismaModel>
   }
 
   export type TransactionsCountOrderByAggregateInput = {
@@ -7774,8 +9002,68 @@ export namespace Prisma {
     created_at?: SortOrder
   }
 
+  export type SubscriptionsCreateNestedManyWithoutUserInput = {
+    create?: XOR<SubscriptionsCreateWithoutUserInput, SubscriptionsUncheckedCreateWithoutUserInput> | SubscriptionsCreateWithoutUserInput[] | SubscriptionsUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: SubscriptionsCreateOrConnectWithoutUserInput | SubscriptionsCreateOrConnectWithoutUserInput[]
+    createMany?: SubscriptionsCreateManyUserInputEnvelope
+    connect?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+  }
+
+  export type EventsCreateNestedManyWithoutUserInput = {
+    create?: XOR<EventsCreateWithoutUserInput, EventsUncheckedCreateWithoutUserInput> | EventsCreateWithoutUserInput[] | EventsUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: EventsCreateOrConnectWithoutUserInput | EventsCreateOrConnectWithoutUserInput[]
+    createMany?: EventsCreateManyUserInputEnvelope
+    connect?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+  }
+
+  export type TransactionsCreateNestedManyWithoutFromInput = {
+    create?: XOR<TransactionsCreateWithoutFromInput, TransactionsUncheckedCreateWithoutFromInput> | TransactionsCreateWithoutFromInput[] | TransactionsUncheckedCreateWithoutFromInput[]
+    connectOrCreate?: TransactionsCreateOrConnectWithoutFromInput | TransactionsCreateOrConnectWithoutFromInput[]
+    createMany?: TransactionsCreateManyFromInputEnvelope
+    connect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+  }
+
+  export type TransactionsCreateNestedManyWithoutToInput = {
+    create?: XOR<TransactionsCreateWithoutToInput, TransactionsUncheckedCreateWithoutToInput> | TransactionsCreateWithoutToInput[] | TransactionsUncheckedCreateWithoutToInput[]
+    connectOrCreate?: TransactionsCreateOrConnectWithoutToInput | TransactionsCreateOrConnectWithoutToInput[]
+    createMany?: TransactionsCreateManyToInputEnvelope
+    connect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+  }
+
+  export type SubscriptionsUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<SubscriptionsCreateWithoutUserInput, SubscriptionsUncheckedCreateWithoutUserInput> | SubscriptionsCreateWithoutUserInput[] | SubscriptionsUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: SubscriptionsCreateOrConnectWithoutUserInput | SubscriptionsCreateOrConnectWithoutUserInput[]
+    createMany?: SubscriptionsCreateManyUserInputEnvelope
+    connect?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+  }
+
+  export type EventsUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<EventsCreateWithoutUserInput, EventsUncheckedCreateWithoutUserInput> | EventsCreateWithoutUserInput[] | EventsUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: EventsCreateOrConnectWithoutUserInput | EventsCreateOrConnectWithoutUserInput[]
+    createMany?: EventsCreateManyUserInputEnvelope
+    connect?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+  }
+
+  export type TransactionsUncheckedCreateNestedManyWithoutFromInput = {
+    create?: XOR<TransactionsCreateWithoutFromInput, TransactionsUncheckedCreateWithoutFromInput> | TransactionsCreateWithoutFromInput[] | TransactionsUncheckedCreateWithoutFromInput[]
+    connectOrCreate?: TransactionsCreateOrConnectWithoutFromInput | TransactionsCreateOrConnectWithoutFromInput[]
+    createMany?: TransactionsCreateManyFromInputEnvelope
+    connect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+  }
+
+  export type TransactionsUncheckedCreateNestedManyWithoutToInput = {
+    create?: XOR<TransactionsCreateWithoutToInput, TransactionsUncheckedCreateWithoutToInput> | TransactionsCreateWithoutToInput[] | TransactionsUncheckedCreateWithoutToInput[]
+    connectOrCreate?: TransactionsCreateOrConnectWithoutToInput | TransactionsCreateOrConnectWithoutToInput[]
+    createMany?: TransactionsCreateManyToInputEnvelope
+    connect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+  }
+
   export type StringFieldUpdateOperationsInput = {
     set?: string
+  }
+
+  export type NullableStringFieldUpdateOperationsInput = {
+    set?: string | null
   }
 
   export type BigIntFieldUpdateOperationsInput = {
@@ -7786,10 +9074,6 @@ export namespace Prisma {
     divide?: bigint | number
   }
 
-  export type NullableStringFieldUpdateOperationsInput = {
-    set?: string | null
-  }
-
   export type EnumRoleFieldUpdateOperationsInput = {
     set?: $Enums.Role
   }
@@ -7798,12 +9082,380 @@ export namespace Prisma {
     set?: Date | string
   }
 
+  export type SubscriptionsUpdateManyWithoutUserNestedInput = {
+    create?: XOR<SubscriptionsCreateWithoutUserInput, SubscriptionsUncheckedCreateWithoutUserInput> | SubscriptionsCreateWithoutUserInput[] | SubscriptionsUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: SubscriptionsCreateOrConnectWithoutUserInput | SubscriptionsCreateOrConnectWithoutUserInput[]
+    upsert?: SubscriptionsUpsertWithWhereUniqueWithoutUserInput | SubscriptionsUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: SubscriptionsCreateManyUserInputEnvelope
+    set?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+    disconnect?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+    delete?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+    connect?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+    update?: SubscriptionsUpdateWithWhereUniqueWithoutUserInput | SubscriptionsUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: SubscriptionsUpdateManyWithWhereWithoutUserInput | SubscriptionsUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: SubscriptionsScalarWhereInput | SubscriptionsScalarWhereInput[]
+  }
+
+  export type EventsUpdateManyWithoutUserNestedInput = {
+    create?: XOR<EventsCreateWithoutUserInput, EventsUncheckedCreateWithoutUserInput> | EventsCreateWithoutUserInput[] | EventsUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: EventsCreateOrConnectWithoutUserInput | EventsCreateOrConnectWithoutUserInput[]
+    upsert?: EventsUpsertWithWhereUniqueWithoutUserInput | EventsUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: EventsCreateManyUserInputEnvelope
+    set?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+    disconnect?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+    delete?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+    connect?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+    update?: EventsUpdateWithWhereUniqueWithoutUserInput | EventsUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: EventsUpdateManyWithWhereWithoutUserInput | EventsUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: EventsScalarWhereInput | EventsScalarWhereInput[]
+  }
+
+  export type TransactionsUpdateManyWithoutFromNestedInput = {
+    create?: XOR<TransactionsCreateWithoutFromInput, TransactionsUncheckedCreateWithoutFromInput> | TransactionsCreateWithoutFromInput[] | TransactionsUncheckedCreateWithoutFromInput[]
+    connectOrCreate?: TransactionsCreateOrConnectWithoutFromInput | TransactionsCreateOrConnectWithoutFromInput[]
+    upsert?: TransactionsUpsertWithWhereUniqueWithoutFromInput | TransactionsUpsertWithWhereUniqueWithoutFromInput[]
+    createMany?: TransactionsCreateManyFromInputEnvelope
+    set?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    disconnect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    delete?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    connect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    update?: TransactionsUpdateWithWhereUniqueWithoutFromInput | TransactionsUpdateWithWhereUniqueWithoutFromInput[]
+    updateMany?: TransactionsUpdateManyWithWhereWithoutFromInput | TransactionsUpdateManyWithWhereWithoutFromInput[]
+    deleteMany?: TransactionsScalarWhereInput | TransactionsScalarWhereInput[]
+  }
+
+  export type TransactionsUpdateManyWithoutToNestedInput = {
+    create?: XOR<TransactionsCreateWithoutToInput, TransactionsUncheckedCreateWithoutToInput> | TransactionsCreateWithoutToInput[] | TransactionsUncheckedCreateWithoutToInput[]
+    connectOrCreate?: TransactionsCreateOrConnectWithoutToInput | TransactionsCreateOrConnectWithoutToInput[]
+    upsert?: TransactionsUpsertWithWhereUniqueWithoutToInput | TransactionsUpsertWithWhereUniqueWithoutToInput[]
+    createMany?: TransactionsCreateManyToInputEnvelope
+    set?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    disconnect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    delete?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    connect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    update?: TransactionsUpdateWithWhereUniqueWithoutToInput | TransactionsUpdateWithWhereUniqueWithoutToInput[]
+    updateMany?: TransactionsUpdateManyWithWhereWithoutToInput | TransactionsUpdateManyWithWhereWithoutToInput[]
+    deleteMany?: TransactionsScalarWhereInput | TransactionsScalarWhereInput[]
+  }
+
+  export type SubscriptionsUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<SubscriptionsCreateWithoutUserInput, SubscriptionsUncheckedCreateWithoutUserInput> | SubscriptionsCreateWithoutUserInput[] | SubscriptionsUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: SubscriptionsCreateOrConnectWithoutUserInput | SubscriptionsCreateOrConnectWithoutUserInput[]
+    upsert?: SubscriptionsUpsertWithWhereUniqueWithoutUserInput | SubscriptionsUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: SubscriptionsCreateManyUserInputEnvelope
+    set?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+    disconnect?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+    delete?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+    connect?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+    update?: SubscriptionsUpdateWithWhereUniqueWithoutUserInput | SubscriptionsUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: SubscriptionsUpdateManyWithWhereWithoutUserInput | SubscriptionsUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: SubscriptionsScalarWhereInput | SubscriptionsScalarWhereInput[]
+  }
+
+  export type EventsUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<EventsCreateWithoutUserInput, EventsUncheckedCreateWithoutUserInput> | EventsCreateWithoutUserInput[] | EventsUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: EventsCreateOrConnectWithoutUserInput | EventsCreateOrConnectWithoutUserInput[]
+    upsert?: EventsUpsertWithWhereUniqueWithoutUserInput | EventsUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: EventsCreateManyUserInputEnvelope
+    set?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+    disconnect?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+    delete?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+    connect?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+    update?: EventsUpdateWithWhereUniqueWithoutUserInput | EventsUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: EventsUpdateManyWithWhereWithoutUserInput | EventsUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: EventsScalarWhereInput | EventsScalarWhereInput[]
+  }
+
+  export type TransactionsUncheckedUpdateManyWithoutFromNestedInput = {
+    create?: XOR<TransactionsCreateWithoutFromInput, TransactionsUncheckedCreateWithoutFromInput> | TransactionsCreateWithoutFromInput[] | TransactionsUncheckedCreateWithoutFromInput[]
+    connectOrCreate?: TransactionsCreateOrConnectWithoutFromInput | TransactionsCreateOrConnectWithoutFromInput[]
+    upsert?: TransactionsUpsertWithWhereUniqueWithoutFromInput | TransactionsUpsertWithWhereUniqueWithoutFromInput[]
+    createMany?: TransactionsCreateManyFromInputEnvelope
+    set?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    disconnect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    delete?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    connect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    update?: TransactionsUpdateWithWhereUniqueWithoutFromInput | TransactionsUpdateWithWhereUniqueWithoutFromInput[]
+    updateMany?: TransactionsUpdateManyWithWhereWithoutFromInput | TransactionsUpdateManyWithWhereWithoutFromInput[]
+    deleteMany?: TransactionsScalarWhereInput | TransactionsScalarWhereInput[]
+  }
+
+  export type TransactionsUncheckedUpdateManyWithoutToNestedInput = {
+    create?: XOR<TransactionsCreateWithoutToInput, TransactionsUncheckedCreateWithoutToInput> | TransactionsCreateWithoutToInput[] | TransactionsUncheckedCreateWithoutToInput[]
+    connectOrCreate?: TransactionsCreateOrConnectWithoutToInput | TransactionsCreateOrConnectWithoutToInput[]
+    upsert?: TransactionsUpsertWithWhereUniqueWithoutToInput | TransactionsUpsertWithWhereUniqueWithoutToInput[]
+    createMany?: TransactionsCreateManyToInputEnvelope
+    set?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    disconnect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    delete?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    connect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    update?: TransactionsUpdateWithWhereUniqueWithoutToInput | TransactionsUpdateWithWhereUniqueWithoutToInput[]
+    updateMany?: TransactionsUpdateManyWithWhereWithoutToInput | TransactionsUpdateManyWithWhereWithoutToInput[]
+    deleteMany?: TransactionsScalarWhereInput | TransactionsScalarWhereInput[]
+  }
+
+  export type SubscriptionsCreateNestedManyWithoutBondInput = {
+    create?: XOR<SubscriptionsCreateWithoutBondInput, SubscriptionsUncheckedCreateWithoutBondInput> | SubscriptionsCreateWithoutBondInput[] | SubscriptionsUncheckedCreateWithoutBondInput[]
+    connectOrCreate?: SubscriptionsCreateOrConnectWithoutBondInput | SubscriptionsCreateOrConnectWithoutBondInput[]
+    createMany?: SubscriptionsCreateManyBondInputEnvelope
+    connect?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+  }
+
+  export type EventsCreateNestedManyWithoutBondInput = {
+    create?: XOR<EventsCreateWithoutBondInput, EventsUncheckedCreateWithoutBondInput> | EventsCreateWithoutBondInput[] | EventsUncheckedCreateWithoutBondInput[]
+    connectOrCreate?: EventsCreateOrConnectWithoutBondInput | EventsCreateOrConnectWithoutBondInput[]
+    createMany?: EventsCreateManyBondInputEnvelope
+    connect?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+  }
+
+  export type TransactionsCreateNestedManyWithoutBondInput = {
+    create?: XOR<TransactionsCreateWithoutBondInput, TransactionsUncheckedCreateWithoutBondInput> | TransactionsCreateWithoutBondInput[] | TransactionsUncheckedCreateWithoutBondInput[]
+    connectOrCreate?: TransactionsCreateOrConnectWithoutBondInput | TransactionsCreateOrConnectWithoutBondInput[]
+    createMany?: TransactionsCreateManyBondInputEnvelope
+    connect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+  }
+
+  export type SubscriptionsUncheckedCreateNestedManyWithoutBondInput = {
+    create?: XOR<SubscriptionsCreateWithoutBondInput, SubscriptionsUncheckedCreateWithoutBondInput> | SubscriptionsCreateWithoutBondInput[] | SubscriptionsUncheckedCreateWithoutBondInput[]
+    connectOrCreate?: SubscriptionsCreateOrConnectWithoutBondInput | SubscriptionsCreateOrConnectWithoutBondInput[]
+    createMany?: SubscriptionsCreateManyBondInputEnvelope
+    connect?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+  }
+
+  export type EventsUncheckedCreateNestedManyWithoutBondInput = {
+    create?: XOR<EventsCreateWithoutBondInput, EventsUncheckedCreateWithoutBondInput> | EventsCreateWithoutBondInput[] | EventsUncheckedCreateWithoutBondInput[]
+    connectOrCreate?: EventsCreateOrConnectWithoutBondInput | EventsCreateOrConnectWithoutBondInput[]
+    createMany?: EventsCreateManyBondInputEnvelope
+    connect?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+  }
+
+  export type TransactionsUncheckedCreateNestedManyWithoutBondInput = {
+    create?: XOR<TransactionsCreateWithoutBondInput, TransactionsUncheckedCreateWithoutBondInput> | TransactionsCreateWithoutBondInput[] | TransactionsUncheckedCreateWithoutBondInput[]
+    connectOrCreate?: TransactionsCreateOrConnectWithoutBondInput | TransactionsCreateOrConnectWithoutBondInput[]
+    createMany?: TransactionsCreateManyBondInputEnvelope
+    connect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+  }
+
+  export type EnumBondTypeFieldUpdateOperationsInput = {
+    set?: $Enums.BondType
+  }
+
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type EnumStatusFieldUpdateOperationsInput = {
     set?: $Enums.Status
   }
 
+  export type NullableEnumMarketFieldUpdateOperationsInput = {
+    set?: $Enums.Market | null
+  }
+
+  export type SubscriptionsUpdateManyWithoutBondNestedInput = {
+    create?: XOR<SubscriptionsCreateWithoutBondInput, SubscriptionsUncheckedCreateWithoutBondInput> | SubscriptionsCreateWithoutBondInput[] | SubscriptionsUncheckedCreateWithoutBondInput[]
+    connectOrCreate?: SubscriptionsCreateOrConnectWithoutBondInput | SubscriptionsCreateOrConnectWithoutBondInput[]
+    upsert?: SubscriptionsUpsertWithWhereUniqueWithoutBondInput | SubscriptionsUpsertWithWhereUniqueWithoutBondInput[]
+    createMany?: SubscriptionsCreateManyBondInputEnvelope
+    set?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+    disconnect?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+    delete?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+    connect?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+    update?: SubscriptionsUpdateWithWhereUniqueWithoutBondInput | SubscriptionsUpdateWithWhereUniqueWithoutBondInput[]
+    updateMany?: SubscriptionsUpdateManyWithWhereWithoutBondInput | SubscriptionsUpdateManyWithWhereWithoutBondInput[]
+    deleteMany?: SubscriptionsScalarWhereInput | SubscriptionsScalarWhereInput[]
+  }
+
+  export type EventsUpdateManyWithoutBondNestedInput = {
+    create?: XOR<EventsCreateWithoutBondInput, EventsUncheckedCreateWithoutBondInput> | EventsCreateWithoutBondInput[] | EventsUncheckedCreateWithoutBondInput[]
+    connectOrCreate?: EventsCreateOrConnectWithoutBondInput | EventsCreateOrConnectWithoutBondInput[]
+    upsert?: EventsUpsertWithWhereUniqueWithoutBondInput | EventsUpsertWithWhereUniqueWithoutBondInput[]
+    createMany?: EventsCreateManyBondInputEnvelope
+    set?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+    disconnect?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+    delete?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+    connect?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+    update?: EventsUpdateWithWhereUniqueWithoutBondInput | EventsUpdateWithWhereUniqueWithoutBondInput[]
+    updateMany?: EventsUpdateManyWithWhereWithoutBondInput | EventsUpdateManyWithWhereWithoutBondInput[]
+    deleteMany?: EventsScalarWhereInput | EventsScalarWhereInput[]
+  }
+
+  export type TransactionsUpdateManyWithoutBondNestedInput = {
+    create?: XOR<TransactionsCreateWithoutBondInput, TransactionsUncheckedCreateWithoutBondInput> | TransactionsCreateWithoutBondInput[] | TransactionsUncheckedCreateWithoutBondInput[]
+    connectOrCreate?: TransactionsCreateOrConnectWithoutBondInput | TransactionsCreateOrConnectWithoutBondInput[]
+    upsert?: TransactionsUpsertWithWhereUniqueWithoutBondInput | TransactionsUpsertWithWhereUniqueWithoutBondInput[]
+    createMany?: TransactionsCreateManyBondInputEnvelope
+    set?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    disconnect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    delete?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    connect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    update?: TransactionsUpdateWithWhereUniqueWithoutBondInput | TransactionsUpdateWithWhereUniqueWithoutBondInput[]
+    updateMany?: TransactionsUpdateManyWithWhereWithoutBondInput | TransactionsUpdateManyWithWhereWithoutBondInput[]
+    deleteMany?: TransactionsScalarWhereInput | TransactionsScalarWhereInput[]
+  }
+
+  export type SubscriptionsUncheckedUpdateManyWithoutBondNestedInput = {
+    create?: XOR<SubscriptionsCreateWithoutBondInput, SubscriptionsUncheckedCreateWithoutBondInput> | SubscriptionsCreateWithoutBondInput[] | SubscriptionsUncheckedCreateWithoutBondInput[]
+    connectOrCreate?: SubscriptionsCreateOrConnectWithoutBondInput | SubscriptionsCreateOrConnectWithoutBondInput[]
+    upsert?: SubscriptionsUpsertWithWhereUniqueWithoutBondInput | SubscriptionsUpsertWithWhereUniqueWithoutBondInput[]
+    createMany?: SubscriptionsCreateManyBondInputEnvelope
+    set?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+    disconnect?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+    delete?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+    connect?: SubscriptionsWhereUniqueInput | SubscriptionsWhereUniqueInput[]
+    update?: SubscriptionsUpdateWithWhereUniqueWithoutBondInput | SubscriptionsUpdateWithWhereUniqueWithoutBondInput[]
+    updateMany?: SubscriptionsUpdateManyWithWhereWithoutBondInput | SubscriptionsUpdateManyWithWhereWithoutBondInput[]
+    deleteMany?: SubscriptionsScalarWhereInput | SubscriptionsScalarWhereInput[]
+  }
+
+  export type EventsUncheckedUpdateManyWithoutBondNestedInput = {
+    create?: XOR<EventsCreateWithoutBondInput, EventsUncheckedCreateWithoutBondInput> | EventsCreateWithoutBondInput[] | EventsUncheckedCreateWithoutBondInput[]
+    connectOrCreate?: EventsCreateOrConnectWithoutBondInput | EventsCreateOrConnectWithoutBondInput[]
+    upsert?: EventsUpsertWithWhereUniqueWithoutBondInput | EventsUpsertWithWhereUniqueWithoutBondInput[]
+    createMany?: EventsCreateManyBondInputEnvelope
+    set?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+    disconnect?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+    delete?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+    connect?: EventsWhereUniqueInput | EventsWhereUniqueInput[]
+    update?: EventsUpdateWithWhereUniqueWithoutBondInput | EventsUpdateWithWhereUniqueWithoutBondInput[]
+    updateMany?: EventsUpdateManyWithWhereWithoutBondInput | EventsUpdateManyWithWhereWithoutBondInput[]
+    deleteMany?: EventsScalarWhereInput | EventsScalarWhereInput[]
+  }
+
+  export type TransactionsUncheckedUpdateManyWithoutBondNestedInput = {
+    create?: XOR<TransactionsCreateWithoutBondInput, TransactionsUncheckedCreateWithoutBondInput> | TransactionsCreateWithoutBondInput[] | TransactionsUncheckedCreateWithoutBondInput[]
+    connectOrCreate?: TransactionsCreateOrConnectWithoutBondInput | TransactionsCreateOrConnectWithoutBondInput[]
+    upsert?: TransactionsUpsertWithWhereUniqueWithoutBondInput | TransactionsUpsertWithWhereUniqueWithoutBondInput[]
+    createMany?: TransactionsCreateManyBondInputEnvelope
+    set?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    disconnect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    delete?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    connect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+    update?: TransactionsUpdateWithWhereUniqueWithoutBondInput | TransactionsUpdateWithWhereUniqueWithoutBondInput[]
+    updateMany?: TransactionsUpdateManyWithWhereWithoutBondInput | TransactionsUpdateManyWithWhereWithoutBondInput[]
+    deleteMany?: TransactionsScalarWhereInput | TransactionsScalarWhereInput[]
+  }
+
+  export type BondsCreateNestedOneWithoutEventsInput = {
+    create?: XOR<BondsCreateWithoutEventsInput, BondsUncheckedCreateWithoutEventsInput>
+    connectOrCreate?: BondsCreateOrConnectWithoutEventsInput
+    connect?: BondsWhereUniqueInput
+  }
+
+  export type UsersCreateNestedOneWithoutEventsInput = {
+    create?: XOR<UsersCreateWithoutEventsInput, UsersUncheckedCreateWithoutEventsInput>
+    connectOrCreate?: UsersCreateOrConnectWithoutEventsInput
+    connect?: UsersWhereUniqueInput
+  }
+
   export type EnumTypeFieldUpdateOperationsInput = {
     set?: $Enums.Type
+  }
+
+  export type BondsUpdateOneRequiredWithoutEventsNestedInput = {
+    create?: XOR<BondsCreateWithoutEventsInput, BondsUncheckedCreateWithoutEventsInput>
+    connectOrCreate?: BondsCreateOrConnectWithoutEventsInput
+    upsert?: BondsUpsertWithoutEventsInput
+    connect?: BondsWhereUniqueInput
+    update?: XOR<XOR<BondsUpdateToOneWithWhereWithoutEventsInput, BondsUpdateWithoutEventsInput>, BondsUncheckedUpdateWithoutEventsInput>
+  }
+
+  export type UsersUpdateOneRequiredWithoutEventsNestedInput = {
+    create?: XOR<UsersCreateWithoutEventsInput, UsersUncheckedCreateWithoutEventsInput>
+    connectOrCreate?: UsersCreateOrConnectWithoutEventsInput
+    upsert?: UsersUpsertWithoutEventsInput
+    connect?: UsersWhereUniqueInput
+    update?: XOR<XOR<UsersUpdateToOneWithWhereWithoutEventsInput, UsersUpdateWithoutEventsInput>, UsersUncheckedUpdateWithoutEventsInput>
+  }
+
+  export type BondsCreateNestedOneWithoutSubscriptionsInput = {
+    create?: XOR<BondsCreateWithoutSubscriptionsInput, BondsUncheckedCreateWithoutSubscriptionsInput>
+    connectOrCreate?: BondsCreateOrConnectWithoutSubscriptionsInput
+    connect?: BondsWhereUniqueInput
+  }
+
+  export type UsersCreateNestedOneWithoutSubscriptionsInput = {
+    create?: XOR<UsersCreateWithoutSubscriptionsInput, UsersUncheckedCreateWithoutSubscriptionsInput>
+    connectOrCreate?: UsersCreateOrConnectWithoutSubscriptionsInput
+    connect?: UsersWhereUniqueInput
+  }
+
+  export type NullableBigIntFieldUpdateOperationsInput = {
+    set?: bigint | number | null
+    increment?: bigint | number
+    decrement?: bigint | number
+    multiply?: bigint | number
+    divide?: bigint | number
+  }
+
+  export type BondsUpdateOneRequiredWithoutSubscriptionsNestedInput = {
+    create?: XOR<BondsCreateWithoutSubscriptionsInput, BondsUncheckedCreateWithoutSubscriptionsInput>
+    connectOrCreate?: BondsCreateOrConnectWithoutSubscriptionsInput
+    upsert?: BondsUpsertWithoutSubscriptionsInput
+    connect?: BondsWhereUniqueInput
+    update?: XOR<XOR<BondsUpdateToOneWithWhereWithoutSubscriptionsInput, BondsUpdateWithoutSubscriptionsInput>, BondsUncheckedUpdateWithoutSubscriptionsInput>
+  }
+
+  export type UsersUpdateOneRequiredWithoutSubscriptionsNestedInput = {
+    create?: XOR<UsersCreateWithoutSubscriptionsInput, UsersUncheckedCreateWithoutSubscriptionsInput>
+    connectOrCreate?: UsersCreateOrConnectWithoutSubscriptionsInput
+    upsert?: UsersUpsertWithoutSubscriptionsInput
+    connect?: UsersWhereUniqueInput
+    update?: XOR<XOR<UsersUpdateToOneWithWhereWithoutSubscriptionsInput, UsersUpdateWithoutSubscriptionsInput>, UsersUncheckedUpdateWithoutSubscriptionsInput>
+  }
+
+  export type BondsCreateNestedOneWithoutTransactionsInput = {
+    create?: XOR<BondsCreateWithoutTransactionsInput, BondsUncheckedCreateWithoutTransactionsInput>
+    connectOrCreate?: BondsCreateOrConnectWithoutTransactionsInput
+    connect?: BondsWhereUniqueInput
+  }
+
+  export type UsersCreateNestedOneWithoutTransactionsFromInput = {
+    create?: XOR<UsersCreateWithoutTransactionsFromInput, UsersUncheckedCreateWithoutTransactionsFromInput>
+    connectOrCreate?: UsersCreateOrConnectWithoutTransactionsFromInput
+    connect?: UsersWhereUniqueInput
+  }
+
+  export type UsersCreateNestedOneWithoutTransactionsToInput = {
+    create?: XOR<UsersCreateWithoutTransactionsToInput, UsersUncheckedCreateWithoutTransactionsToInput>
+    connectOrCreate?: UsersCreateOrConnectWithoutTransactionsToInput
+    connect?: UsersWhereUniqueInput
+  }
+
+  export type BondsUpdateOneRequiredWithoutTransactionsNestedInput = {
+    create?: XOR<BondsCreateWithoutTransactionsInput, BondsUncheckedCreateWithoutTransactionsInput>
+    connectOrCreate?: BondsCreateOrConnectWithoutTransactionsInput
+    upsert?: BondsUpsertWithoutTransactionsInput
+    connect?: BondsWhereUniqueInput
+    update?: XOR<XOR<BondsUpdateToOneWithWhereWithoutTransactionsInput, BondsUpdateWithoutTransactionsInput>, BondsUncheckedUpdateWithoutTransactionsInput>
+  }
+
+  export type UsersUpdateOneRequiredWithoutTransactionsFromNestedInput = {
+    create?: XOR<UsersCreateWithoutTransactionsFromInput, UsersUncheckedCreateWithoutTransactionsFromInput>
+    connectOrCreate?: UsersCreateOrConnectWithoutTransactionsFromInput
+    upsert?: UsersUpsertWithoutTransactionsFromInput
+    connect?: UsersWhereUniqueInput
+    update?: XOR<XOR<UsersUpdateToOneWithWhereWithoutTransactionsFromInput, UsersUpdateWithoutTransactionsFromInput>, UsersUncheckedUpdateWithoutTransactionsFromInput>
+  }
+
+  export type UsersUpdateOneRequiredWithoutTransactionsToNestedInput = {
+    create?: XOR<UsersCreateWithoutTransactionsToInput, UsersUncheckedCreateWithoutTransactionsToInput>
+    connectOrCreate?: UsersCreateOrConnectWithoutTransactionsToInput
+    upsert?: UsersUpsertWithoutTransactionsToInput
+    connect?: UsersWhereUniqueInput
+    update?: XOR<XOR<UsersUpdateToOneWithWhereWithoutTransactionsToInput, UsersUpdateWithoutTransactionsToInput>, UsersUncheckedUpdateWithoutTransactionsToInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -7820,17 +9472,6 @@ export namespace Prisma {
     not?: NestedStringFilter<$PrismaModel> | string
   }
 
-  export type NestedBigIntFilter<$PrismaModel = never> = {
-    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
-    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
-    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    not?: NestedBigIntFilter<$PrismaModel> | bigint | number
-  }
-
   export type NestedStringNullableFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
     in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
@@ -7843,6 +9484,17 @@ export namespace Prisma {
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
+  }
+
+  export type NestedBigIntFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntFilter<$PrismaModel> | bigint | number
   }
 
   export type NestedEnumRoleFilter<$PrismaModel = never> = {
@@ -7891,33 +9543,6 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
-  export type NestedBigIntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
-    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
-    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    not?: NestedBigIntWithAggregatesFilter<$PrismaModel> | bigint | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedBigIntFilter<$PrismaModel>
-    _min?: NestedBigIntFilter<$PrismaModel>
-    _max?: NestedBigIntFilter<$PrismaModel>
-  }
-
-  export type NestedFloatFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatFilter<$PrismaModel> | number
-  }
-
   export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
     in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
@@ -7946,6 +9571,33 @@ export namespace Prisma {
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
+  export type NestedBigIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntWithAggregatesFilter<$PrismaModel> | bigint | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedBigIntFilter<$PrismaModel>
+    _min?: NestedBigIntFilter<$PrismaModel>
+    _max?: NestedBigIntFilter<$PrismaModel>
+  }
+
+  export type NestedFloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
   export type NestedEnumRoleWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
     in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
@@ -7970,11 +9622,78 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type NestedEnumBondTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.BondType | EnumBondTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BondType[] | ListEnumBondTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BondType[] | ListEnumBondTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumBondTypeFilter<$PrismaModel> | $Enums.BondType
+  }
+
   export type NestedEnumStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.Status | EnumStatusFieldRefInput<$PrismaModel>
     in?: $Enums.Status[] | ListEnumStatusFieldRefInput<$PrismaModel>
     notIn?: $Enums.Status[] | ListEnumStatusFieldRefInput<$PrismaModel>
     not?: NestedEnumStatusFilter<$PrismaModel> | $Enums.Status
+  }
+
+  export type NestedEnumMarketNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.Market | EnumMarketFieldRefInput<$PrismaModel> | null
+    in?: $Enums.Market[] | ListEnumMarketFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.Market[] | ListEnumMarketFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumMarketNullableFilter<$PrismaModel> | $Enums.Market | null
+  }
+
+  export type NestedEnumBondTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BondType | EnumBondTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.BondType[] | ListEnumBondTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BondType[] | ListEnumBondTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumBondTypeWithAggregatesFilter<$PrismaModel> | $Enums.BondType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBondTypeFilter<$PrismaModel>
+    _max?: NestedEnumBondTypeFilter<$PrismaModel>
+  }
+
+  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedEnumStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -7985,6 +9704,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumStatusFilter<$PrismaModel>
     _max?: NestedEnumStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumMarketNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.Market | EnumMarketFieldRefInput<$PrismaModel> | null
+    in?: $Enums.Market[] | ListEnumMarketFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.Market[] | ListEnumMarketFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumMarketNullableWithAggregatesFilter<$PrismaModel> | $Enums.Market | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumMarketNullableFilter<$PrismaModel>
+    _max?: NestedEnumMarketNullableFilter<$PrismaModel>
   }
 
   export type NestedEnumTypeFilter<$PrismaModel = never> = {
@@ -8002,6 +9731,1258 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumTypeFilter<$PrismaModel>
     _max?: NestedEnumTypeFilter<$PrismaModel>
+  }
+
+  export type NestedBigIntNullableFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel> | null
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel> | null
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel> | null
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntNullableFilter<$PrismaModel> | bigint | number | null
+  }
+
+  export type NestedBigIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel> | null
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel> | null
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel> | null
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntNullableWithAggregatesFilter<$PrismaModel> | bigint | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedBigIntNullableFilter<$PrismaModel>
+    _min?: NestedBigIntNullableFilter<$PrismaModel>
+    _max?: NestedBigIntNullableFilter<$PrismaModel>
+  }
+
+  export type SubscriptionsCreateWithoutUserInput = {
+    id?: string
+    wallet_address: string
+    committed_amount: bigint | number
+    tx_hash: string
+    subscription_amt?: bigint | number | null
+    created_at?: Date | string
+    bond: BondsCreateNestedOneWithoutSubscriptionsInput
+  }
+
+  export type SubscriptionsUncheckedCreateWithoutUserInput = {
+    id?: string
+    bond_id: string
+    wallet_address: string
+    committed_amount: bigint | number
+    tx_hash: string
+    subscription_amt?: bigint | number | null
+    created_at?: Date | string
+  }
+
+  export type SubscriptionsCreateOrConnectWithoutUserInput = {
+    where: SubscriptionsWhereUniqueInput
+    create: XOR<SubscriptionsCreateWithoutUserInput, SubscriptionsUncheckedCreateWithoutUserInput>
+  }
+
+  export type SubscriptionsCreateManyUserInputEnvelope = {
+    data: SubscriptionsCreateManyUserInput | SubscriptionsCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type EventsCreateWithoutUserInput = {
+    id?: string
+    type: $Enums.Type
+    details: string
+    tx_hash: string
+    created_at?: Date | string
+    bond: BondsCreateNestedOneWithoutEventsInput
+  }
+
+  export type EventsUncheckedCreateWithoutUserInput = {
+    id?: string
+    type: $Enums.Type
+    bond_id: string
+    details: string
+    tx_hash: string
+    created_at?: Date | string
+  }
+
+  export type EventsCreateOrConnectWithoutUserInput = {
+    where: EventsWhereUniqueInput
+    create: XOR<EventsCreateWithoutUserInput, EventsUncheckedCreateWithoutUserInput>
+  }
+
+  export type EventsCreateManyUserInputEnvelope = {
+    data: EventsCreateManyUserInput | EventsCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TransactionsCreateWithoutFromInput = {
+    id?: string
+    tx_hash: string
+    created_at?: Date | string
+    bond: BondsCreateNestedOneWithoutTransactionsInput
+    to: UsersCreateNestedOneWithoutTransactionsToInput
+  }
+
+  export type TransactionsUncheckedCreateWithoutFromInput = {
+    id?: string
+    bond_id: string
+    user_to: string
+    tx_hash: string
+    created_at?: Date | string
+  }
+
+  export type TransactionsCreateOrConnectWithoutFromInput = {
+    where: TransactionsWhereUniqueInput
+    create: XOR<TransactionsCreateWithoutFromInput, TransactionsUncheckedCreateWithoutFromInput>
+  }
+
+  export type TransactionsCreateManyFromInputEnvelope = {
+    data: TransactionsCreateManyFromInput | TransactionsCreateManyFromInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TransactionsCreateWithoutToInput = {
+    id?: string
+    tx_hash: string
+    created_at?: Date | string
+    bond: BondsCreateNestedOneWithoutTransactionsInput
+    from: UsersCreateNestedOneWithoutTransactionsFromInput
+  }
+
+  export type TransactionsUncheckedCreateWithoutToInput = {
+    id?: string
+    bond_id: string
+    user_from: string
+    tx_hash: string
+    created_at?: Date | string
+  }
+
+  export type TransactionsCreateOrConnectWithoutToInput = {
+    where: TransactionsWhereUniqueInput
+    create: XOR<TransactionsCreateWithoutToInput, TransactionsUncheckedCreateWithoutToInput>
+  }
+
+  export type TransactionsCreateManyToInputEnvelope = {
+    data: TransactionsCreateManyToInput | TransactionsCreateManyToInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type SubscriptionsUpsertWithWhereUniqueWithoutUserInput = {
+    where: SubscriptionsWhereUniqueInput
+    update: XOR<SubscriptionsUpdateWithoutUserInput, SubscriptionsUncheckedUpdateWithoutUserInput>
+    create: XOR<SubscriptionsCreateWithoutUserInput, SubscriptionsUncheckedCreateWithoutUserInput>
+  }
+
+  export type SubscriptionsUpdateWithWhereUniqueWithoutUserInput = {
+    where: SubscriptionsWhereUniqueInput
+    data: XOR<SubscriptionsUpdateWithoutUserInput, SubscriptionsUncheckedUpdateWithoutUserInput>
+  }
+
+  export type SubscriptionsUpdateManyWithWhereWithoutUserInput = {
+    where: SubscriptionsScalarWhereInput
+    data: XOR<SubscriptionsUpdateManyMutationInput, SubscriptionsUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type SubscriptionsScalarWhereInput = {
+    AND?: SubscriptionsScalarWhereInput | SubscriptionsScalarWhereInput[]
+    OR?: SubscriptionsScalarWhereInput[]
+    NOT?: SubscriptionsScalarWhereInput | SubscriptionsScalarWhereInput[]
+    id?: StringFilter<"Subscriptions"> | string
+    bond_id?: StringFilter<"Subscriptions"> | string
+    user_id?: StringFilter<"Subscriptions"> | string
+    wallet_address?: StringFilter<"Subscriptions"> | string
+    committed_amount?: BigIntFilter<"Subscriptions"> | bigint | number
+    tx_hash?: StringFilter<"Subscriptions"> | string
+    subscription_amt?: BigIntNullableFilter<"Subscriptions"> | bigint | number | null
+    created_at?: DateTimeFilter<"Subscriptions"> | Date | string
+  }
+
+  export type EventsUpsertWithWhereUniqueWithoutUserInput = {
+    where: EventsWhereUniqueInput
+    update: XOR<EventsUpdateWithoutUserInput, EventsUncheckedUpdateWithoutUserInput>
+    create: XOR<EventsCreateWithoutUserInput, EventsUncheckedCreateWithoutUserInput>
+  }
+
+  export type EventsUpdateWithWhereUniqueWithoutUserInput = {
+    where: EventsWhereUniqueInput
+    data: XOR<EventsUpdateWithoutUserInput, EventsUncheckedUpdateWithoutUserInput>
+  }
+
+  export type EventsUpdateManyWithWhereWithoutUserInput = {
+    where: EventsScalarWhereInput
+    data: XOR<EventsUpdateManyMutationInput, EventsUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type EventsScalarWhereInput = {
+    AND?: EventsScalarWhereInput | EventsScalarWhereInput[]
+    OR?: EventsScalarWhereInput[]
+    NOT?: EventsScalarWhereInput | EventsScalarWhereInput[]
+    id?: StringFilter<"Events"> | string
+    type?: EnumTypeFilter<"Events"> | $Enums.Type
+    bond_id?: StringFilter<"Events"> | string
+    user_id?: StringFilter<"Events"> | string
+    details?: StringFilter<"Events"> | string
+    tx_hash?: StringFilter<"Events"> | string
+    created_at?: DateTimeFilter<"Events"> | Date | string
+  }
+
+  export type TransactionsUpsertWithWhereUniqueWithoutFromInput = {
+    where: TransactionsWhereUniqueInput
+    update: XOR<TransactionsUpdateWithoutFromInput, TransactionsUncheckedUpdateWithoutFromInput>
+    create: XOR<TransactionsCreateWithoutFromInput, TransactionsUncheckedCreateWithoutFromInput>
+  }
+
+  export type TransactionsUpdateWithWhereUniqueWithoutFromInput = {
+    where: TransactionsWhereUniqueInput
+    data: XOR<TransactionsUpdateWithoutFromInput, TransactionsUncheckedUpdateWithoutFromInput>
+  }
+
+  export type TransactionsUpdateManyWithWhereWithoutFromInput = {
+    where: TransactionsScalarWhereInput
+    data: XOR<TransactionsUpdateManyMutationInput, TransactionsUncheckedUpdateManyWithoutFromInput>
+  }
+
+  export type TransactionsScalarWhereInput = {
+    AND?: TransactionsScalarWhereInput | TransactionsScalarWhereInput[]
+    OR?: TransactionsScalarWhereInput[]
+    NOT?: TransactionsScalarWhereInput | TransactionsScalarWhereInput[]
+    id?: StringFilter<"Transactions"> | string
+    bond_id?: StringFilter<"Transactions"> | string
+    user_from?: StringFilter<"Transactions"> | string
+    user_to?: StringFilter<"Transactions"> | string
+    tx_hash?: StringFilter<"Transactions"> | string
+    created_at?: DateTimeFilter<"Transactions"> | Date | string
+  }
+
+  export type TransactionsUpsertWithWhereUniqueWithoutToInput = {
+    where: TransactionsWhereUniqueInput
+    update: XOR<TransactionsUpdateWithoutToInput, TransactionsUncheckedUpdateWithoutToInput>
+    create: XOR<TransactionsCreateWithoutToInput, TransactionsUncheckedCreateWithoutToInput>
+  }
+
+  export type TransactionsUpdateWithWhereUniqueWithoutToInput = {
+    where: TransactionsWhereUniqueInput
+    data: XOR<TransactionsUpdateWithoutToInput, TransactionsUncheckedUpdateWithoutToInput>
+  }
+
+  export type TransactionsUpdateManyWithWhereWithoutToInput = {
+    where: TransactionsScalarWhereInput
+    data: XOR<TransactionsUpdateManyMutationInput, TransactionsUncheckedUpdateManyWithoutToInput>
+  }
+
+  export type SubscriptionsCreateWithoutBondInput = {
+    id?: string
+    wallet_address: string
+    committed_amount: bigint | number
+    tx_hash: string
+    subscription_amt?: bigint | number | null
+    created_at?: Date | string
+    user: UsersCreateNestedOneWithoutSubscriptionsInput
+  }
+
+  export type SubscriptionsUncheckedCreateWithoutBondInput = {
+    id?: string
+    user_id: string
+    wallet_address: string
+    committed_amount: bigint | number
+    tx_hash: string
+    subscription_amt?: bigint | number | null
+    created_at?: Date | string
+  }
+
+  export type SubscriptionsCreateOrConnectWithoutBondInput = {
+    where: SubscriptionsWhereUniqueInput
+    create: XOR<SubscriptionsCreateWithoutBondInput, SubscriptionsUncheckedCreateWithoutBondInput>
+  }
+
+  export type SubscriptionsCreateManyBondInputEnvelope = {
+    data: SubscriptionsCreateManyBondInput | SubscriptionsCreateManyBondInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type EventsCreateWithoutBondInput = {
+    id?: string
+    type: $Enums.Type
+    details: string
+    tx_hash: string
+    created_at?: Date | string
+    user: UsersCreateNestedOneWithoutEventsInput
+  }
+
+  export type EventsUncheckedCreateWithoutBondInput = {
+    id?: string
+    type: $Enums.Type
+    user_id: string
+    details: string
+    tx_hash: string
+    created_at?: Date | string
+  }
+
+  export type EventsCreateOrConnectWithoutBondInput = {
+    where: EventsWhereUniqueInput
+    create: XOR<EventsCreateWithoutBondInput, EventsUncheckedCreateWithoutBondInput>
+  }
+
+  export type EventsCreateManyBondInputEnvelope = {
+    data: EventsCreateManyBondInput | EventsCreateManyBondInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TransactionsCreateWithoutBondInput = {
+    id?: string
+    tx_hash: string
+    created_at?: Date | string
+    from: UsersCreateNestedOneWithoutTransactionsFromInput
+    to: UsersCreateNestedOneWithoutTransactionsToInput
+  }
+
+  export type TransactionsUncheckedCreateWithoutBondInput = {
+    id?: string
+    user_from: string
+    user_to: string
+    tx_hash: string
+    created_at?: Date | string
+  }
+
+  export type TransactionsCreateOrConnectWithoutBondInput = {
+    where: TransactionsWhereUniqueInput
+    create: XOR<TransactionsCreateWithoutBondInput, TransactionsUncheckedCreateWithoutBondInput>
+  }
+
+  export type TransactionsCreateManyBondInputEnvelope = {
+    data: TransactionsCreateManyBondInput | TransactionsCreateManyBondInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type SubscriptionsUpsertWithWhereUniqueWithoutBondInput = {
+    where: SubscriptionsWhereUniqueInput
+    update: XOR<SubscriptionsUpdateWithoutBondInput, SubscriptionsUncheckedUpdateWithoutBondInput>
+    create: XOR<SubscriptionsCreateWithoutBondInput, SubscriptionsUncheckedCreateWithoutBondInput>
+  }
+
+  export type SubscriptionsUpdateWithWhereUniqueWithoutBondInput = {
+    where: SubscriptionsWhereUniqueInput
+    data: XOR<SubscriptionsUpdateWithoutBondInput, SubscriptionsUncheckedUpdateWithoutBondInput>
+  }
+
+  export type SubscriptionsUpdateManyWithWhereWithoutBondInput = {
+    where: SubscriptionsScalarWhereInput
+    data: XOR<SubscriptionsUpdateManyMutationInput, SubscriptionsUncheckedUpdateManyWithoutBondInput>
+  }
+
+  export type EventsUpsertWithWhereUniqueWithoutBondInput = {
+    where: EventsWhereUniqueInput
+    update: XOR<EventsUpdateWithoutBondInput, EventsUncheckedUpdateWithoutBondInput>
+    create: XOR<EventsCreateWithoutBondInput, EventsUncheckedCreateWithoutBondInput>
+  }
+
+  export type EventsUpdateWithWhereUniqueWithoutBondInput = {
+    where: EventsWhereUniqueInput
+    data: XOR<EventsUpdateWithoutBondInput, EventsUncheckedUpdateWithoutBondInput>
+  }
+
+  export type EventsUpdateManyWithWhereWithoutBondInput = {
+    where: EventsScalarWhereInput
+    data: XOR<EventsUpdateManyMutationInput, EventsUncheckedUpdateManyWithoutBondInput>
+  }
+
+  export type TransactionsUpsertWithWhereUniqueWithoutBondInput = {
+    where: TransactionsWhereUniqueInput
+    update: XOR<TransactionsUpdateWithoutBondInput, TransactionsUncheckedUpdateWithoutBondInput>
+    create: XOR<TransactionsCreateWithoutBondInput, TransactionsUncheckedCreateWithoutBondInput>
+  }
+
+  export type TransactionsUpdateWithWhereUniqueWithoutBondInput = {
+    where: TransactionsWhereUniqueInput
+    data: XOR<TransactionsUpdateWithoutBondInput, TransactionsUncheckedUpdateWithoutBondInput>
+  }
+
+  export type TransactionsUpdateManyWithWhereWithoutBondInput = {
+    where: TransactionsScalarWhereInput
+    data: XOR<TransactionsUpdateManyMutationInput, TransactionsUncheckedUpdateManyWithoutBondInput>
+  }
+
+  export type BondsCreateWithoutEventsInput = {
+    id?: string
+    bond_object_id?: string | null
+    bond_name: string
+    bond_type: $Enums.BondType
+    bond_symbol: string
+    organization_name: string
+    face_value: bigint | number
+    tl_unit_offered: number
+    tl_unit_subscribed?: number | null
+    maturity: Date | string
+    status: $Enums.Status
+    interest_rate: string
+    purpose: string
+    market?: $Enums.Market | null
+    created_at?: Date | string
+    subscription_period: number
+    subscription_end_date: Date | string
+    subscriptions?: SubscriptionsCreateNestedManyWithoutBondInput
+    transactions?: TransactionsCreateNestedManyWithoutBondInput
+  }
+
+  export type BondsUncheckedCreateWithoutEventsInput = {
+    id?: string
+    bond_object_id?: string | null
+    bond_name: string
+    bond_type: $Enums.BondType
+    bond_symbol: string
+    organization_name: string
+    face_value: bigint | number
+    tl_unit_offered: number
+    tl_unit_subscribed?: number | null
+    maturity: Date | string
+    status: $Enums.Status
+    interest_rate: string
+    purpose: string
+    market?: $Enums.Market | null
+    created_at?: Date | string
+    subscription_period: number
+    subscription_end_date: Date | string
+    subscriptions?: SubscriptionsUncheckedCreateNestedManyWithoutBondInput
+    transactions?: TransactionsUncheckedCreateNestedManyWithoutBondInput
+  }
+
+  export type BondsCreateOrConnectWithoutEventsInput = {
+    where: BondsWhereUniqueInput
+    create: XOR<BondsCreateWithoutEventsInput, BondsUncheckedCreateWithoutEventsInput>
+  }
+
+  export type UsersCreateWithoutEventsInput = {
+    id?: string
+    name?: string | null
+    national_id: bigint | number
+    wallet_address: string
+    salt: string
+    email: string
+    password?: string | null
+    role: $Enums.Role
+    hashed_mnemonic?: string | null
+    created_at?: Date | string
+    subscriptions?: SubscriptionsCreateNestedManyWithoutUserInput
+    transactionsFrom?: TransactionsCreateNestedManyWithoutFromInput
+    transactionsTo?: TransactionsCreateNestedManyWithoutToInput
+  }
+
+  export type UsersUncheckedCreateWithoutEventsInput = {
+    id?: string
+    name?: string | null
+    national_id: bigint | number
+    wallet_address: string
+    salt: string
+    email: string
+    password?: string | null
+    role: $Enums.Role
+    hashed_mnemonic?: string | null
+    created_at?: Date | string
+    subscriptions?: SubscriptionsUncheckedCreateNestedManyWithoutUserInput
+    transactionsFrom?: TransactionsUncheckedCreateNestedManyWithoutFromInput
+    transactionsTo?: TransactionsUncheckedCreateNestedManyWithoutToInput
+  }
+
+  export type UsersCreateOrConnectWithoutEventsInput = {
+    where: UsersWhereUniqueInput
+    create: XOR<UsersCreateWithoutEventsInput, UsersUncheckedCreateWithoutEventsInput>
+  }
+
+  export type BondsUpsertWithoutEventsInput = {
+    update: XOR<BondsUpdateWithoutEventsInput, BondsUncheckedUpdateWithoutEventsInput>
+    create: XOR<BondsCreateWithoutEventsInput, BondsUncheckedCreateWithoutEventsInput>
+    where?: BondsWhereInput
+  }
+
+  export type BondsUpdateToOneWithWhereWithoutEventsInput = {
+    where?: BondsWhereInput
+    data: XOR<BondsUpdateWithoutEventsInput, BondsUncheckedUpdateWithoutEventsInput>
+  }
+
+  export type BondsUpdateWithoutEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bond_object_id?: NullableStringFieldUpdateOperationsInput | string | null
+    bond_name?: StringFieldUpdateOperationsInput | string
+    bond_type?: EnumBondTypeFieldUpdateOperationsInput | $Enums.BondType
+    bond_symbol?: StringFieldUpdateOperationsInput | string
+    organization_name?: StringFieldUpdateOperationsInput | string
+    face_value?: BigIntFieldUpdateOperationsInput | bigint | number
+    tl_unit_offered?: IntFieldUpdateOperationsInput | number
+    tl_unit_subscribed?: NullableIntFieldUpdateOperationsInput | number | null
+    maturity?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
+    interest_rate?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    market?: NullableEnumMarketFieldUpdateOperationsInput | $Enums.Market | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscription_period?: IntFieldUpdateOperationsInput | number
+    subscription_end_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscriptions?: SubscriptionsUpdateManyWithoutBondNestedInput
+    transactions?: TransactionsUpdateManyWithoutBondNestedInput
+  }
+
+  export type BondsUncheckedUpdateWithoutEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bond_object_id?: NullableStringFieldUpdateOperationsInput | string | null
+    bond_name?: StringFieldUpdateOperationsInput | string
+    bond_type?: EnumBondTypeFieldUpdateOperationsInput | $Enums.BondType
+    bond_symbol?: StringFieldUpdateOperationsInput | string
+    organization_name?: StringFieldUpdateOperationsInput | string
+    face_value?: BigIntFieldUpdateOperationsInput | bigint | number
+    tl_unit_offered?: IntFieldUpdateOperationsInput | number
+    tl_unit_subscribed?: NullableIntFieldUpdateOperationsInput | number | null
+    maturity?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
+    interest_rate?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    market?: NullableEnumMarketFieldUpdateOperationsInput | $Enums.Market | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscription_period?: IntFieldUpdateOperationsInput | number
+    subscription_end_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscriptions?: SubscriptionsUncheckedUpdateManyWithoutBondNestedInput
+    transactions?: TransactionsUncheckedUpdateManyWithoutBondNestedInput
+  }
+
+  export type UsersUpsertWithoutEventsInput = {
+    update: XOR<UsersUpdateWithoutEventsInput, UsersUncheckedUpdateWithoutEventsInput>
+    create: XOR<UsersCreateWithoutEventsInput, UsersUncheckedCreateWithoutEventsInput>
+    where?: UsersWhereInput
+  }
+
+  export type UsersUpdateToOneWithWhereWithoutEventsInput = {
+    where?: UsersWhereInput
+    data: XOR<UsersUpdateWithoutEventsInput, UsersUncheckedUpdateWithoutEventsInput>
+  }
+
+  export type UsersUpdateWithoutEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    national_id?: BigIntFieldUpdateOperationsInput | bigint | number
+    wallet_address?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscriptions?: SubscriptionsUpdateManyWithoutUserNestedInput
+    transactionsFrom?: TransactionsUpdateManyWithoutFromNestedInput
+    transactionsTo?: TransactionsUpdateManyWithoutToNestedInput
+  }
+
+  export type UsersUncheckedUpdateWithoutEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    national_id?: BigIntFieldUpdateOperationsInput | bigint | number
+    wallet_address?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscriptions?: SubscriptionsUncheckedUpdateManyWithoutUserNestedInput
+    transactionsFrom?: TransactionsUncheckedUpdateManyWithoutFromNestedInput
+    transactionsTo?: TransactionsUncheckedUpdateManyWithoutToNestedInput
+  }
+
+  export type BondsCreateWithoutSubscriptionsInput = {
+    id?: string
+    bond_object_id?: string | null
+    bond_name: string
+    bond_type: $Enums.BondType
+    bond_symbol: string
+    organization_name: string
+    face_value: bigint | number
+    tl_unit_offered: number
+    tl_unit_subscribed?: number | null
+    maturity: Date | string
+    status: $Enums.Status
+    interest_rate: string
+    purpose: string
+    market?: $Enums.Market | null
+    created_at?: Date | string
+    subscription_period: number
+    subscription_end_date: Date | string
+    events?: EventsCreateNestedManyWithoutBondInput
+    transactions?: TransactionsCreateNestedManyWithoutBondInput
+  }
+
+  export type BondsUncheckedCreateWithoutSubscriptionsInput = {
+    id?: string
+    bond_object_id?: string | null
+    bond_name: string
+    bond_type: $Enums.BondType
+    bond_symbol: string
+    organization_name: string
+    face_value: bigint | number
+    tl_unit_offered: number
+    tl_unit_subscribed?: number | null
+    maturity: Date | string
+    status: $Enums.Status
+    interest_rate: string
+    purpose: string
+    market?: $Enums.Market | null
+    created_at?: Date | string
+    subscription_period: number
+    subscription_end_date: Date | string
+    events?: EventsUncheckedCreateNestedManyWithoutBondInput
+    transactions?: TransactionsUncheckedCreateNestedManyWithoutBondInput
+  }
+
+  export type BondsCreateOrConnectWithoutSubscriptionsInput = {
+    where: BondsWhereUniqueInput
+    create: XOR<BondsCreateWithoutSubscriptionsInput, BondsUncheckedCreateWithoutSubscriptionsInput>
+  }
+
+  export type UsersCreateWithoutSubscriptionsInput = {
+    id?: string
+    name?: string | null
+    national_id: bigint | number
+    wallet_address: string
+    salt: string
+    email: string
+    password?: string | null
+    role: $Enums.Role
+    hashed_mnemonic?: string | null
+    created_at?: Date | string
+    events?: EventsCreateNestedManyWithoutUserInput
+    transactionsFrom?: TransactionsCreateNestedManyWithoutFromInput
+    transactionsTo?: TransactionsCreateNestedManyWithoutToInput
+  }
+
+  export type UsersUncheckedCreateWithoutSubscriptionsInput = {
+    id?: string
+    name?: string | null
+    national_id: bigint | number
+    wallet_address: string
+    salt: string
+    email: string
+    password?: string | null
+    role: $Enums.Role
+    hashed_mnemonic?: string | null
+    created_at?: Date | string
+    events?: EventsUncheckedCreateNestedManyWithoutUserInput
+    transactionsFrom?: TransactionsUncheckedCreateNestedManyWithoutFromInput
+    transactionsTo?: TransactionsUncheckedCreateNestedManyWithoutToInput
+  }
+
+  export type UsersCreateOrConnectWithoutSubscriptionsInput = {
+    where: UsersWhereUniqueInput
+    create: XOR<UsersCreateWithoutSubscriptionsInput, UsersUncheckedCreateWithoutSubscriptionsInput>
+  }
+
+  export type BondsUpsertWithoutSubscriptionsInput = {
+    update: XOR<BondsUpdateWithoutSubscriptionsInput, BondsUncheckedUpdateWithoutSubscriptionsInput>
+    create: XOR<BondsCreateWithoutSubscriptionsInput, BondsUncheckedCreateWithoutSubscriptionsInput>
+    where?: BondsWhereInput
+  }
+
+  export type BondsUpdateToOneWithWhereWithoutSubscriptionsInput = {
+    where?: BondsWhereInput
+    data: XOR<BondsUpdateWithoutSubscriptionsInput, BondsUncheckedUpdateWithoutSubscriptionsInput>
+  }
+
+  export type BondsUpdateWithoutSubscriptionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bond_object_id?: NullableStringFieldUpdateOperationsInput | string | null
+    bond_name?: StringFieldUpdateOperationsInput | string
+    bond_type?: EnumBondTypeFieldUpdateOperationsInput | $Enums.BondType
+    bond_symbol?: StringFieldUpdateOperationsInput | string
+    organization_name?: StringFieldUpdateOperationsInput | string
+    face_value?: BigIntFieldUpdateOperationsInput | bigint | number
+    tl_unit_offered?: IntFieldUpdateOperationsInput | number
+    tl_unit_subscribed?: NullableIntFieldUpdateOperationsInput | number | null
+    maturity?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
+    interest_rate?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    market?: NullableEnumMarketFieldUpdateOperationsInput | $Enums.Market | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscription_period?: IntFieldUpdateOperationsInput | number
+    subscription_end_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: EventsUpdateManyWithoutBondNestedInput
+    transactions?: TransactionsUpdateManyWithoutBondNestedInput
+  }
+
+  export type BondsUncheckedUpdateWithoutSubscriptionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bond_object_id?: NullableStringFieldUpdateOperationsInput | string | null
+    bond_name?: StringFieldUpdateOperationsInput | string
+    bond_type?: EnumBondTypeFieldUpdateOperationsInput | $Enums.BondType
+    bond_symbol?: StringFieldUpdateOperationsInput | string
+    organization_name?: StringFieldUpdateOperationsInput | string
+    face_value?: BigIntFieldUpdateOperationsInput | bigint | number
+    tl_unit_offered?: IntFieldUpdateOperationsInput | number
+    tl_unit_subscribed?: NullableIntFieldUpdateOperationsInput | number | null
+    maturity?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
+    interest_rate?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    market?: NullableEnumMarketFieldUpdateOperationsInput | $Enums.Market | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscription_period?: IntFieldUpdateOperationsInput | number
+    subscription_end_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: EventsUncheckedUpdateManyWithoutBondNestedInput
+    transactions?: TransactionsUncheckedUpdateManyWithoutBondNestedInput
+  }
+
+  export type UsersUpsertWithoutSubscriptionsInput = {
+    update: XOR<UsersUpdateWithoutSubscriptionsInput, UsersUncheckedUpdateWithoutSubscriptionsInput>
+    create: XOR<UsersCreateWithoutSubscriptionsInput, UsersUncheckedCreateWithoutSubscriptionsInput>
+    where?: UsersWhereInput
+  }
+
+  export type UsersUpdateToOneWithWhereWithoutSubscriptionsInput = {
+    where?: UsersWhereInput
+    data: XOR<UsersUpdateWithoutSubscriptionsInput, UsersUncheckedUpdateWithoutSubscriptionsInput>
+  }
+
+  export type UsersUpdateWithoutSubscriptionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    national_id?: BigIntFieldUpdateOperationsInput | bigint | number
+    wallet_address?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: EventsUpdateManyWithoutUserNestedInput
+    transactionsFrom?: TransactionsUpdateManyWithoutFromNestedInput
+    transactionsTo?: TransactionsUpdateManyWithoutToNestedInput
+  }
+
+  export type UsersUncheckedUpdateWithoutSubscriptionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    national_id?: BigIntFieldUpdateOperationsInput | bigint | number
+    wallet_address?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: EventsUncheckedUpdateManyWithoutUserNestedInput
+    transactionsFrom?: TransactionsUncheckedUpdateManyWithoutFromNestedInput
+    transactionsTo?: TransactionsUncheckedUpdateManyWithoutToNestedInput
+  }
+
+  export type BondsCreateWithoutTransactionsInput = {
+    id?: string
+    bond_object_id?: string | null
+    bond_name: string
+    bond_type: $Enums.BondType
+    bond_symbol: string
+    organization_name: string
+    face_value: bigint | number
+    tl_unit_offered: number
+    tl_unit_subscribed?: number | null
+    maturity: Date | string
+    status: $Enums.Status
+    interest_rate: string
+    purpose: string
+    market?: $Enums.Market | null
+    created_at?: Date | string
+    subscription_period: number
+    subscription_end_date: Date | string
+    subscriptions?: SubscriptionsCreateNestedManyWithoutBondInput
+    events?: EventsCreateNestedManyWithoutBondInput
+  }
+
+  export type BondsUncheckedCreateWithoutTransactionsInput = {
+    id?: string
+    bond_object_id?: string | null
+    bond_name: string
+    bond_type: $Enums.BondType
+    bond_symbol: string
+    organization_name: string
+    face_value: bigint | number
+    tl_unit_offered: number
+    tl_unit_subscribed?: number | null
+    maturity: Date | string
+    status: $Enums.Status
+    interest_rate: string
+    purpose: string
+    market?: $Enums.Market | null
+    created_at?: Date | string
+    subscription_period: number
+    subscription_end_date: Date | string
+    subscriptions?: SubscriptionsUncheckedCreateNestedManyWithoutBondInput
+    events?: EventsUncheckedCreateNestedManyWithoutBondInput
+  }
+
+  export type BondsCreateOrConnectWithoutTransactionsInput = {
+    where: BondsWhereUniqueInput
+    create: XOR<BondsCreateWithoutTransactionsInput, BondsUncheckedCreateWithoutTransactionsInput>
+  }
+
+  export type UsersCreateWithoutTransactionsFromInput = {
+    id?: string
+    name?: string | null
+    national_id: bigint | number
+    wallet_address: string
+    salt: string
+    email: string
+    password?: string | null
+    role: $Enums.Role
+    hashed_mnemonic?: string | null
+    created_at?: Date | string
+    subscriptions?: SubscriptionsCreateNestedManyWithoutUserInput
+    events?: EventsCreateNestedManyWithoutUserInput
+    transactionsTo?: TransactionsCreateNestedManyWithoutToInput
+  }
+
+  export type UsersUncheckedCreateWithoutTransactionsFromInput = {
+    id?: string
+    name?: string | null
+    national_id: bigint | number
+    wallet_address: string
+    salt: string
+    email: string
+    password?: string | null
+    role: $Enums.Role
+    hashed_mnemonic?: string | null
+    created_at?: Date | string
+    subscriptions?: SubscriptionsUncheckedCreateNestedManyWithoutUserInput
+    events?: EventsUncheckedCreateNestedManyWithoutUserInput
+    transactionsTo?: TransactionsUncheckedCreateNestedManyWithoutToInput
+  }
+
+  export type UsersCreateOrConnectWithoutTransactionsFromInput = {
+    where: UsersWhereUniqueInput
+    create: XOR<UsersCreateWithoutTransactionsFromInput, UsersUncheckedCreateWithoutTransactionsFromInput>
+  }
+
+  export type UsersCreateWithoutTransactionsToInput = {
+    id?: string
+    name?: string | null
+    national_id: bigint | number
+    wallet_address: string
+    salt: string
+    email: string
+    password?: string | null
+    role: $Enums.Role
+    hashed_mnemonic?: string | null
+    created_at?: Date | string
+    subscriptions?: SubscriptionsCreateNestedManyWithoutUserInput
+    events?: EventsCreateNestedManyWithoutUserInput
+    transactionsFrom?: TransactionsCreateNestedManyWithoutFromInput
+  }
+
+  export type UsersUncheckedCreateWithoutTransactionsToInput = {
+    id?: string
+    name?: string | null
+    national_id: bigint | number
+    wallet_address: string
+    salt: string
+    email: string
+    password?: string | null
+    role: $Enums.Role
+    hashed_mnemonic?: string | null
+    created_at?: Date | string
+    subscriptions?: SubscriptionsUncheckedCreateNestedManyWithoutUserInput
+    events?: EventsUncheckedCreateNestedManyWithoutUserInput
+    transactionsFrom?: TransactionsUncheckedCreateNestedManyWithoutFromInput
+  }
+
+  export type UsersCreateOrConnectWithoutTransactionsToInput = {
+    where: UsersWhereUniqueInput
+    create: XOR<UsersCreateWithoutTransactionsToInput, UsersUncheckedCreateWithoutTransactionsToInput>
+  }
+
+  export type BondsUpsertWithoutTransactionsInput = {
+    update: XOR<BondsUpdateWithoutTransactionsInput, BondsUncheckedUpdateWithoutTransactionsInput>
+    create: XOR<BondsCreateWithoutTransactionsInput, BondsUncheckedCreateWithoutTransactionsInput>
+    where?: BondsWhereInput
+  }
+
+  export type BondsUpdateToOneWithWhereWithoutTransactionsInput = {
+    where?: BondsWhereInput
+    data: XOR<BondsUpdateWithoutTransactionsInput, BondsUncheckedUpdateWithoutTransactionsInput>
+  }
+
+  export type BondsUpdateWithoutTransactionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bond_object_id?: NullableStringFieldUpdateOperationsInput | string | null
+    bond_name?: StringFieldUpdateOperationsInput | string
+    bond_type?: EnumBondTypeFieldUpdateOperationsInput | $Enums.BondType
+    bond_symbol?: StringFieldUpdateOperationsInput | string
+    organization_name?: StringFieldUpdateOperationsInput | string
+    face_value?: BigIntFieldUpdateOperationsInput | bigint | number
+    tl_unit_offered?: IntFieldUpdateOperationsInput | number
+    tl_unit_subscribed?: NullableIntFieldUpdateOperationsInput | number | null
+    maturity?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
+    interest_rate?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    market?: NullableEnumMarketFieldUpdateOperationsInput | $Enums.Market | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscription_period?: IntFieldUpdateOperationsInput | number
+    subscription_end_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscriptions?: SubscriptionsUpdateManyWithoutBondNestedInput
+    events?: EventsUpdateManyWithoutBondNestedInput
+  }
+
+  export type BondsUncheckedUpdateWithoutTransactionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bond_object_id?: NullableStringFieldUpdateOperationsInput | string | null
+    bond_name?: StringFieldUpdateOperationsInput | string
+    bond_type?: EnumBondTypeFieldUpdateOperationsInput | $Enums.BondType
+    bond_symbol?: StringFieldUpdateOperationsInput | string
+    organization_name?: StringFieldUpdateOperationsInput | string
+    face_value?: BigIntFieldUpdateOperationsInput | bigint | number
+    tl_unit_offered?: IntFieldUpdateOperationsInput | number
+    tl_unit_subscribed?: NullableIntFieldUpdateOperationsInput | number | null
+    maturity?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
+    interest_rate?: StringFieldUpdateOperationsInput | string
+    purpose?: StringFieldUpdateOperationsInput | string
+    market?: NullableEnumMarketFieldUpdateOperationsInput | $Enums.Market | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscription_period?: IntFieldUpdateOperationsInput | number
+    subscription_end_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscriptions?: SubscriptionsUncheckedUpdateManyWithoutBondNestedInput
+    events?: EventsUncheckedUpdateManyWithoutBondNestedInput
+  }
+
+  export type UsersUpsertWithoutTransactionsFromInput = {
+    update: XOR<UsersUpdateWithoutTransactionsFromInput, UsersUncheckedUpdateWithoutTransactionsFromInput>
+    create: XOR<UsersCreateWithoutTransactionsFromInput, UsersUncheckedCreateWithoutTransactionsFromInput>
+    where?: UsersWhereInput
+  }
+
+  export type UsersUpdateToOneWithWhereWithoutTransactionsFromInput = {
+    where?: UsersWhereInput
+    data: XOR<UsersUpdateWithoutTransactionsFromInput, UsersUncheckedUpdateWithoutTransactionsFromInput>
+  }
+
+  export type UsersUpdateWithoutTransactionsFromInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    national_id?: BigIntFieldUpdateOperationsInput | bigint | number
+    wallet_address?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscriptions?: SubscriptionsUpdateManyWithoutUserNestedInput
+    events?: EventsUpdateManyWithoutUserNestedInput
+    transactionsTo?: TransactionsUpdateManyWithoutToNestedInput
+  }
+
+  export type UsersUncheckedUpdateWithoutTransactionsFromInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    national_id?: BigIntFieldUpdateOperationsInput | bigint | number
+    wallet_address?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscriptions?: SubscriptionsUncheckedUpdateManyWithoutUserNestedInput
+    events?: EventsUncheckedUpdateManyWithoutUserNestedInput
+    transactionsTo?: TransactionsUncheckedUpdateManyWithoutToNestedInput
+  }
+
+  export type UsersUpsertWithoutTransactionsToInput = {
+    update: XOR<UsersUpdateWithoutTransactionsToInput, UsersUncheckedUpdateWithoutTransactionsToInput>
+    create: XOR<UsersCreateWithoutTransactionsToInput, UsersUncheckedCreateWithoutTransactionsToInput>
+    where?: UsersWhereInput
+  }
+
+  export type UsersUpdateToOneWithWhereWithoutTransactionsToInput = {
+    where?: UsersWhereInput
+    data: XOR<UsersUpdateWithoutTransactionsToInput, UsersUncheckedUpdateWithoutTransactionsToInput>
+  }
+
+  export type UsersUpdateWithoutTransactionsToInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    national_id?: BigIntFieldUpdateOperationsInput | bigint | number
+    wallet_address?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscriptions?: SubscriptionsUpdateManyWithoutUserNestedInput
+    events?: EventsUpdateManyWithoutUserNestedInput
+    transactionsFrom?: TransactionsUpdateManyWithoutFromNestedInput
+  }
+
+  export type UsersUncheckedUpdateWithoutTransactionsToInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    national_id?: BigIntFieldUpdateOperationsInput | bigint | number
+    wallet_address?: StringFieldUpdateOperationsInput | string
+    salt?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscriptions?: SubscriptionsUncheckedUpdateManyWithoutUserNestedInput
+    events?: EventsUncheckedUpdateManyWithoutUserNestedInput
+    transactionsFrom?: TransactionsUncheckedUpdateManyWithoutFromNestedInput
+  }
+
+  export type SubscriptionsCreateManyUserInput = {
+    id?: string
+    bond_id: string
+    wallet_address: string
+    committed_amount: bigint | number
+    tx_hash: string
+    subscription_amt?: bigint | number | null
+    created_at?: Date | string
+  }
+
+  export type EventsCreateManyUserInput = {
+    id?: string
+    type: $Enums.Type
+    bond_id: string
+    details: string
+    tx_hash: string
+    created_at?: Date | string
+  }
+
+  export type TransactionsCreateManyFromInput = {
+    id?: string
+    bond_id: string
+    user_to: string
+    tx_hash: string
+    created_at?: Date | string
+  }
+
+  export type TransactionsCreateManyToInput = {
+    id?: string
+    bond_id: string
+    user_from: string
+    tx_hash: string
+    created_at?: Date | string
+  }
+
+  export type SubscriptionsUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    wallet_address?: StringFieldUpdateOperationsInput | string
+    committed_amount?: BigIntFieldUpdateOperationsInput | bigint | number
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    subscription_amt?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    bond?: BondsUpdateOneRequiredWithoutSubscriptionsNestedInput
+  }
+
+  export type SubscriptionsUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bond_id?: StringFieldUpdateOperationsInput | string
+    wallet_address?: StringFieldUpdateOperationsInput | string
+    committed_amount?: BigIntFieldUpdateOperationsInput | bigint | number
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    subscription_amt?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SubscriptionsUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bond_id?: StringFieldUpdateOperationsInput | string
+    wallet_address?: StringFieldUpdateOperationsInput | string
+    committed_amount?: BigIntFieldUpdateOperationsInput | bigint | number
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    subscription_amt?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EventsUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumTypeFieldUpdateOperationsInput | $Enums.Type
+    details?: StringFieldUpdateOperationsInput | string
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    bond?: BondsUpdateOneRequiredWithoutEventsNestedInput
+  }
+
+  export type EventsUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumTypeFieldUpdateOperationsInput | $Enums.Type
+    bond_id?: StringFieldUpdateOperationsInput | string
+    details?: StringFieldUpdateOperationsInput | string
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EventsUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumTypeFieldUpdateOperationsInput | $Enums.Type
+    bond_id?: StringFieldUpdateOperationsInput | string
+    details?: StringFieldUpdateOperationsInput | string
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TransactionsUpdateWithoutFromInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    bond?: BondsUpdateOneRequiredWithoutTransactionsNestedInput
+    to?: UsersUpdateOneRequiredWithoutTransactionsToNestedInput
+  }
+
+  export type TransactionsUncheckedUpdateWithoutFromInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bond_id?: StringFieldUpdateOperationsInput | string
+    user_to?: StringFieldUpdateOperationsInput | string
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TransactionsUncheckedUpdateManyWithoutFromInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bond_id?: StringFieldUpdateOperationsInput | string
+    user_to?: StringFieldUpdateOperationsInput | string
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TransactionsUpdateWithoutToInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    bond?: BondsUpdateOneRequiredWithoutTransactionsNestedInput
+    from?: UsersUpdateOneRequiredWithoutTransactionsFromNestedInput
+  }
+
+  export type TransactionsUncheckedUpdateWithoutToInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bond_id?: StringFieldUpdateOperationsInput | string
+    user_from?: StringFieldUpdateOperationsInput | string
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TransactionsUncheckedUpdateManyWithoutToInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bond_id?: StringFieldUpdateOperationsInput | string
+    user_from?: StringFieldUpdateOperationsInput | string
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SubscriptionsCreateManyBondInput = {
+    id?: string
+    user_id: string
+    wallet_address: string
+    committed_amount: bigint | number
+    tx_hash: string
+    subscription_amt?: bigint | number | null
+    created_at?: Date | string
+  }
+
+  export type EventsCreateManyBondInput = {
+    id?: string
+    type: $Enums.Type
+    user_id: string
+    details: string
+    tx_hash: string
+    created_at?: Date | string
+  }
+
+  export type TransactionsCreateManyBondInput = {
+    id?: string
+    user_from: string
+    user_to: string
+    tx_hash: string
+    created_at?: Date | string
+  }
+
+  export type SubscriptionsUpdateWithoutBondInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    wallet_address?: StringFieldUpdateOperationsInput | string
+    committed_amount?: BigIntFieldUpdateOperationsInput | bigint | number
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    subscription_amt?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UsersUpdateOneRequiredWithoutSubscriptionsNestedInput
+  }
+
+  export type SubscriptionsUncheckedUpdateWithoutBondInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    user_id?: StringFieldUpdateOperationsInput | string
+    wallet_address?: StringFieldUpdateOperationsInput | string
+    committed_amount?: BigIntFieldUpdateOperationsInput | bigint | number
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    subscription_amt?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SubscriptionsUncheckedUpdateManyWithoutBondInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    user_id?: StringFieldUpdateOperationsInput | string
+    wallet_address?: StringFieldUpdateOperationsInput | string
+    committed_amount?: BigIntFieldUpdateOperationsInput | bigint | number
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    subscription_amt?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EventsUpdateWithoutBondInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumTypeFieldUpdateOperationsInput | $Enums.Type
+    details?: StringFieldUpdateOperationsInput | string
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UsersUpdateOneRequiredWithoutEventsNestedInput
+  }
+
+  export type EventsUncheckedUpdateWithoutBondInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumTypeFieldUpdateOperationsInput | $Enums.Type
+    user_id?: StringFieldUpdateOperationsInput | string
+    details?: StringFieldUpdateOperationsInput | string
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EventsUncheckedUpdateManyWithoutBondInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumTypeFieldUpdateOperationsInput | $Enums.Type
+    user_id?: StringFieldUpdateOperationsInput | string
+    details?: StringFieldUpdateOperationsInput | string
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TransactionsUpdateWithoutBondInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    from?: UsersUpdateOneRequiredWithoutTransactionsFromNestedInput
+    to?: UsersUpdateOneRequiredWithoutTransactionsToNestedInput
+  }
+
+  export type TransactionsUncheckedUpdateWithoutBondInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    user_from?: StringFieldUpdateOperationsInput | string
+    user_to?: StringFieldUpdateOperationsInput | string
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TransactionsUncheckedUpdateManyWithoutBondInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    user_from?: StringFieldUpdateOperationsInput | string
+    user_to?: StringFieldUpdateOperationsInput | string
+    tx_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

@@ -35,12 +35,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 6.17.1
- * Query Engine version: 272a37d34178c2894197e17273bf937f25acdeac
+ * Prisma Client JS version: 6.18.0
+ * Query Engine version: 34b5a692b7bd79939a9a2c3ef97d816e749cda2f
  */
 Prisma.prismaVersion = {
-  client: "6.17.1",
-  engine: "272a37d34178c2894197e17273bf937f25acdeac"
+  client: "6.18.0",
+  engine: "34b5a692b7bd79939a9a2c3ef97d816e749cda2f"
 }
 
 Prisma.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
@@ -94,6 +94,7 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 
 exports.Prisma.UsersScalarFieldEnum = {
   id: 'id',
+  name: 'name',
   national_id: 'national_id',
   wallet_address: 'wallet_address',
   salt: 'salt',
@@ -107,13 +108,21 @@ exports.Prisma.UsersScalarFieldEnum = {
 exports.Prisma.BondsScalarFieldEnum = {
   id: 'id',
   bond_object_id: 'bond_object_id',
-  name: 'name',
+  bond_name: 'bond_name',
+  bond_type: 'bond_type',
+  bond_symbol: 'bond_symbol',
+  organization_name: 'organization_name',
   face_value: 'face_value',
-  price: 'price',
+  tl_unit_offered: 'tl_unit_offered',
+  tl_unit_subscribed: 'tl_unit_subscribed',
   maturity: 'maturity',
   status: 'status',
   interest_rate: 'interest_rate',
-  created_at: 'created_at'
+  purpose: 'purpose',
+  market: 'market',
+  created_at: 'created_at',
+  subscription_period: 'subscription_period',
+  subscription_end_date: 'subscription_end_date'
 };
 
 exports.Prisma.EventsScalarFieldEnum = {
@@ -130,8 +139,10 @@ exports.Prisma.SubscriptionsScalarFieldEnum = {
   id: 'id',
   bond_id: 'bond_id',
   user_id: 'user_id',
+  wallet_address: 'wallet_address',
   committed_amount: 'committed_amount',
   tx_hash: 'tx_hash',
+  subscription_amt: 'subscription_amt',
   created_at: 'created_at'
 };
 
@@ -174,6 +185,19 @@ exports.Type = exports.$Enums.Type = {
   maturity: 'maturity'
 };
 
+exports.BondType = exports.$Enums.BondType = {
+  government_Bond: 'government_Bond',
+  corporate_Bond: 'corporate_Bond',
+  green_Bond: 'green_Bond',
+  development_Bond: 'development_Bond',
+  domestic_Bond: 'domestic_Bond'
+};
+
+exports.Market = exports.$Enums.Market = {
+  current: 'current',
+  resale: 'resale'
+};
+
 exports.Prisma.ModelName = {
   Users: 'Users',
   Bonds: 'Bonds',
@@ -214,8 +238,8 @@ const config = {
     "schemaEnvPath": "../../.env"
   },
   "relativePath": "../../prisma",
-  "clientVersion": "6.17.1",
-  "engineVersion": "272a37d34178c2894197e17273bf937f25acdeac",
+  "clientVersion": "6.18.0",
+  "engineVersion": "34b5a692b7bd79939a9a2c3ef97d816e749cda2f",
   "datasourceNames": [
     "db"
   ],
@@ -228,13 +252,13 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nenum Role {\n  admin\n  user\n}\n\nenum Status {\n  open\n  closed\n}\n\nenum Type {\n  subscription\n  transfer\n  maturity\n}\n\nmodel Users {\n  id              String   @id @default(cuid())\n  national_id     BigInt   @unique\n  wallet_address  String   @unique\n  salt            String\n  email           String   @unique\n  password        String?\n  role            Role\n  hashed_mnemonic String?\n  created_at      DateTime @default(now())\n}\n\nmodel Bonds {\n  id             String   @id @default(cuid())\n  bond_object_id String\n  name           String\n  face_value     BigInt\n  price          BigInt\n  maturity       DateTime\n  status         Status\n  interest_rate  String\n  created_at     DateTime @default(now())\n}\n\nmodel Events {\n  id         String   @id @default(cuid())\n  type       Type\n  bond_id    String\n  user_id    String\n  details    String\n  tx_hash    String\n  created_at DateTime @default(now())\n}\n\nmodel Subscriptions {\n  id               String   @id @default(cuid())\n  bond_id          String\n  user_id          String\n  committed_amount BigInt\n  tx_hash          String\n  created_at       DateTime @default(now())\n}\n\nmodel Transactions {\n  id         String   @id @default(cuid())\n  bond_id    String\n  user_from  String\n  user_to    String\n  tx_hash    String\n  created_at DateTime @default(now())\n}\n",
-  "inlineSchemaHash": "fc03f026e49e67f39b749ca0355987170cd7f5cb87fbe735e2fc146defb7e2a7",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nenum Role {\n  admin\n  user\n}\n\nenum Status {\n  open\n  closed\n}\n\nenum Type {\n  subscription\n  transfer\n  maturity\n}\n\nenum BondType {\n  government_Bond\n  corporate_Bond\n  green_Bond\n  development_Bond\n  domestic_Bond\n}\n\nenum Market {\n  current\n  resale\n}\n\nmodel Users {\n  id              String   @id @default(cuid())\n  name            String?\n  national_id     BigInt   @unique\n  wallet_address  String   @unique\n  salt            String\n  email           String   @unique\n  password        String?\n  role            Role\n  hashed_mnemonic String?\n  created_at      DateTime @default(now())\n\n  // Relations\n  subscriptions    Subscriptions[]\n  events           Events[]\n  transactionsFrom Transactions[]  @relation(\"TransactionsFrom\")\n  transactionsTo   Transactions[]  @relation(\"TransactionsTo\")\n}\n\nmodel Bonds {\n  id                    String   @id @default(cuid())\n  bond_object_id        String?\n  bond_name             String\n  bond_type             BondType\n  bond_symbol           String\n  organization_name     String\n  face_value            BigInt\n  tl_unit_offered       Int\n  tl_unit_subscribed    Int?\n  maturity              DateTime\n  status                Status\n  interest_rate         String\n  purpose               String\n  market                Market?\n  created_at            DateTime @default(now())\n  subscription_period   Int\n  subscription_end_date DateTime\n\n  // Relations\n  subscriptions Subscriptions[]\n  events        Events[]\n  transactions  Transactions[]\n}\n\nmodel Events {\n  id         String   @id @default(cuid())\n  type       Type\n  bond_id    String\n  user_id    String\n  details    String\n  tx_hash    String\n  created_at DateTime @default(now())\n\n  // Relations\n  bond Bonds @relation(fields: [bond_id], references: [id], onDelete: Cascade)\n  user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)\n}\n\nmodel Subscriptions {\n  id               String   @id @default(cuid())\n  bond_id          String\n  user_id          String\n  wallet_address   String\n  committed_amount BigInt\n  tx_hash          String\n  subscription_amt BigInt?\n  created_at       DateTime @default(now())\n\n  // Relations\n  bond Bonds @relation(fields: [bond_id], references: [id], onDelete: Cascade)\n  user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)\n}\n\nmodel Transactions {\n  id         String   @id @default(cuid())\n  bond_id    String\n  user_from  String\n  user_to    String\n  tx_hash    String\n  created_at DateTime @default(now())\n\n  // Relations\n  bond Bonds @relation(fields: [bond_id], references: [id], onDelete: Cascade)\n  from Users @relation(\"TransactionsFrom\", fields: [user_from], references: [id], onDelete: Cascade)\n  to   Users @relation(\"TransactionsTo\", fields: [user_to], references: [id], onDelete: Cascade)\n}\n",
+  "inlineSchemaHash": "8688055196fb657b48a05034980c402dd496e8ad9796542f62954659136faf51",
   "copyEngine": true
 }
 config.dirname = '/'
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Users\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"national_id\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"wallet_address\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"salt\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"enum\",\"type\":\"Role\"},{\"name\":\"hashed_mnemonic\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Bonds\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bond_object_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"face_value\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"price\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"maturity\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"Status\"},{\"name\":\"interest_rate\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Events\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"enum\",\"type\":\"Type\"},{\"name\":\"bond_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"details\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"tx_hash\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Subscriptions\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bond_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"committed_amount\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"tx_hash\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Transactions\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bond_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user_from\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user_to\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"tx_hash\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Users\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"national_id\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"wallet_address\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"salt\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"enum\",\"type\":\"Role\"},{\"name\":\"hashed_mnemonic\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"subscriptions\",\"kind\":\"object\",\"type\":\"Subscriptions\",\"relationName\":\"SubscriptionsToUsers\"},{\"name\":\"events\",\"kind\":\"object\",\"type\":\"Events\",\"relationName\":\"EventsToUsers\"},{\"name\":\"transactionsFrom\",\"kind\":\"object\",\"type\":\"Transactions\",\"relationName\":\"TransactionsFrom\"},{\"name\":\"transactionsTo\",\"kind\":\"object\",\"type\":\"Transactions\",\"relationName\":\"TransactionsTo\"}],\"dbName\":null},\"Bonds\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bond_object_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bond_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bond_type\",\"kind\":\"enum\",\"type\":\"BondType\"},{\"name\":\"bond_symbol\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"organization_name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"face_value\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"tl_unit_offered\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"tl_unit_subscribed\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"maturity\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"Status\"},{\"name\":\"interest_rate\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"purpose\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"market\",\"kind\":\"enum\",\"type\":\"Market\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"subscription_period\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"subscription_end_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"subscriptions\",\"kind\":\"object\",\"type\":\"Subscriptions\",\"relationName\":\"BondsToSubscriptions\"},{\"name\":\"events\",\"kind\":\"object\",\"type\":\"Events\",\"relationName\":\"BondsToEvents\"},{\"name\":\"transactions\",\"kind\":\"object\",\"type\":\"Transactions\",\"relationName\":\"BondsToTransactions\"}],\"dbName\":null},\"Events\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"enum\",\"type\":\"Type\"},{\"name\":\"bond_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"details\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"tx_hash\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"bond\",\"kind\":\"object\",\"type\":\"Bonds\",\"relationName\":\"BondsToEvents\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"Users\",\"relationName\":\"EventsToUsers\"}],\"dbName\":null},\"Subscriptions\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bond_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"wallet_address\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"committed_amount\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"tx_hash\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"subscription_amt\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"bond\",\"kind\":\"object\",\"type\":\"Bonds\",\"relationName\":\"BondsToSubscriptions\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"Users\",\"relationName\":\"SubscriptionsToUsers\"}],\"dbName\":null},\"Transactions\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bond_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user_from\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user_to\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"tx_hash\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"bond\",\"kind\":\"object\",\"type\":\"Bonds\",\"relationName\":\"BondsToTransactions\"},{\"name\":\"from\",\"kind\":\"object\",\"type\":\"Users\",\"relationName\":\"TransactionsFrom\"},{\"name\":\"to\",\"kind\":\"object\",\"type\":\"Users\",\"relationName\":\"TransactionsTo\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.engineWasm = {
   getRuntime: async () => require('./query_engine_bg.js'),

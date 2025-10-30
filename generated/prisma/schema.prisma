@@ -3,7 +3,6 @@
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -30,8 +29,22 @@ enum Type {
   maturity
 }
 
+enum BondType {
+  government_Bond
+  corporate_Bond
+  green_Bond
+  development_Bond
+  domestic_Bond
+}
+
+enum Market {
+  current
+  resale
+}
+
 model Users {
   id              String   @id @default(cuid())
+  name            String?
   national_id     BigInt   @unique
   wallet_address  String   @unique
   salt            String
@@ -40,18 +53,35 @@ model Users {
   role            Role
   hashed_mnemonic String?
   created_at      DateTime @default(now())
+
+  // Relations
+  subscriptions    Subscriptions[]
+  events           Events[]
+  transactionsFrom Transactions[]  @relation("TransactionsFrom")
+  transactionsTo   Transactions[]  @relation("TransactionsTo")
 }
 
 model Bonds {
-  id             String   @id @default(cuid())
-  bond_object_id String
-  name           String
-  face_value     BigInt
-  price          BigInt
-  maturity       DateTime
-  status         Status
-  interest_rate  String
-  created_at     DateTime @default(now())
+  id                 String   @id @default(cuid())
+  bond_object_id     String?
+  bond_name          String
+  bond_type          BondType
+  bond_symbol        String
+  organization_name  String
+  face_value         BigInt
+  tl_unit_offered    Int
+  tl_unit_subscribed Int?
+  maturity           DateTime
+  status             Status
+  interest_rate      String
+  purpose            String
+  market             Market?
+  created_at         DateTime @default(now())
+
+  // Relations
+  subscriptions Subscriptions[]
+  events        Events[]
+  transactions  Transactions[]
 }
 
 model Events {
@@ -62,15 +92,25 @@ model Events {
   details    String
   tx_hash    String
   created_at DateTime @default(now())
+
+  // Relations
+  bond Bonds @relation(fields: [bond_id], references: [id], onDelete: Cascade)
+  user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 model Subscriptions {
   id               String   @id @default(cuid())
   bond_id          String
   user_id          String
+  wallet_address   String
   committed_amount BigInt
   tx_hash          String
+  subscription_amt BigInt?
   created_at       DateTime @default(now())
+
+  // Relations
+  bond Bonds @relation(fields: [bond_id], references: [id], onDelete: Cascade)
+  user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 model Transactions {
@@ -80,4 +120,9 @@ model Transactions {
   user_to    String
   tx_hash    String
   created_at DateTime @default(now())
+
+  // Relations
+  bond Bonds @relation(fields: [bond_id], references: [id], onDelete: Cascade)
+  from Users @relation("TransactionsFrom", fields: [user_from], references: [id], onDelete: Cascade)
+  to   Users @relation("TransactionsTo", fields: [user_to], references: [id], onDelete: Cascade)
 }

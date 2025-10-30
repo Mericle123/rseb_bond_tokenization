@@ -1,0 +1,76 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #3b4a9a;
+    /* You can add your background pattern here if desired */
+    background-image: url('/background-pattern.png');
+    font-family: sans-serif;
+    padding: 20px;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 450px;
+}
+
+.logo {
+    margin-bottom: 25px;
+    background-color: #ffffff;
+    border-radius: 0%;
+    padding: 10px;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #ffffff;
+    margin-bottom: 30px;
+}
+
+.form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input {
+    width: 100%;
+    padding: 15px 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #fff;
+    color: #333;
+}
+
+.input::placeholder {
+    color: #888;
+}
+
+.submitButton {
+  background-color: #1e2a3a;
+  color: #ffffff;
+  border: none;
+  padding: 15px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
+  margin-top: 10px;
+  /* Add these two for the Link component */
+  text-align: center;
+  text-decoration: none;
+}
+
+.submitButton:hover {
+  background-color: #2a3b52;
+}
