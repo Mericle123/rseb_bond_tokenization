@@ -61,6 +61,7 @@ export default function InvestorPage() {
   const [activeTab, setActiveTab] = useState<Market>("current");
 
   const walletAddress = currentUser?.wallet_address;
+  const mnemonics = currentUser?.hashed_mnemonics;
 
   // Fetch bonds on mount
   useEffect(() => {
@@ -108,7 +109,7 @@ export default function InvestorPage() {
         </motion.header>
 
         {/* Wallet Summary */}
-        <WalletSection walletAddress={walletAddress} />
+        <WalletSection walletAddress={walletAddress} mnemonics={mnemonics}/>
 
         {/* ======================= Tokens Available ======================= */}
         <section className="w-full mt-10" aria-labelledby="tokens-title">

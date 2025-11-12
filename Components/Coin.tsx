@@ -13,6 +13,12 @@ import {
   ChevronDown,
   ArrowLeft,
 } from "lucide-react";
+import { buyBtn } from '../server/blockchain/btnc'
+import { useCurrentUser } from "@/context/UserContext";
+import { getBtncBalance } from "../server/blockchain/btnc";
+import { transBtn } from "../server/blockchain/btnc";
+import { strict } from "assert";
+
 
 const fadeIn = {
   initial: { opacity: 0, y: 8, scale: 0.995 },
@@ -35,7 +41,12 @@ type View =
 /* =================================================================== */
 /*                                MAIN                                  */
 /* =================================================================== */
-export default function WalletSection({ walletAddress }: Props) {
+export default function WalletSection({ walletAddress, mnemonics }: {walletAddress: Props, mnemonics: string}) {
+  const currentUser = useCurrentUser();
+
+  const [balance, setBalance] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<View>(null);
@@ -75,6 +86,21 @@ export default function WalletSection({ walletAddress }: Props) {
       setActiveAction(null);
     }, 250);
   };
+
+  useEffect(() => {
+    async function loadBalance() {
+      try {
+        const data = await getBtncBalance({ address: walletAddress });
+        setBalance(data.balanceHuman);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (walletAddress) loadBalance();
+  }, [walletAddress]);
+
 
   return (
     <>
@@ -122,11 +148,25 @@ export default function WalletSection({ walletAddress }: Props) {
                 <Image src="/coin.png" alt="coin" width={24} height={24} />
               </div>
               <h2 id="wallet-summary-title" className="text-lg font-semibold text-gray-900">
-                No coins
+                {loading ? (
+                  "Loading balance..."
+                ) : balance && parseFloat(balance) > 0 ? (
+                  <>
+                    {balance} <span className="text-sm font-medium text-gray-500">BTN₵</span>
+                  </>
+                ) : (
+                  "No coins"
+                )}
               </h2>
+
               <p className="mt-1 text-sm text-gray-600">
-                Once you have purchased or received coins, they will appear here.
+                {loading
+                  ? "Please wait..."
+                  : balance && parseFloat(balance) > 0
+                    ? "Your current BTN₵ balance"
+                    : "Once you have purchased or received coins, they will appear here."}
               </p>
+
 
               {/* Actions */}
               <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -163,10 +203,10 @@ export default function WalletSection({ walletAddress }: Props) {
       {/* ===== Slide-over sheet for all 4 flows ===== */}
       <Sheet open={open} onClose={closeSheet} title={titleFor(view)}>
         {view === "receive" && <ReceiveView walletAddress={walletAddress} />}
-        {view === "send" && <SendView />}
+        {view === "send" && <SendView mnemonics={mnemonics} balance={balance} walletAddress={walletAddress}/>}
         {view === "redeem-amount" && <RedeemAmount onNext={() => setView("redeem-bank")} />}
         {view === "redeem-bank" && <RedeemBank onBack={() => setView("redeem-amount")} />}
-        {view === "buy-amount" && <BuyAmount onNext={() => setView("buy-bank")} />}
+        {view === "buy-amount" && <BuyAmount balance={balance} walletAddress={walletAddress} />}
         {view === "buy-bank" && (
           <BuyBank
             walletAddress={walletAddress}
@@ -250,9 +290,8 @@ function Sheet({
       <button
         aria-label="Close"
         onClick={onClose}
-        className={`absolute inset-0 bg-black/40 supports-[backdrop-filter]:backdrop-blur-[2px] transition-opacity duration-300 ${
-          open ? "opacity-100" : "opacity-0"
-        }`}
+        className={`absolute inset-0 bg-black/40 supports-[backdrop-filter]:backdrop-blur-[2px] transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"
+          }`}
       />
       {/* panel */}
       <aside
@@ -315,6 +354,7 @@ function titleFor(v: View) {
 // RECEIVE – QR + copy
 function ReceiveView({ walletAddress }: { walletAddress: string }) {
   const [copied, setCopied] = useState(false);
+
   const copy = async () => {
     await navigator.clipboard.writeText(walletAddress);
     setCopied(true);
@@ -338,18 +378,66 @@ function ReceiveView({ walletAddress }: { walletAddress: string }) {
 }
 
 // SEND – amount + recipient
-function SendView() {
-  const [amt, setAmt] = useState("1000");
-  const [to, setTo] = useState("0X231243255428989023903041");
+function SendView({walletAddress, balance, mnemonics}: {walletAddress: string, balance: string, mnemonics: string}) {
+  const  currentUser = useCurrentUser()
+  const mnemonic = currentUser.hashed_mnemonic
 
-  return (
+  const [sender, setSender] = useState(walletAddress)
+  const [to, setTo] = useState<string |  null>()
+  const [amt, setAmt] = useState<string |  null>()
+   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>();
+
+  async function handleSend() {
+    setMessage(null);
+
+    if (!to || !amt) {
+      setMessage("Please fill in all fields.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await transBtn({
+        mnemonics: mnemonic,
+        sender: sender.trim(),
+        toAddress: to.trim(),
+        amountBTNC: amt,
+      });
+
+      if (res.ok) {
+        setMessage(`✅ Transfer successful! TX: ${res.txDigest}`);
+        setAmt("");
+        setTo("");
+      } else {
+        setMessage(`❌ ${res.detail || "Transfer failed"}`);
+      }
+    } catch (e: any) {
+      console.error("SendView error:", e);
+      setMessage(`⚠️ ${e.message || "Unexpected error"}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+   return (
     <div className="px-6 pt-6 pb-10">
       <div className="mx-auto max-w-[360px] text-center">
         <LogoBlob />
         <p className="mt-2 text-[13px] text-black/70">
-          <span className="font-semibold">Your wallet has</span>
+          <span className="font-semibold">Your wallet</span>
+          <br/>
+             {loading ? (
+                  "Loading balance..."
+                ) : balance && parseFloat(balance) > 0 ? (
+                  <>
+                    {balance} <span className="text-sm font-medium text-gray-500">BTN₵</span>
+                  </>
+                ) : (
+                  "No coins"
+                )}
           <br />
-          1000 coins
+          <span className="text-xs text-gray-600 break-all">{sender}</span>
         </p>
 
         <h3 className="mt-4 text-[20px] font-semibold">
@@ -358,21 +446,49 @@ function SendView() {
           your BTN coin
         </h3>
 
-        <label className="block text-left mt-6 text-[13px] font-medium text-black/60">Coin amount</label>
+        <label className="block text-left mt-6 text-[13px] font-medium text-black/60">
+          Coin amount
+        </label>
         <input
           value={amt}
           onChange={(e) => setAmt(e.target.value)}
           className="mt-1 w-full rounded-xl border border-[#9DB6D3] px-4 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#5B50D9]/60"
+          placeholder="Enter amount"
         />
 
-        <label className="block text-left mt-4 text-[13px] font-medium text-black/60">Recipient address</label>
+        <label className="block text-left mt-4 text-[13px] font-medium text-black/60">
+          Recipient address
+        </label>
         <input
           value={to}
           onChange={(e) => setTo(e.target.value)}
           className="mt-1 w-full rounded-xl border border-[#9DB6D3] px-4 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#5B50D9]/60"
+          placeholder="0x..."
         />
 
-        <button className="mt-8 w-full rounded-full bg-[#5B50D9] text-white py-3 font-semibold">Confirm</button>
+        <button
+          onClick={handleSend}
+          disabled={loading}
+          className={`mt-8 w-full rounded-full bg-[#5B50D9] text-white py-3 font-semibold flex justify-center items-center gap-2 ${
+            loading ? "opacity-70 cursor-not-allowed" : ""
+          }`}
+        >
+          {loading ? "Processing..." : "Confirm"}
+        </button>
+
+        {message && (
+          <p
+            className={`mt-4 text-sm ${
+              message.startsWith("✅")
+                ? "text-green-600"
+                : message.startsWith("⚠️")
+                ? "text-yellow-600"
+                : "text-red-600"
+            }`}
+          >
+            {message}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -516,9 +632,25 @@ function RedeemBank({ onBack }: { onBack: () => void }) {
 }
 
 // BUY – step 1
-function BuyAmount({ onNext }: { onNext: () => void }) {
-  const [buy, setBuy] = useState("1000");
-  const [spend, setSpend] = useState("1000");
+function BuyAmount({ walletAddress, balance }: { walletAddress: string, balance : string }) {
+  const [coinbalance, setBalance] = useState(balance)
+  const [buy, setBuy] = useState("");
+  const [spend, setSpend] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleBuy() {
+    try {
+      setLoading(true);
+      const amountBTN = parseFloat(buy);
+      await buyBtn(walletAddress, amountBTN);
+      alert("Transaction successful!");
+    } catch (e) {
+      console.error("Buy failed:", e);
+      alert("Transaction failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
   return (
     <div className="px-6 pt-6 pb-10">
       <div className="mx-auto max-w-[360px] text-center">
@@ -526,7 +658,15 @@ function BuyAmount({ onNext }: { onNext: () => void }) {
         <p className="mt-2 text-[13px] text-black/70">
           <span className="font-semibold">Your wallet has</span>
           <br />
-          No coins
+           {loading ? (
+                  "Loading balance..."
+                ) : coinbalance && parseFloat(coinbalance) > 0 ? (
+                  <>
+                    {coinbalance} <span className="text-sm font-medium text-gray-500">BTN₵</span>
+                  </>
+                ) : (
+                  "No coins"
+                )}
         </p>
 
         <h3 className="mt-4 text-[20px] font-semibold">Buy BTN Coin</h3>
@@ -546,8 +686,8 @@ function BuyAmount({ onNext }: { onNext: () => void }) {
           className="mt-1 w-full rounded-xl border border-[#9DB6D3] px-4 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#5B50D9]/60"
         />
 
-        <button onClick={onNext} className="mt-8 w-full rounded-full bg-[#5B50D9] text-white py-3 font-semibold">
-          Next
+        <button onClick={handleBuy} disabled={loading} className="mt-8 w-full rounded-full bg-[#5B50D9] text-white py-3 font-semibold">
+          {loading ? "Processing..." : "Buy"}
         </button>
       </div>
     </div>

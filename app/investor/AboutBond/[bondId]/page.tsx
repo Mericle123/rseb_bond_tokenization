@@ -12,6 +12,7 @@ import { useCurrentUser } from "@/context/UserContext";
 import { error } from "console";
 import CountdownFromDays from "@/app/admin/countdown"
 import BondCountdown from "@/app/admin/countdown";
+import { getDefaultAdmin } from "@/server/blockchain/bond";
 
 /* ====================== Motion ====================== */
 const fadeIn = {
@@ -246,6 +247,9 @@ function BuySheet({ bondId, walletAddress, onClose, bond }: any) {
     const res = await subscribeToBond(bondId, {
       userId: currentUser.id,
       walletAddress: currentUser.wallet_address,
+      mnemonics: currentUser.hashed_mnemonic,
+      // toAddress: getDefaultAdmin().getPublicKey().toSuiAddress(),
+      toAddress: "0xcc83383d28a74e6147933780240ceccc5e5f9ae4c0af2ecf6ed973c309f6a065",
       committed_amount: totalAmount,   // ✅ convert number → BigInt
       subscription_amt: nUnits,        // ✅ also convert to BigInt
       bond: { connect: { id: bondId } },       // ✅ link to bond

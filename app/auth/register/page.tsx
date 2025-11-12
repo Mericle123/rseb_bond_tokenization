@@ -35,6 +35,9 @@ export default function RegisterPage() {
         <label className="block mb-2 text-gray-700">Name</label>
         <input type="text" name="name" className="w-full p-2 border rounded-lg mb-4" required />
 
+        <label className="block mb-2 text-gray-700">Date of Birth</label>
+        <input type="date" name="dob" className="w-full p-2 border rounded-lg mb-4" required />
+        
 
         <label className="block mb-2 text-gray-700">Email</label>
         <input type="email" name="email" className="w-full p-2 border rounded-lg mb-4" required />

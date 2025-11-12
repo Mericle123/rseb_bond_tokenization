@@ -118,6 +118,9 @@ const AboutBondPage = ({ params }: {params: Promise<{ bondId: string }> }) => {
                         <Link href={`/admin/bonds/${bondId}/delete`} className={styles.deleteBtn}>
                             Delete Bond
                         </Link>
+                            <Link href={`/admin/bonds/${bondId}/allocate`} className={styles.allocateBtn}>
+                            Allocate
+                        </Link>
                     </div>
                 </div>
             </div>

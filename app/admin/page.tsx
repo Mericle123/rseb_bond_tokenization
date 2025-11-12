@@ -9,11 +9,16 @@ import { FaPlus, FaSackDollar } from "react-icons/fa6";
 import { FaUserFriends } from "react-icons/fa";
 import { BsFileEarmarkTextFill } from "react-icons/bs";
 import { fetchBond } from "@/server/bond/creation";
+import { useCurrentUser } from "@/context/UserContext";
+import { getBtncBalance } from "@/server/blockchain/btnc";
 
 
 export default function AdminHomePage() {
   const [bonds, setBonds] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(useCurrentUser())
+  const [walletAddress, setWalletAddress] = useState(currentUser.wallet_address)
+  const [balance, setBalance] = useState<string | null>(null);
 
   useEffect(() => {
     async function getBonds() {
@@ -28,11 +33,34 @@ export default function AdminHomePage() {
         setLoading(false);
       }
     }
+    async function loadBalance() {
+    try {
+      const data = await getBtncBalance({ address: walletAddress });
+      setBalance(data.balanceHuman);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }
+  if (walletAddress) loadBalance();
     getBonds();
-  }, []);
-
+  }, [walletAddress]);
   return (
     <div className={styles.container}>
+      <h1 className={styles.title}>Admin Wallet</h1>
+      <p>{walletAddress}</p>
+           <h2 id="wallet-summary-title" className="text-lg font-semibold text-gray-900">
+                {loading ? (
+                  "Loading balance..."
+                ) : balance && parseFloat(balance) > 0 ? (
+                  <>
+                    {balance} <span className="text-sm font-medium text-gray-500">BTN₵</span>
+                  </>
+                ) : (
+                  "No coins"
+                )}
+              </h2>
       <h1 className={styles.title}>System Overview</h1>
 
       {/* Overview Section */}

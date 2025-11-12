@@ -1,6 +1,6 @@
 import crypto  from  "crypto"
 
-const ALGORITHM = process.env.ENCRYPT_ALGORITHM
+const ALGORITHM = process.env.NEXT_PUBLIC_ENCRYPT_ALGORITHM
 const IV_LENGTH = 16
 
 export function encrypt(text: string, key:string) : string{
@@ -19,6 +19,12 @@ export function encrypt(text: string, key:string) : string{
 }
 
 export function decrypt(encryptedData: string, key: string): string{
+     if (!encryptedData || typeof encryptedData !== "string") {
+    throw new Error("decrypt: missing or invalid encrypted data");
+  }
+  if (!key) {
+    throw new Error("decrypt: missing decryption key");
+  }
     const hashedKey = crypto.createHash("sha256").update(key).digest()
 
     const [ivHex, encryptedText] = encryptedData.split(":")

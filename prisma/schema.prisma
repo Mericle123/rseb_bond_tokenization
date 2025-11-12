@@ -42,23 +42,52 @@ enum Market {
   resale
 }
 
+enum KYCStatus {
+  pending
+  verified
+  rejected
+  error
+}
+
+
 model Users {
   id              String  @id @default(cuid())
   name            String?
   national_id     BigInt  @unique
-  wallet_address  String  @unique
+  wallet_address  String?  @unique
   salt            String  
   email           String  @unique
+  date_of_birth   DateTime?
   password        String?
   role            Role
   hashed_mnemonic String?
   created_at      DateTime @default(now())
+  kyc_status      KYCStatus @default(pending)
 
   // Relations
+  ekyc            EKYCVerifications[]
   subscriptions   Subscriptions[]
   events          Events[]
   transactionsFrom Transactions[] @relation("TransactionsFrom")
   transactionsTo   Transactions[] @relation("TransactionsTo")
+}
+
+model EKYCVerifications {
+  id                 String   @id @default(cuid())
+  user_id            String
+  national_id_hash   String   // SHA256 hash, not the raw national ID
+  date_of_birth      DateTime
+  age                Int?
+  custodial_address  String
+  tx_digest          String?
+  status             KYCStatus @default(pending)
+  reason             String?
+  request_id         String?
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+
+  // Relations
+  user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 model Bonds {

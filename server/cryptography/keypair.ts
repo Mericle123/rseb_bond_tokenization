@@ -23,7 +23,7 @@ export async function walletGeneration(){
     const bech32Seccret = encodeSuiPrivateKey(privateKeyBytes, "ED25519")
 
 
-    const encryptionKey = process.env.ENCRYPTION_KEY
+    const encryptionKey = process.env.NEXT_PUBLIC_ENCRYPTION_KEY
     if(!encryptionKey){
         throw new Error("MISSING ENV VARIABLE")
     }

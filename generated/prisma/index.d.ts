@@ -19,6 +19,11 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
  */
 export type Users = $Result.DefaultSelection<Prisma.$UsersPayload>
 /**
+ * Model EKYCVerifications
+ * 
+ */
+export type EKYCVerifications = $Result.DefaultSelection<Prisma.$EKYCVerificationsPayload>
+/**
  * Model Bonds
  * 
  */
@@ -86,6 +91,16 @@ export const Market: {
 
 export type Market = (typeof Market)[keyof typeof Market]
 
+
+export const KYCStatus: {
+  pending: 'pending',
+  verified: 'verified',
+  rejected: 'rejected',
+  error: 'error'
+};
+
+export type KYCStatus = (typeof KYCStatus)[keyof typeof KYCStatus]
+
 }
 
 export type Role = $Enums.Role
@@ -107,6 +122,10 @@ export const BondType: typeof $Enums.BondType
 export type Market = $Enums.Market
 
 export const Market: typeof $Enums.Market
+
+export type KYCStatus = $Enums.KYCStatus
+
+export const KYCStatus: typeof $Enums.KYCStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -237,6 +256,16 @@ export class PrismaClient<
   get users(): Prisma.UsersDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.eKYCVerifications`: Exposes CRUD operations for the **EKYCVerifications** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EKYCVerifications
+    * const eKYCVerifications = await prisma.eKYCVerifications.findMany()
+    * ```
+    */
+  get eKYCVerifications(): Prisma.EKYCVerificationsDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.bonds`: Exposes CRUD operations for the **Bonds** model.
     * Example usage:
     * ```ts
@@ -333,8 +362,8 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 6.18.0
-   * Query Engine version: 34b5a692b7bd79939a9a2c3ef97d816e749cda2f
+   * Prisma Client JS version: 6.19.0
+   * Query Engine version: 2ba551f319ab1df4bc874a89965d8b3641056773
    */
   export type PrismaVersion = {
     client: string
@@ -717,6 +746,7 @@ export namespace Prisma {
 
   export const ModelName: {
     Users: 'Users',
+    EKYCVerifications: 'EKYCVerifications',
     Bonds: 'Bonds',
     Events: 'Events',
     Subscriptions: 'Subscriptions',
@@ -739,7 +769,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "users" | "bonds" | "events" | "subscriptions" | "transactions"
+      modelProps: "users" | "eKYCVerifications" | "bonds" | "events" | "subscriptions" | "transactions"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -814,6 +844,80 @@ export namespace Prisma {
           count: {
             args: Prisma.UsersCountArgs<ExtArgs>
             result: $Utils.Optional<UsersCountAggregateOutputType> | number
+          }
+        }
+      }
+      EKYCVerifications: {
+        payload: Prisma.$EKYCVerificationsPayload<ExtArgs>
+        fields: Prisma.EKYCVerificationsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EKYCVerificationsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EKYCVerificationsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EKYCVerificationsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EKYCVerificationsPayload>
+          }
+          findFirst: {
+            args: Prisma.EKYCVerificationsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EKYCVerificationsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EKYCVerificationsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EKYCVerificationsPayload>
+          }
+          findMany: {
+            args: Prisma.EKYCVerificationsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EKYCVerificationsPayload>[]
+          }
+          create: {
+            args: Prisma.EKYCVerificationsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EKYCVerificationsPayload>
+          }
+          createMany: {
+            args: Prisma.EKYCVerificationsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EKYCVerificationsCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EKYCVerificationsPayload>[]
+          }
+          delete: {
+            args: Prisma.EKYCVerificationsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EKYCVerificationsPayload>
+          }
+          update: {
+            args: Prisma.EKYCVerificationsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EKYCVerificationsPayload>
+          }
+          deleteMany: {
+            args: Prisma.EKYCVerificationsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EKYCVerificationsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.EKYCVerificationsUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EKYCVerificationsPayload>[]
+          }
+          upsert: {
+            args: Prisma.EKYCVerificationsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EKYCVerificationsPayload>
+          }
+          aggregate: {
+            args: Prisma.EKYCVerificationsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEKYCVerifications>
+          }
+          groupBy: {
+            args: Prisma.EKYCVerificationsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EKYCVerificationsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EKYCVerificationsCountArgs<ExtArgs>
+            result: $Utils.Optional<EKYCVerificationsCountAggregateOutputType> | number
           }
         }
       }
@@ -1210,6 +1314,7 @@ export namespace Prisma {
   }
   export type GlobalOmitConfig = {
     users?: UsersOmit
+    eKYCVerifications?: EKYCVerificationsOmit
     bonds?: BondsOmit
     events?: EventsOmit
     subscriptions?: SubscriptionsOmit
@@ -1294,6 +1399,7 @@ export namespace Prisma {
    */
 
   export type UsersCountOutputType = {
+    ekyc: number
     subscriptions: number
     events: number
     transactionsFrom: number
@@ -1301,6 +1407,7 @@ export namespace Prisma {
   }
 
   export type UsersCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    ekyc?: boolean | UsersCountOutputTypeCountEkycArgs
     subscriptions?: boolean | UsersCountOutputTypeCountSubscriptionsArgs
     events?: boolean | UsersCountOutputTypeCountEventsArgs
     transactionsFrom?: boolean | UsersCountOutputTypeCountTransactionsFromArgs
@@ -1316,6 +1423,13 @@ export namespace Prisma {
      * Select specific fields to fetch from the UsersCountOutputType
      */
     select?: UsersCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * UsersCountOutputType without action
+   */
+  export type UsersCountOutputTypeCountEkycArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EKYCVerificationsWhereInput
   }
 
   /**
@@ -1427,10 +1541,12 @@ export namespace Prisma {
     wallet_address: string | null
     salt: string | null
     email: string | null
+    date_of_birth: Date | null
     password: string | null
     role: $Enums.Role | null
     hashed_mnemonic: string | null
     created_at: Date | null
+    kyc_status: $Enums.KYCStatus | null
   }
 
   export type UsersMaxAggregateOutputType = {
@@ -1440,10 +1556,12 @@ export namespace Prisma {
     wallet_address: string | null
     salt: string | null
     email: string | null
+    date_of_birth: Date | null
     password: string | null
     role: $Enums.Role | null
     hashed_mnemonic: string | null
     created_at: Date | null
+    kyc_status: $Enums.KYCStatus | null
   }
 
   export type UsersCountAggregateOutputType = {
@@ -1453,10 +1571,12 @@ export namespace Prisma {
     wallet_address: number
     salt: number
     email: number
+    date_of_birth: number
     password: number
     role: number
     hashed_mnemonic: number
     created_at: number
+    kyc_status: number
     _all: number
   }
 
@@ -1476,10 +1596,12 @@ export namespace Prisma {
     wallet_address?: true
     salt?: true
     email?: true
+    date_of_birth?: true
     password?: true
     role?: true
     hashed_mnemonic?: true
     created_at?: true
+    kyc_status?: true
   }
 
   export type UsersMaxAggregateInputType = {
@@ -1489,10 +1611,12 @@ export namespace Prisma {
     wallet_address?: true
     salt?: true
     email?: true
+    date_of_birth?: true
     password?: true
     role?: true
     hashed_mnemonic?: true
     created_at?: true
+    kyc_status?: true
   }
 
   export type UsersCountAggregateInputType = {
@@ -1502,10 +1626,12 @@ export namespace Prisma {
     wallet_address?: true
     salt?: true
     email?: true
+    date_of_birth?: true
     password?: true
     role?: true
     hashed_mnemonic?: true
     created_at?: true
+    kyc_status?: true
     _all?: true
   }
 
@@ -1599,13 +1725,15 @@ export namespace Prisma {
     id: string
     name: string | null
     national_id: bigint
-    wallet_address: string
+    wallet_address: string | null
     salt: string
     email: string
+    date_of_birth: Date | null
     password: string | null
     role: $Enums.Role
     hashed_mnemonic: string | null
     created_at: Date
+    kyc_status: $Enums.KYCStatus
     _count: UsersCountAggregateOutputType | null
     _avg: UsersAvgAggregateOutputType | null
     _sum: UsersSumAggregateOutputType | null
@@ -1634,10 +1762,13 @@ export namespace Prisma {
     wallet_address?: boolean
     salt?: boolean
     email?: boolean
+    date_of_birth?: boolean
     password?: boolean
     role?: boolean
     hashed_mnemonic?: boolean
     created_at?: boolean
+    kyc_status?: boolean
+    ekyc?: boolean | Users$ekycArgs<ExtArgs>
     subscriptions?: boolean | Users$subscriptionsArgs<ExtArgs>
     events?: boolean | Users$eventsArgs<ExtArgs>
     transactionsFrom?: boolean | Users$transactionsFromArgs<ExtArgs>
@@ -1652,10 +1783,12 @@ export namespace Prisma {
     wallet_address?: boolean
     salt?: boolean
     email?: boolean
+    date_of_birth?: boolean
     password?: boolean
     role?: boolean
     hashed_mnemonic?: boolean
     created_at?: boolean
+    kyc_status?: boolean
   }, ExtArgs["result"]["users"]>
 
   export type UsersSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -1665,10 +1798,12 @@ export namespace Prisma {
     wallet_address?: boolean
     salt?: boolean
     email?: boolean
+    date_of_birth?: boolean
     password?: boolean
     role?: boolean
     hashed_mnemonic?: boolean
     created_at?: boolean
+    kyc_status?: boolean
   }, ExtArgs["result"]["users"]>
 
   export type UsersSelectScalar = {
@@ -1678,14 +1813,17 @@ export namespace Prisma {
     wallet_address?: boolean
     salt?: boolean
     email?: boolean
+    date_of_birth?: boolean
     password?: boolean
     role?: boolean
     hashed_mnemonic?: boolean
     created_at?: boolean
+    kyc_status?: boolean
   }
 
-  export type UsersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "national_id" | "wallet_address" | "salt" | "email" | "password" | "role" | "hashed_mnemonic" | "created_at", ExtArgs["result"]["users"]>
+  export type UsersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "national_id" | "wallet_address" | "salt" | "email" | "date_of_birth" | "password" | "role" | "hashed_mnemonic" | "created_at" | "kyc_status", ExtArgs["result"]["users"]>
   export type UsersInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    ekyc?: boolean | Users$ekycArgs<ExtArgs>
     subscriptions?: boolean | Users$subscriptionsArgs<ExtArgs>
     events?: boolean | Users$eventsArgs<ExtArgs>
     transactionsFrom?: boolean | Users$transactionsFromArgs<ExtArgs>
@@ -1698,6 +1836,7 @@ export namespace Prisma {
   export type $UsersPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Users"
     objects: {
+      ekyc: Prisma.$EKYCVerificationsPayload<ExtArgs>[]
       subscriptions: Prisma.$SubscriptionsPayload<ExtArgs>[]
       events: Prisma.$EventsPayload<ExtArgs>[]
       transactionsFrom: Prisma.$TransactionsPayload<ExtArgs>[]
@@ -1707,13 +1846,15 @@ export namespace Prisma {
       id: string
       name: string | null
       national_id: bigint
-      wallet_address: string
+      wallet_address: string | null
       salt: string
       email: string
+      date_of_birth: Date | null
       password: string | null
       role: $Enums.Role
       hashed_mnemonic: string | null
       created_at: Date
+      kyc_status: $Enums.KYCStatus
     }, ExtArgs["result"]["users"]>
     composites: {}
   }
@@ -2108,6 +2249,7 @@ export namespace Prisma {
    */
   export interface Prisma__UsersClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    ekyc<T extends Users$ekycArgs<ExtArgs> = {}>(args?: Subset<T, Users$ekycArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EKYCVerificationsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     subscriptions<T extends Users$subscriptionsArgs<ExtArgs> = {}>(args?: Subset<T, Users$subscriptionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SubscriptionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     events<T extends Users$eventsArgs<ExtArgs> = {}>(args?: Subset<T, Users$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     transactionsFrom<T extends Users$transactionsFromArgs<ExtArgs> = {}>(args?: Subset<T, Users$transactionsFromArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2147,10 +2289,12 @@ export namespace Prisma {
     readonly wallet_address: FieldRef<"Users", 'String'>
     readonly salt: FieldRef<"Users", 'String'>
     readonly email: FieldRef<"Users", 'String'>
+    readonly date_of_birth: FieldRef<"Users", 'DateTime'>
     readonly password: FieldRef<"Users", 'String'>
     readonly role: FieldRef<"Users", 'Role'>
     readonly hashed_mnemonic: FieldRef<"Users", 'String'>
     readonly created_at: FieldRef<"Users", 'DateTime'>
+    readonly kyc_status: FieldRef<"Users", 'KYCStatus'>
   }
     
 
@@ -2539,6 +2683,30 @@ export namespace Prisma {
   }
 
   /**
+   * Users.ekyc
+   */
+  export type Users$ekycArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EKYCVerifications
+     */
+    select?: EKYCVerificationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EKYCVerifications
+     */
+    omit?: EKYCVerificationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EKYCVerificationsInclude<ExtArgs> | null
+    where?: EKYCVerificationsWhereInput
+    orderBy?: EKYCVerificationsOrderByWithRelationInput | EKYCVerificationsOrderByWithRelationInput[]
+    cursor?: EKYCVerificationsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: EKYCVerificationsScalarFieldEnum | EKYCVerificationsScalarFieldEnum[]
+  }
+
+  /**
    * Users.subscriptions
    */
   export type Users$subscriptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2650,6 +2818,1189 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: UsersInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model EKYCVerifications
+   */
+
+  export type AggregateEKYCVerifications = {
+    _count: EKYCVerificationsCountAggregateOutputType | null
+    _avg: EKYCVerificationsAvgAggregateOutputType | null
+    _sum: EKYCVerificationsSumAggregateOutputType | null
+    _min: EKYCVerificationsMinAggregateOutputType | null
+    _max: EKYCVerificationsMaxAggregateOutputType | null
+  }
+
+  export type EKYCVerificationsAvgAggregateOutputType = {
+    age: number | null
+  }
+
+  export type EKYCVerificationsSumAggregateOutputType = {
+    age: number | null
+  }
+
+  export type EKYCVerificationsMinAggregateOutputType = {
+    id: string | null
+    user_id: string | null
+    national_id_hash: string | null
+    date_of_birth: Date | null
+    age: number | null
+    custodial_address: string | null
+    tx_digest: string | null
+    status: $Enums.KYCStatus | null
+    reason: string | null
+    request_id: string | null
+    created_at: Date | null
+    updated_at: Date | null
+  }
+
+  export type EKYCVerificationsMaxAggregateOutputType = {
+    id: string | null
+    user_id: string | null
+    national_id_hash: string | null
+    date_of_birth: Date | null
+    age: number | null
+    custodial_address: string | null
+    tx_digest: string | null
+    status: $Enums.KYCStatus | null
+    reason: string | null
+    request_id: string | null
+    created_at: Date | null
+    updated_at: Date | null
+  }
+
+  export type EKYCVerificationsCountAggregateOutputType = {
+    id: number
+    user_id: number
+    national_id_hash: number
+    date_of_birth: number
+    age: number
+    custodial_address: number
+    tx_digest: number
+    status: number
+    reason: number
+    request_id: number
+    created_at: number
+    updated_at: number
+    _all: number
+  }
+
+
+  export type EKYCVerificationsAvgAggregateInputType = {
+    age?: true
+  }
+
+  export type EKYCVerificationsSumAggregateInputType = {
+    age?: true
+  }
+
+  export type EKYCVerificationsMinAggregateInputType = {
+    id?: true
+    user_id?: true
+    national_id_hash?: true
+    date_of_birth?: true
+    age?: true
+    custodial_address?: true
+    tx_digest?: true
+    status?: true
+    reason?: true
+    request_id?: true
+    created_at?: true
+    updated_at?: true
+  }
+
+  export type EKYCVerificationsMaxAggregateInputType = {
+    id?: true
+    user_id?: true
+    national_id_hash?: true
+    date_of_birth?: true
+    age?: true
+    custodial_address?: true
+    tx_digest?: true
+    status?: true
+    reason?: true
+    request_id?: true
+    created_at?: true
+    updated_at?: true
+  }
+
+  export type EKYCVerificationsCountAggregateInputType = {
+    id?: true
+    user_id?: true
+    national_id_hash?: true
+    date_of_birth?: true
+    age?: true
+    custodial_address?: true
+    tx_digest?: true
+    status?: true
+    reason?: true
+    request_id?: true
+    created_at?: true
+    updated_at?: true
+    _all?: true
+  }
+
+  export type EKYCVerificationsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EKYCVerifications to aggregate.
+     */
+    where?: EKYCVerificationsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EKYCVerifications to fetch.
+     */
+    orderBy?: EKYCVerificationsOrderByWithRelationInput | EKYCVerificationsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EKYCVerificationsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EKYCVerifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EKYCVerifications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EKYCVerifications
+    **/
+    _count?: true | EKYCVerificationsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EKYCVerificationsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EKYCVerificationsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EKYCVerificationsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EKYCVerificationsMaxAggregateInputType
+  }
+
+  export type GetEKYCVerificationsAggregateType<T extends EKYCVerificationsAggregateArgs> = {
+        [P in keyof T & keyof AggregateEKYCVerifications]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEKYCVerifications[P]>
+      : GetScalarType<T[P], AggregateEKYCVerifications[P]>
+  }
+
+
+
+
+  export type EKYCVerificationsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EKYCVerificationsWhereInput
+    orderBy?: EKYCVerificationsOrderByWithAggregationInput | EKYCVerificationsOrderByWithAggregationInput[]
+    by: EKYCVerificationsScalarFieldEnum[] | EKYCVerificationsScalarFieldEnum
+    having?: EKYCVerificationsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EKYCVerificationsCountAggregateInputType | true
+    _avg?: EKYCVerificationsAvgAggregateInputType
+    _sum?: EKYCVerificationsSumAggregateInputType
+    _min?: EKYCVerificationsMinAggregateInputType
+    _max?: EKYCVerificationsMaxAggregateInputType
+  }
+
+  export type EKYCVerificationsGroupByOutputType = {
+    id: string
+    user_id: string
+    national_id_hash: string
+    date_of_birth: Date
+    age: number | null
+    custodial_address: string
+    tx_digest: string | null
+    status: $Enums.KYCStatus
+    reason: string | null
+    request_id: string | null
+    created_at: Date
+    updated_at: Date
+    _count: EKYCVerificationsCountAggregateOutputType | null
+    _avg: EKYCVerificationsAvgAggregateOutputType | null
+    _sum: EKYCVerificationsSumAggregateOutputType | null
+    _min: EKYCVerificationsMinAggregateOutputType | null
+    _max: EKYCVerificationsMaxAggregateOutputType | null
+  }
+
+  type GetEKYCVerificationsGroupByPayload<T extends EKYCVerificationsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EKYCVerificationsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EKYCVerificationsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EKYCVerificationsGroupByOutputType[P]>
+            : GetScalarType<T[P], EKYCVerificationsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EKYCVerificationsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    user_id?: boolean
+    national_id_hash?: boolean
+    date_of_birth?: boolean
+    age?: boolean
+    custodial_address?: boolean
+    tx_digest?: boolean
+    status?: boolean
+    reason?: boolean
+    request_id?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+    user?: boolean | UsersDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eKYCVerifications"]>
+
+  export type EKYCVerificationsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    user_id?: boolean
+    national_id_hash?: boolean
+    date_of_birth?: boolean
+    age?: boolean
+    custodial_address?: boolean
+    tx_digest?: boolean
+    status?: boolean
+    reason?: boolean
+    request_id?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+    user?: boolean | UsersDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eKYCVerifications"]>
+
+  export type EKYCVerificationsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    user_id?: boolean
+    national_id_hash?: boolean
+    date_of_birth?: boolean
+    age?: boolean
+    custodial_address?: boolean
+    tx_digest?: boolean
+    status?: boolean
+    reason?: boolean
+    request_id?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+    user?: boolean | UsersDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eKYCVerifications"]>
+
+  export type EKYCVerificationsSelectScalar = {
+    id?: boolean
+    user_id?: boolean
+    national_id_hash?: boolean
+    date_of_birth?: boolean
+    age?: boolean
+    custodial_address?: boolean
+    tx_digest?: boolean
+    status?: boolean
+    reason?: boolean
+    request_id?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+  }
+
+  export type EKYCVerificationsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "user_id" | "national_id_hash" | "date_of_birth" | "age" | "custodial_address" | "tx_digest" | "status" | "reason" | "request_id" | "created_at" | "updated_at", ExtArgs["result"]["eKYCVerifications"]>
+  export type EKYCVerificationsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UsersDefaultArgs<ExtArgs>
+  }
+  export type EKYCVerificationsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UsersDefaultArgs<ExtArgs>
+  }
+  export type EKYCVerificationsIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UsersDefaultArgs<ExtArgs>
+  }
+
+  export type $EKYCVerificationsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EKYCVerifications"
+    objects: {
+      user: Prisma.$UsersPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      user_id: string
+      national_id_hash: string
+      date_of_birth: Date
+      age: number | null
+      custodial_address: string
+      tx_digest: string | null
+      status: $Enums.KYCStatus
+      reason: string | null
+      request_id: string | null
+      created_at: Date
+      updated_at: Date
+    }, ExtArgs["result"]["eKYCVerifications"]>
+    composites: {}
+  }
+
+  type EKYCVerificationsGetPayload<S extends boolean | null | undefined | EKYCVerificationsDefaultArgs> = $Result.GetResult<Prisma.$EKYCVerificationsPayload, S>
+
+  type EKYCVerificationsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<EKYCVerificationsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: EKYCVerificationsCountAggregateInputType | true
+    }
+
+  export interface EKYCVerificationsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EKYCVerifications'], meta: { name: 'EKYCVerifications' } }
+    /**
+     * Find zero or one EKYCVerifications that matches the filter.
+     * @param {EKYCVerificationsFindUniqueArgs} args - Arguments to find a EKYCVerifications
+     * @example
+     * // Get one EKYCVerifications
+     * const eKYCVerifications = await prisma.eKYCVerifications.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EKYCVerificationsFindUniqueArgs>(args: SelectSubset<T, EKYCVerificationsFindUniqueArgs<ExtArgs>>): Prisma__EKYCVerificationsClient<$Result.GetResult<Prisma.$EKYCVerificationsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one EKYCVerifications that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {EKYCVerificationsFindUniqueOrThrowArgs} args - Arguments to find a EKYCVerifications
+     * @example
+     * // Get one EKYCVerifications
+     * const eKYCVerifications = await prisma.eKYCVerifications.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EKYCVerificationsFindUniqueOrThrowArgs>(args: SelectSubset<T, EKYCVerificationsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EKYCVerificationsClient<$Result.GetResult<Prisma.$EKYCVerificationsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first EKYCVerifications that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EKYCVerificationsFindFirstArgs} args - Arguments to find a EKYCVerifications
+     * @example
+     * // Get one EKYCVerifications
+     * const eKYCVerifications = await prisma.eKYCVerifications.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EKYCVerificationsFindFirstArgs>(args?: SelectSubset<T, EKYCVerificationsFindFirstArgs<ExtArgs>>): Prisma__EKYCVerificationsClient<$Result.GetResult<Prisma.$EKYCVerificationsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first EKYCVerifications that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EKYCVerificationsFindFirstOrThrowArgs} args - Arguments to find a EKYCVerifications
+     * @example
+     * // Get one EKYCVerifications
+     * const eKYCVerifications = await prisma.eKYCVerifications.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EKYCVerificationsFindFirstOrThrowArgs>(args?: SelectSubset<T, EKYCVerificationsFindFirstOrThrowArgs<ExtArgs>>): Prisma__EKYCVerificationsClient<$Result.GetResult<Prisma.$EKYCVerificationsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more EKYCVerifications that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EKYCVerificationsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EKYCVerifications
+     * const eKYCVerifications = await prisma.eKYCVerifications.findMany()
+     * 
+     * // Get first 10 EKYCVerifications
+     * const eKYCVerifications = await prisma.eKYCVerifications.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const eKYCVerificationsWithIdOnly = await prisma.eKYCVerifications.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EKYCVerificationsFindManyArgs>(args?: SelectSubset<T, EKYCVerificationsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EKYCVerificationsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a EKYCVerifications.
+     * @param {EKYCVerificationsCreateArgs} args - Arguments to create a EKYCVerifications.
+     * @example
+     * // Create one EKYCVerifications
+     * const EKYCVerifications = await prisma.eKYCVerifications.create({
+     *   data: {
+     *     // ... data to create a EKYCVerifications
+     *   }
+     * })
+     * 
+     */
+    create<T extends EKYCVerificationsCreateArgs>(args: SelectSubset<T, EKYCVerificationsCreateArgs<ExtArgs>>): Prisma__EKYCVerificationsClient<$Result.GetResult<Prisma.$EKYCVerificationsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many EKYCVerifications.
+     * @param {EKYCVerificationsCreateManyArgs} args - Arguments to create many EKYCVerifications.
+     * @example
+     * // Create many EKYCVerifications
+     * const eKYCVerifications = await prisma.eKYCVerifications.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EKYCVerificationsCreateManyArgs>(args?: SelectSubset<T, EKYCVerificationsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EKYCVerifications and returns the data saved in the database.
+     * @param {EKYCVerificationsCreateManyAndReturnArgs} args - Arguments to create many EKYCVerifications.
+     * @example
+     * // Create many EKYCVerifications
+     * const eKYCVerifications = await prisma.eKYCVerifications.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EKYCVerifications and only return the `id`
+     * const eKYCVerificationsWithIdOnly = await prisma.eKYCVerifications.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EKYCVerificationsCreateManyAndReturnArgs>(args?: SelectSubset<T, EKYCVerificationsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EKYCVerificationsPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a EKYCVerifications.
+     * @param {EKYCVerificationsDeleteArgs} args - Arguments to delete one EKYCVerifications.
+     * @example
+     * // Delete one EKYCVerifications
+     * const EKYCVerifications = await prisma.eKYCVerifications.delete({
+     *   where: {
+     *     // ... filter to delete one EKYCVerifications
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EKYCVerificationsDeleteArgs>(args: SelectSubset<T, EKYCVerificationsDeleteArgs<ExtArgs>>): Prisma__EKYCVerificationsClient<$Result.GetResult<Prisma.$EKYCVerificationsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one EKYCVerifications.
+     * @param {EKYCVerificationsUpdateArgs} args - Arguments to update one EKYCVerifications.
+     * @example
+     * // Update one EKYCVerifications
+     * const eKYCVerifications = await prisma.eKYCVerifications.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EKYCVerificationsUpdateArgs>(args: SelectSubset<T, EKYCVerificationsUpdateArgs<ExtArgs>>): Prisma__EKYCVerificationsClient<$Result.GetResult<Prisma.$EKYCVerificationsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more EKYCVerifications.
+     * @param {EKYCVerificationsDeleteManyArgs} args - Arguments to filter EKYCVerifications to delete.
+     * @example
+     * // Delete a few EKYCVerifications
+     * const { count } = await prisma.eKYCVerifications.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EKYCVerificationsDeleteManyArgs>(args?: SelectSubset<T, EKYCVerificationsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EKYCVerifications.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EKYCVerificationsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EKYCVerifications
+     * const eKYCVerifications = await prisma.eKYCVerifications.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EKYCVerificationsUpdateManyArgs>(args: SelectSubset<T, EKYCVerificationsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EKYCVerifications and returns the data updated in the database.
+     * @param {EKYCVerificationsUpdateManyAndReturnArgs} args - Arguments to update many EKYCVerifications.
+     * @example
+     * // Update many EKYCVerifications
+     * const eKYCVerifications = await prisma.eKYCVerifications.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more EKYCVerifications and only return the `id`
+     * const eKYCVerificationsWithIdOnly = await prisma.eKYCVerifications.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends EKYCVerificationsUpdateManyAndReturnArgs>(args: SelectSubset<T, EKYCVerificationsUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EKYCVerificationsPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one EKYCVerifications.
+     * @param {EKYCVerificationsUpsertArgs} args - Arguments to update or create a EKYCVerifications.
+     * @example
+     * // Update or create a EKYCVerifications
+     * const eKYCVerifications = await prisma.eKYCVerifications.upsert({
+     *   create: {
+     *     // ... data to create a EKYCVerifications
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EKYCVerifications we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EKYCVerificationsUpsertArgs>(args: SelectSubset<T, EKYCVerificationsUpsertArgs<ExtArgs>>): Prisma__EKYCVerificationsClient<$Result.GetResult<Prisma.$EKYCVerificationsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of EKYCVerifications.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EKYCVerificationsCountArgs} args - Arguments to filter EKYCVerifications to count.
+     * @example
+     * // Count the number of EKYCVerifications
+     * const count = await prisma.eKYCVerifications.count({
+     *   where: {
+     *     // ... the filter for the EKYCVerifications we want to count
+     *   }
+     * })
+    **/
+    count<T extends EKYCVerificationsCountArgs>(
+      args?: Subset<T, EKYCVerificationsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EKYCVerificationsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EKYCVerifications.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EKYCVerificationsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EKYCVerificationsAggregateArgs>(args: Subset<T, EKYCVerificationsAggregateArgs>): Prisma.PrismaPromise<GetEKYCVerificationsAggregateType<T>>
+
+    /**
+     * Group by EKYCVerifications.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EKYCVerificationsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EKYCVerificationsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EKYCVerificationsGroupByArgs['orderBy'] }
+        : { orderBy?: EKYCVerificationsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EKYCVerificationsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEKYCVerificationsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EKYCVerifications model
+   */
+  readonly fields: EKYCVerificationsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EKYCVerifications.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EKYCVerificationsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UsersDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UsersDefaultArgs<ExtArgs>>): Prisma__UsersClient<$Result.GetResult<Prisma.$UsersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EKYCVerifications model
+   */
+  interface EKYCVerificationsFieldRefs {
+    readonly id: FieldRef<"EKYCVerifications", 'String'>
+    readonly user_id: FieldRef<"EKYCVerifications", 'String'>
+    readonly national_id_hash: FieldRef<"EKYCVerifications", 'String'>
+    readonly date_of_birth: FieldRef<"EKYCVerifications", 'DateTime'>
+    readonly age: FieldRef<"EKYCVerifications", 'Int'>
+    readonly custodial_address: FieldRef<"EKYCVerifications", 'String'>
+    readonly tx_digest: FieldRef<"EKYCVerifications", 'String'>
+    readonly status: FieldRef<"EKYCVerifications", 'KYCStatus'>
+    readonly reason: FieldRef<"EKYCVerifications", 'String'>
+    readonly request_id: FieldRef<"EKYCVerifications", 'String'>
+    readonly created_at: FieldRef<"EKYCVerifications", 'DateTime'>
+    readonly updated_at: FieldRef<"EKYCVerifications", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EKYCVerifications findUnique
+   */
+  export type EKYCVerificationsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EKYCVerifications
+     */
+    select?: EKYCVerificationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EKYCVerifications
+     */
+    omit?: EKYCVerificationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EKYCVerificationsInclude<ExtArgs> | null
+    /**
+     * Filter, which EKYCVerifications to fetch.
+     */
+    where: EKYCVerificationsWhereUniqueInput
+  }
+
+  /**
+   * EKYCVerifications findUniqueOrThrow
+   */
+  export type EKYCVerificationsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EKYCVerifications
+     */
+    select?: EKYCVerificationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EKYCVerifications
+     */
+    omit?: EKYCVerificationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EKYCVerificationsInclude<ExtArgs> | null
+    /**
+     * Filter, which EKYCVerifications to fetch.
+     */
+    where: EKYCVerificationsWhereUniqueInput
+  }
+
+  /**
+   * EKYCVerifications findFirst
+   */
+  export type EKYCVerificationsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EKYCVerifications
+     */
+    select?: EKYCVerificationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EKYCVerifications
+     */
+    omit?: EKYCVerificationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EKYCVerificationsInclude<ExtArgs> | null
+    /**
+     * Filter, which EKYCVerifications to fetch.
+     */
+    where?: EKYCVerificationsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EKYCVerifications to fetch.
+     */
+    orderBy?: EKYCVerificationsOrderByWithRelationInput | EKYCVerificationsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EKYCVerifications.
+     */
+    cursor?: EKYCVerificationsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EKYCVerifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EKYCVerifications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EKYCVerifications.
+     */
+    distinct?: EKYCVerificationsScalarFieldEnum | EKYCVerificationsScalarFieldEnum[]
+  }
+
+  /**
+   * EKYCVerifications findFirstOrThrow
+   */
+  export type EKYCVerificationsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EKYCVerifications
+     */
+    select?: EKYCVerificationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EKYCVerifications
+     */
+    omit?: EKYCVerificationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EKYCVerificationsInclude<ExtArgs> | null
+    /**
+     * Filter, which EKYCVerifications to fetch.
+     */
+    where?: EKYCVerificationsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EKYCVerifications to fetch.
+     */
+    orderBy?: EKYCVerificationsOrderByWithRelationInput | EKYCVerificationsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EKYCVerifications.
+     */
+    cursor?: EKYCVerificationsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EKYCVerifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EKYCVerifications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EKYCVerifications.
+     */
+    distinct?: EKYCVerificationsScalarFieldEnum | EKYCVerificationsScalarFieldEnum[]
+  }
+
+  /**
+   * EKYCVerifications findMany
+   */
+  export type EKYCVerificationsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EKYCVerifications
+     */
+    select?: EKYCVerificationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EKYCVerifications
+     */
+    omit?: EKYCVerificationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EKYCVerificationsInclude<ExtArgs> | null
+    /**
+     * Filter, which EKYCVerifications to fetch.
+     */
+    where?: EKYCVerificationsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EKYCVerifications to fetch.
+     */
+    orderBy?: EKYCVerificationsOrderByWithRelationInput | EKYCVerificationsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EKYCVerifications.
+     */
+    cursor?: EKYCVerificationsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EKYCVerifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EKYCVerifications.
+     */
+    skip?: number
+    distinct?: EKYCVerificationsScalarFieldEnum | EKYCVerificationsScalarFieldEnum[]
+  }
+
+  /**
+   * EKYCVerifications create
+   */
+  export type EKYCVerificationsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EKYCVerifications
+     */
+    select?: EKYCVerificationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EKYCVerifications
+     */
+    omit?: EKYCVerificationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EKYCVerificationsInclude<ExtArgs> | null
+    /**
+     * The data needed to create a EKYCVerifications.
+     */
+    data: XOR<EKYCVerificationsCreateInput, EKYCVerificationsUncheckedCreateInput>
+  }
+
+  /**
+   * EKYCVerifications createMany
+   */
+  export type EKYCVerificationsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EKYCVerifications.
+     */
+    data: EKYCVerificationsCreateManyInput | EKYCVerificationsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EKYCVerifications createManyAndReturn
+   */
+  export type EKYCVerificationsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EKYCVerifications
+     */
+    select?: EKYCVerificationsSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the EKYCVerifications
+     */
+    omit?: EKYCVerificationsOmit<ExtArgs> | null
+    /**
+     * The data used to create many EKYCVerifications.
+     */
+    data: EKYCVerificationsCreateManyInput | EKYCVerificationsCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EKYCVerificationsIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EKYCVerifications update
+   */
+  export type EKYCVerificationsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EKYCVerifications
+     */
+    select?: EKYCVerificationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EKYCVerifications
+     */
+    omit?: EKYCVerificationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EKYCVerificationsInclude<ExtArgs> | null
+    /**
+     * The data needed to update a EKYCVerifications.
+     */
+    data: XOR<EKYCVerificationsUpdateInput, EKYCVerificationsUncheckedUpdateInput>
+    /**
+     * Choose, which EKYCVerifications to update.
+     */
+    where: EKYCVerificationsWhereUniqueInput
+  }
+
+  /**
+   * EKYCVerifications updateMany
+   */
+  export type EKYCVerificationsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EKYCVerifications.
+     */
+    data: XOR<EKYCVerificationsUpdateManyMutationInput, EKYCVerificationsUncheckedUpdateManyInput>
+    /**
+     * Filter which EKYCVerifications to update
+     */
+    where?: EKYCVerificationsWhereInput
+    /**
+     * Limit how many EKYCVerifications to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * EKYCVerifications updateManyAndReturn
+   */
+  export type EKYCVerificationsUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EKYCVerifications
+     */
+    select?: EKYCVerificationsSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the EKYCVerifications
+     */
+    omit?: EKYCVerificationsOmit<ExtArgs> | null
+    /**
+     * The data used to update EKYCVerifications.
+     */
+    data: XOR<EKYCVerificationsUpdateManyMutationInput, EKYCVerificationsUncheckedUpdateManyInput>
+    /**
+     * Filter which EKYCVerifications to update
+     */
+    where?: EKYCVerificationsWhereInput
+    /**
+     * Limit how many EKYCVerifications to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EKYCVerificationsIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EKYCVerifications upsert
+   */
+  export type EKYCVerificationsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EKYCVerifications
+     */
+    select?: EKYCVerificationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EKYCVerifications
+     */
+    omit?: EKYCVerificationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EKYCVerificationsInclude<ExtArgs> | null
+    /**
+     * The filter to search for the EKYCVerifications to update in case it exists.
+     */
+    where: EKYCVerificationsWhereUniqueInput
+    /**
+     * In case the EKYCVerifications found by the `where` argument doesn't exist, create a new EKYCVerifications with this data.
+     */
+    create: XOR<EKYCVerificationsCreateInput, EKYCVerificationsUncheckedCreateInput>
+    /**
+     * In case the EKYCVerifications was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EKYCVerificationsUpdateInput, EKYCVerificationsUncheckedUpdateInput>
+  }
+
+  /**
+   * EKYCVerifications delete
+   */
+  export type EKYCVerificationsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EKYCVerifications
+     */
+    select?: EKYCVerificationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EKYCVerifications
+     */
+    omit?: EKYCVerificationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EKYCVerificationsInclude<ExtArgs> | null
+    /**
+     * Filter which EKYCVerifications to delete.
+     */
+    where: EKYCVerificationsWhereUniqueInput
+  }
+
+  /**
+   * EKYCVerifications deleteMany
+   */
+  export type EKYCVerificationsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EKYCVerifications to delete
+     */
+    where?: EKYCVerificationsWhereInput
+    /**
+     * Limit how many EKYCVerifications to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * EKYCVerifications without action
+   */
+  export type EKYCVerificationsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EKYCVerifications
+     */
+    select?: EKYCVerificationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EKYCVerifications
+     */
+    omit?: EKYCVerificationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EKYCVerificationsInclude<ExtArgs> | null
   }
 
 
@@ -7324,13 +8675,33 @@ export namespace Prisma {
     wallet_address: 'wallet_address',
     salt: 'salt',
     email: 'email',
+    date_of_birth: 'date_of_birth',
     password: 'password',
     role: 'role',
     hashed_mnemonic: 'hashed_mnemonic',
-    created_at: 'created_at'
+    created_at: 'created_at',
+    kyc_status: 'kyc_status'
   };
 
   export type UsersScalarFieldEnum = (typeof UsersScalarFieldEnum)[keyof typeof UsersScalarFieldEnum]
+
+
+  export const EKYCVerificationsScalarFieldEnum: {
+    id: 'id',
+    user_id: 'user_id',
+    national_id_hash: 'national_id_hash',
+    date_of_birth: 'date_of_birth',
+    age: 'age',
+    custodial_address: 'custodial_address',
+    tx_digest: 'tx_digest',
+    status: 'status',
+    reason: 'reason',
+    request_id: 'request_id',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
+  };
+
+  export type EKYCVerificationsScalarFieldEnum = (typeof EKYCVerificationsScalarFieldEnum)[keyof typeof EKYCVerificationsScalarFieldEnum]
 
 
   export const BondsScalarFieldEnum: {
@@ -7453,20 +8824,6 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'Role'
-   */
-  export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
-    
-
-
-  /**
-   * Reference to a field of type 'Role[]'
-   */
-  export type ListEnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role[]'>
-    
-
-
-  /**
    * Reference to a field of type 'DateTime'
    */
   export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -7481,16 +8838,30 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'BondType'
+   * Reference to a field of type 'Role'
    */
-  export type EnumBondTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BondType'>
+  export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
     
 
 
   /**
-   * Reference to a field of type 'BondType[]'
+   * Reference to a field of type 'Role[]'
    */
-  export type ListEnumBondTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BondType[]'>
+  export type ListEnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'KYCStatus'
+   */
+  export type EnumKYCStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'KYCStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'KYCStatus[]'
+   */
+  export type ListEnumKYCStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'KYCStatus[]'>
     
 
 
@@ -7505,6 +8876,20 @@ export namespace Prisma {
    * Reference to a field of type 'Int[]'
    */
   export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'BondType'
+   */
+  export type EnumBondTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BondType'>
+    
+
+
+  /**
+   * Reference to a field of type 'BondType[]'
+   */
+  export type ListEnumBondTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BondType[]'>
     
 
 
@@ -7574,13 +8959,16 @@ export namespace Prisma {
     id?: StringFilter<"Users"> | string
     name?: StringNullableFilter<"Users"> | string | null
     national_id?: BigIntFilter<"Users"> | bigint | number
-    wallet_address?: StringFilter<"Users"> | string
+    wallet_address?: StringNullableFilter<"Users"> | string | null
     salt?: StringFilter<"Users"> | string
     email?: StringFilter<"Users"> | string
+    date_of_birth?: DateTimeNullableFilter<"Users"> | Date | string | null
     password?: StringNullableFilter<"Users"> | string | null
     role?: EnumRoleFilter<"Users"> | $Enums.Role
     hashed_mnemonic?: StringNullableFilter<"Users"> | string | null
     created_at?: DateTimeFilter<"Users"> | Date | string
+    kyc_status?: EnumKYCStatusFilter<"Users"> | $Enums.KYCStatus
+    ekyc?: EKYCVerificationsListRelationFilter
     subscriptions?: SubscriptionsListRelationFilter
     events?: EventsListRelationFilter
     transactionsFrom?: TransactionsListRelationFilter
@@ -7591,13 +8979,16 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrderInput | SortOrder
     national_id?: SortOrder
-    wallet_address?: SortOrder
+    wallet_address?: SortOrderInput | SortOrder
     salt?: SortOrder
     email?: SortOrder
+    date_of_birth?: SortOrderInput | SortOrder
     password?: SortOrderInput | SortOrder
     role?: SortOrder
     hashed_mnemonic?: SortOrderInput | SortOrder
     created_at?: SortOrder
+    kyc_status?: SortOrder
+    ekyc?: EKYCVerificationsOrderByRelationAggregateInput
     subscriptions?: SubscriptionsOrderByRelationAggregateInput
     events?: EventsOrderByRelationAggregateInput
     transactionsFrom?: TransactionsOrderByRelationAggregateInput
@@ -7614,10 +9005,13 @@ export namespace Prisma {
     NOT?: UsersWhereInput | UsersWhereInput[]
     name?: StringNullableFilter<"Users"> | string | null
     salt?: StringFilter<"Users"> | string
+    date_of_birth?: DateTimeNullableFilter<"Users"> | Date | string | null
     password?: StringNullableFilter<"Users"> | string | null
     role?: EnumRoleFilter<"Users"> | $Enums.Role
     hashed_mnemonic?: StringNullableFilter<"Users"> | string | null
     created_at?: DateTimeFilter<"Users"> | Date | string
+    kyc_status?: EnumKYCStatusFilter<"Users"> | $Enums.KYCStatus
+    ekyc?: EKYCVerificationsListRelationFilter
     subscriptions?: SubscriptionsListRelationFilter
     events?: EventsListRelationFilter
     transactionsFrom?: TransactionsListRelationFilter
@@ -7628,13 +9022,15 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrderInput | SortOrder
     national_id?: SortOrder
-    wallet_address?: SortOrder
+    wallet_address?: SortOrderInput | SortOrder
     salt?: SortOrder
     email?: SortOrder
+    date_of_birth?: SortOrderInput | SortOrder
     password?: SortOrderInput | SortOrder
     role?: SortOrder
     hashed_mnemonic?: SortOrderInput | SortOrder
     created_at?: SortOrder
+    kyc_status?: SortOrder
     _count?: UsersCountOrderByAggregateInput
     _avg?: UsersAvgOrderByAggregateInput
     _max?: UsersMaxOrderByAggregateInput
@@ -7649,13 +9045,107 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Users"> | string
     name?: StringNullableWithAggregatesFilter<"Users"> | string | null
     national_id?: BigIntWithAggregatesFilter<"Users"> | bigint | number
-    wallet_address?: StringWithAggregatesFilter<"Users"> | string
+    wallet_address?: StringNullableWithAggregatesFilter<"Users"> | string | null
     salt?: StringWithAggregatesFilter<"Users"> | string
     email?: StringWithAggregatesFilter<"Users"> | string
+    date_of_birth?: DateTimeNullableWithAggregatesFilter<"Users"> | Date | string | null
     password?: StringNullableWithAggregatesFilter<"Users"> | string | null
     role?: EnumRoleWithAggregatesFilter<"Users"> | $Enums.Role
     hashed_mnemonic?: StringNullableWithAggregatesFilter<"Users"> | string | null
     created_at?: DateTimeWithAggregatesFilter<"Users"> | Date | string
+    kyc_status?: EnumKYCStatusWithAggregatesFilter<"Users"> | $Enums.KYCStatus
+  }
+
+  export type EKYCVerificationsWhereInput = {
+    AND?: EKYCVerificationsWhereInput | EKYCVerificationsWhereInput[]
+    OR?: EKYCVerificationsWhereInput[]
+    NOT?: EKYCVerificationsWhereInput | EKYCVerificationsWhereInput[]
+    id?: StringFilter<"EKYCVerifications"> | string
+    user_id?: StringFilter<"EKYCVerifications"> | string
+    national_id_hash?: StringFilter<"EKYCVerifications"> | string
+    date_of_birth?: DateTimeFilter<"EKYCVerifications"> | Date | string
+    age?: IntNullableFilter<"EKYCVerifications"> | number | null
+    custodial_address?: StringFilter<"EKYCVerifications"> | string
+    tx_digest?: StringNullableFilter<"EKYCVerifications"> | string | null
+    status?: EnumKYCStatusFilter<"EKYCVerifications"> | $Enums.KYCStatus
+    reason?: StringNullableFilter<"EKYCVerifications"> | string | null
+    request_id?: StringNullableFilter<"EKYCVerifications"> | string | null
+    created_at?: DateTimeFilter<"EKYCVerifications"> | Date | string
+    updated_at?: DateTimeFilter<"EKYCVerifications"> | Date | string
+    user?: XOR<UsersScalarRelationFilter, UsersWhereInput>
+  }
+
+  export type EKYCVerificationsOrderByWithRelationInput = {
+    id?: SortOrder
+    user_id?: SortOrder
+    national_id_hash?: SortOrder
+    date_of_birth?: SortOrder
+    age?: SortOrderInput | SortOrder
+    custodial_address?: SortOrder
+    tx_digest?: SortOrderInput | SortOrder
+    status?: SortOrder
+    reason?: SortOrderInput | SortOrder
+    request_id?: SortOrderInput | SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+    user?: UsersOrderByWithRelationInput
+  }
+
+  export type EKYCVerificationsWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: EKYCVerificationsWhereInput | EKYCVerificationsWhereInput[]
+    OR?: EKYCVerificationsWhereInput[]
+    NOT?: EKYCVerificationsWhereInput | EKYCVerificationsWhereInput[]
+    user_id?: StringFilter<"EKYCVerifications"> | string
+    national_id_hash?: StringFilter<"EKYCVerifications"> | string
+    date_of_birth?: DateTimeFilter<"EKYCVerifications"> | Date | string
+    age?: IntNullableFilter<"EKYCVerifications"> | number | null
+    custodial_address?: StringFilter<"EKYCVerifications"> | string
+    tx_digest?: StringNullableFilter<"EKYCVerifications"> | string | null
+    status?: EnumKYCStatusFilter<"EKYCVerifications"> | $Enums.KYCStatus
+    reason?: StringNullableFilter<"EKYCVerifications"> | string | null
+    request_id?: StringNullableFilter<"EKYCVerifications"> | string | null
+    created_at?: DateTimeFilter<"EKYCVerifications"> | Date | string
+    updated_at?: DateTimeFilter<"EKYCVerifications"> | Date | string
+    user?: XOR<UsersScalarRelationFilter, UsersWhereInput>
+  }, "id">
+
+  export type EKYCVerificationsOrderByWithAggregationInput = {
+    id?: SortOrder
+    user_id?: SortOrder
+    national_id_hash?: SortOrder
+    date_of_birth?: SortOrder
+    age?: SortOrderInput | SortOrder
+    custodial_address?: SortOrder
+    tx_digest?: SortOrderInput | SortOrder
+    status?: SortOrder
+    reason?: SortOrderInput | SortOrder
+    request_id?: SortOrderInput | SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+    _count?: EKYCVerificationsCountOrderByAggregateInput
+    _avg?: EKYCVerificationsAvgOrderByAggregateInput
+    _max?: EKYCVerificationsMaxOrderByAggregateInput
+    _min?: EKYCVerificationsMinOrderByAggregateInput
+    _sum?: EKYCVerificationsSumOrderByAggregateInput
+  }
+
+  export type EKYCVerificationsScalarWhereWithAggregatesInput = {
+    AND?: EKYCVerificationsScalarWhereWithAggregatesInput | EKYCVerificationsScalarWhereWithAggregatesInput[]
+    OR?: EKYCVerificationsScalarWhereWithAggregatesInput[]
+    NOT?: EKYCVerificationsScalarWhereWithAggregatesInput | EKYCVerificationsScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EKYCVerifications"> | string
+    user_id?: StringWithAggregatesFilter<"EKYCVerifications"> | string
+    national_id_hash?: StringWithAggregatesFilter<"EKYCVerifications"> | string
+    date_of_birth?: DateTimeWithAggregatesFilter<"EKYCVerifications"> | Date | string
+    age?: IntNullableWithAggregatesFilter<"EKYCVerifications"> | number | null
+    custodial_address?: StringWithAggregatesFilter<"EKYCVerifications"> | string
+    tx_digest?: StringNullableWithAggregatesFilter<"EKYCVerifications"> | string | null
+    status?: EnumKYCStatusWithAggregatesFilter<"EKYCVerifications"> | $Enums.KYCStatus
+    reason?: StringNullableWithAggregatesFilter<"EKYCVerifications"> | string | null
+    request_id?: StringNullableWithAggregatesFilter<"EKYCVerifications"> | string | null
+    created_at?: DateTimeWithAggregatesFilter<"EKYCVerifications"> | Date | string
+    updated_at?: DateTimeWithAggregatesFilter<"EKYCVerifications"> | Date | string
   }
 
   export type BondsWhereInput = {
@@ -7994,13 +9484,16 @@ export namespace Prisma {
     id?: string
     name?: string | null
     national_id: bigint | number
-    wallet_address: string
+    wallet_address?: string | null
     salt: string
     email: string
+    date_of_birth?: Date | string | null
     password?: string | null
     role: $Enums.Role
     hashed_mnemonic?: string | null
     created_at?: Date | string
+    kyc_status?: $Enums.KYCStatus
+    ekyc?: EKYCVerificationsCreateNestedManyWithoutUserInput
     subscriptions?: SubscriptionsCreateNestedManyWithoutUserInput
     events?: EventsCreateNestedManyWithoutUserInput
     transactionsFrom?: TransactionsCreateNestedManyWithoutFromInput
@@ -8011,13 +9504,16 @@ export namespace Prisma {
     id?: string
     name?: string | null
     national_id: bigint | number
-    wallet_address: string
+    wallet_address?: string | null
     salt: string
     email: string
+    date_of_birth?: Date | string | null
     password?: string | null
     role: $Enums.Role
     hashed_mnemonic?: string | null
     created_at?: Date | string
+    kyc_status?: $Enums.KYCStatus
+    ekyc?: EKYCVerificationsUncheckedCreateNestedManyWithoutUserInput
     subscriptions?: SubscriptionsUncheckedCreateNestedManyWithoutUserInput
     events?: EventsUncheckedCreateNestedManyWithoutUserInput
     transactionsFrom?: TransactionsUncheckedCreateNestedManyWithoutFromInput
@@ -8028,13 +9524,16 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     national_id?: BigIntFieldUpdateOperationsInput | bigint | number
-    wallet_address?: StringFieldUpdateOperationsInput | string
+    wallet_address?: NullableStringFieldUpdateOperationsInput | string | null
     salt?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    kyc_status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    ekyc?: EKYCVerificationsUpdateManyWithoutUserNestedInput
     subscriptions?: SubscriptionsUpdateManyWithoutUserNestedInput
     events?: EventsUpdateManyWithoutUserNestedInput
     transactionsFrom?: TransactionsUpdateManyWithoutFromNestedInput
@@ -8045,13 +9544,16 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     national_id?: BigIntFieldUpdateOperationsInput | bigint | number
-    wallet_address?: StringFieldUpdateOperationsInput | string
+    wallet_address?: NullableStringFieldUpdateOperationsInput | string | null
     salt?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    kyc_status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    ekyc?: EKYCVerificationsUncheckedUpdateManyWithoutUserNestedInput
     subscriptions?: SubscriptionsUncheckedUpdateManyWithoutUserNestedInput
     events?: EventsUncheckedUpdateManyWithoutUserNestedInput
     transactionsFrom?: TransactionsUncheckedUpdateManyWithoutFromNestedInput
@@ -8062,39 +9564,149 @@ export namespace Prisma {
     id?: string
     name?: string | null
     national_id: bigint | number
-    wallet_address: string
+    wallet_address?: string | null
     salt: string
     email: string
+    date_of_birth?: Date | string | null
     password?: string | null
     role: $Enums.Role
     hashed_mnemonic?: string | null
     created_at?: Date | string
+    kyc_status?: $Enums.KYCStatus
   }
 
   export type UsersUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     national_id?: BigIntFieldUpdateOperationsInput | bigint | number
-    wallet_address?: StringFieldUpdateOperationsInput | string
+    wallet_address?: NullableStringFieldUpdateOperationsInput | string | null
     salt?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    kyc_status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
   }
 
   export type UsersUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     national_id?: BigIntFieldUpdateOperationsInput | bigint | number
-    wallet_address?: StringFieldUpdateOperationsInput | string
+    wallet_address?: NullableStringFieldUpdateOperationsInput | string | null
     salt?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    kyc_status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+  }
+
+  export type EKYCVerificationsCreateInput = {
+    id?: string
+    national_id_hash: string
+    date_of_birth: Date | string
+    age?: number | null
+    custodial_address: string
+    tx_digest?: string | null
+    status?: $Enums.KYCStatus
+    reason?: string | null
+    request_id?: string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+    user: UsersCreateNestedOneWithoutEkycInput
+  }
+
+  export type EKYCVerificationsUncheckedCreateInput = {
+    id?: string
+    user_id: string
+    national_id_hash: string
+    date_of_birth: Date | string
+    age?: number | null
+    custodial_address: string
+    tx_digest?: string | null
+    status?: $Enums.KYCStatus
+    reason?: string | null
+    request_id?: string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+  }
+
+  export type EKYCVerificationsUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    national_id_hash?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: DateTimeFieldUpdateOperationsInput | Date | string
+    age?: NullableIntFieldUpdateOperationsInput | number | null
+    custodial_address?: StringFieldUpdateOperationsInput | string
+    tx_digest?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    request_id?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UsersUpdateOneRequiredWithoutEkycNestedInput
+  }
+
+  export type EKYCVerificationsUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    user_id?: StringFieldUpdateOperationsInput | string
+    national_id_hash?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: DateTimeFieldUpdateOperationsInput | Date | string
+    age?: NullableIntFieldUpdateOperationsInput | number | null
+    custodial_address?: StringFieldUpdateOperationsInput | string
+    tx_digest?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    request_id?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EKYCVerificationsCreateManyInput = {
+    id?: string
+    user_id: string
+    national_id_hash: string
+    date_of_birth: Date | string
+    age?: number | null
+    custodial_address: string
+    tx_digest?: string | null
+    status?: $Enums.KYCStatus
+    reason?: string | null
+    request_id?: string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+  }
+
+  export type EKYCVerificationsUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    national_id_hash?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: DateTimeFieldUpdateOperationsInput | Date | string
+    age?: NullableIntFieldUpdateOperationsInput | number | null
+    custodial_address?: StringFieldUpdateOperationsInput | string
+    tx_digest?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    request_id?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EKYCVerificationsUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    user_id?: StringFieldUpdateOperationsInput | string
+    national_id_hash?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: DateTimeFieldUpdateOperationsInput | Date | string
+    age?: NullableIntFieldUpdateOperationsInput | number | null
+    custodial_address?: StringFieldUpdateOperationsInput | string
+    tx_digest?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    request_id?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type BondsCreateInput = {
@@ -8493,6 +10105,17 @@ export namespace Prisma {
     not?: NestedBigIntFilter<$PrismaModel> | bigint | number
   }
 
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
   export type EnumRoleFilter<$PrismaModel = never> = {
     equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
     in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
@@ -8509,6 +10132,19 @@ export namespace Prisma {
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
+  }
+
+  export type EnumKYCStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.KYCStatus | EnumKYCStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.KYCStatus[] | ListEnumKYCStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.KYCStatus[] | ListEnumKYCStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumKYCStatusFilter<$PrismaModel> | $Enums.KYCStatus
+  }
+
+  export type EKYCVerificationsListRelationFilter = {
+    every?: EKYCVerificationsWhereInput
+    some?: EKYCVerificationsWhereInput
+    none?: EKYCVerificationsWhereInput
   }
 
   export type SubscriptionsListRelationFilter = {
@@ -8534,6 +10170,10 @@ export namespace Prisma {
     nulls?: NullsOrder
   }
 
+  export type EKYCVerificationsOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type SubscriptionsOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -8553,10 +10193,12 @@ export namespace Prisma {
     wallet_address?: SortOrder
     salt?: SortOrder
     email?: SortOrder
+    date_of_birth?: SortOrder
     password?: SortOrder
     role?: SortOrder
     hashed_mnemonic?: SortOrder
     created_at?: SortOrder
+    kyc_status?: SortOrder
   }
 
   export type UsersAvgOrderByAggregateInput = {
@@ -8570,10 +10212,12 @@ export namespace Prisma {
     wallet_address?: SortOrder
     salt?: SortOrder
     email?: SortOrder
+    date_of_birth?: SortOrder
     password?: SortOrder
     role?: SortOrder
     hashed_mnemonic?: SortOrder
     created_at?: SortOrder
+    kyc_status?: SortOrder
   }
 
   export type UsersMinOrderByAggregateInput = {
@@ -8583,10 +10227,12 @@ export namespace Prisma {
     wallet_address?: SortOrder
     salt?: SortOrder
     email?: SortOrder
+    date_of_birth?: SortOrder
     password?: SortOrder
     role?: SortOrder
     hashed_mnemonic?: SortOrder
     created_at?: SortOrder
+    kyc_status?: SortOrder
   }
 
   export type UsersSumOrderByAggregateInput = {
@@ -8645,6 +10291,20 @@ export namespace Prisma {
     _max?: NestedBigIntFilter<$PrismaModel>
   }
 
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
   export type EnumRoleWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
     in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
@@ -8669,6 +10329,101 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type EnumKYCStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.KYCStatus | EnumKYCStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.KYCStatus[] | ListEnumKYCStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.KYCStatus[] | ListEnumKYCStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumKYCStatusWithAggregatesFilter<$PrismaModel> | $Enums.KYCStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumKYCStatusFilter<$PrismaModel>
+    _max?: NestedEnumKYCStatusFilter<$PrismaModel>
+  }
+
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type UsersScalarRelationFilter = {
+    is?: UsersWhereInput
+    isNot?: UsersWhereInput
+  }
+
+  export type EKYCVerificationsCountOrderByAggregateInput = {
+    id?: SortOrder
+    user_id?: SortOrder
+    national_id_hash?: SortOrder
+    date_of_birth?: SortOrder
+    age?: SortOrder
+    custodial_address?: SortOrder
+    tx_digest?: SortOrder
+    status?: SortOrder
+    reason?: SortOrder
+    request_id?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type EKYCVerificationsAvgOrderByAggregateInput = {
+    age?: SortOrder
+  }
+
+  export type EKYCVerificationsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    user_id?: SortOrder
+    national_id_hash?: SortOrder
+    date_of_birth?: SortOrder
+    age?: SortOrder
+    custodial_address?: SortOrder
+    tx_digest?: SortOrder
+    status?: SortOrder
+    reason?: SortOrder
+    request_id?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type EKYCVerificationsMinOrderByAggregateInput = {
+    id?: SortOrder
+    user_id?: SortOrder
+    national_id_hash?: SortOrder
+    date_of_birth?: SortOrder
+    age?: SortOrder
+    custodial_address?: SortOrder
+    tx_digest?: SortOrder
+    status?: SortOrder
+    reason?: SortOrder
+    request_id?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+  }
+
+  export type EKYCVerificationsSumOrderByAggregateInput = {
+    age?: SortOrder
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
   export type EnumBondTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.BondType | EnumBondTypeFieldRefInput<$PrismaModel>
     in?: $Enums.BondType[] | ListEnumBondTypeFieldRefInput<$PrismaModel>
@@ -8685,17 +10440,6 @@ export namespace Prisma {
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntFilter<$PrismaModel> | number
-  }
-
-  export type IntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
   export type EnumStatusFilter<$PrismaModel = never> = {
@@ -8812,22 +10556,6 @@ export namespace Prisma {
     _max?: NestedIntFilter<$PrismaModel>
   }
 
-  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
-  }
-
   export type EnumStatusWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.Status | EnumStatusFieldRefInput<$PrismaModel>
     in?: $Enums.Status[] | ListEnumStatusFieldRefInput<$PrismaModel>
@@ -8858,11 +10586,6 @@ export namespace Prisma {
   export type BondsScalarRelationFilter = {
     is?: BondsWhereInput
     isNot?: BondsWhereInput
-  }
-
-  export type UsersScalarRelationFilter = {
-    is?: UsersWhereInput
-    isNot?: UsersWhereInput
   }
 
   export type EventsCountOrderByAggregateInput = {
@@ -9002,6 +10725,13 @@ export namespace Prisma {
     created_at?: SortOrder
   }
 
+  export type EKYCVerificationsCreateNestedManyWithoutUserInput = {
+    create?: XOR<EKYCVerificationsCreateWithoutUserInput, EKYCVerificationsUncheckedCreateWithoutUserInput> | EKYCVerificationsCreateWithoutUserInput[] | EKYCVerificationsUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: EKYCVerificationsCreateOrConnectWithoutUserInput | EKYCVerificationsCreateOrConnectWithoutUserInput[]
+    createMany?: EKYCVerificationsCreateManyUserInputEnvelope
+    connect?: EKYCVerificationsWhereUniqueInput | EKYCVerificationsWhereUniqueInput[]
+  }
+
   export type SubscriptionsCreateNestedManyWithoutUserInput = {
     create?: XOR<SubscriptionsCreateWithoutUserInput, SubscriptionsUncheckedCreateWithoutUserInput> | SubscriptionsCreateWithoutUserInput[] | SubscriptionsUncheckedCreateWithoutUserInput[]
     connectOrCreate?: SubscriptionsCreateOrConnectWithoutUserInput | SubscriptionsCreateOrConnectWithoutUserInput[]
@@ -9028,6 +10758,13 @@ export namespace Prisma {
     connectOrCreate?: TransactionsCreateOrConnectWithoutToInput | TransactionsCreateOrConnectWithoutToInput[]
     createMany?: TransactionsCreateManyToInputEnvelope
     connect?: TransactionsWhereUniqueInput | TransactionsWhereUniqueInput[]
+  }
+
+  export type EKYCVerificationsUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<EKYCVerificationsCreateWithoutUserInput, EKYCVerificationsUncheckedCreateWithoutUserInput> | EKYCVerificationsCreateWithoutUserInput[] | EKYCVerificationsUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: EKYCVerificationsCreateOrConnectWithoutUserInput | EKYCVerificationsCreateOrConnectWithoutUserInput[]
+    createMany?: EKYCVerificationsCreateManyUserInputEnvelope
+    connect?: EKYCVerificationsWhereUniqueInput | EKYCVerificationsWhereUniqueInput[]
   }
 
   export type SubscriptionsUncheckedCreateNestedManyWithoutUserInput = {
@@ -9074,12 +10811,34 @@ export namespace Prisma {
     divide?: bigint | number
   }
 
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
+  }
+
   export type EnumRoleFieldUpdateOperationsInput = {
     set?: $Enums.Role
   }
 
   export type DateTimeFieldUpdateOperationsInput = {
     set?: Date | string
+  }
+
+  export type EnumKYCStatusFieldUpdateOperationsInput = {
+    set?: $Enums.KYCStatus
+  }
+
+  export type EKYCVerificationsUpdateManyWithoutUserNestedInput = {
+    create?: XOR<EKYCVerificationsCreateWithoutUserInput, EKYCVerificationsUncheckedCreateWithoutUserInput> | EKYCVerificationsCreateWithoutUserInput[] | EKYCVerificationsUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: EKYCVerificationsCreateOrConnectWithoutUserInput | EKYCVerificationsCreateOrConnectWithoutUserInput[]
+    upsert?: EKYCVerificationsUpsertWithWhereUniqueWithoutUserInput | EKYCVerificationsUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: EKYCVerificationsCreateManyUserInputEnvelope
+    set?: EKYCVerificationsWhereUniqueInput | EKYCVerificationsWhereUniqueInput[]
+    disconnect?: EKYCVerificationsWhereUniqueInput | EKYCVerificationsWhereUniqueInput[]
+    delete?: EKYCVerificationsWhereUniqueInput | EKYCVerificationsWhereUniqueInput[]
+    connect?: EKYCVerificationsWhereUniqueInput | EKYCVerificationsWhereUniqueInput[]
+    update?: EKYCVerificationsUpdateWithWhereUniqueWithoutUserInput | EKYCVerificationsUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: EKYCVerificationsUpdateManyWithWhereWithoutUserInput | EKYCVerificationsUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: EKYCVerificationsScalarWhereInput | EKYCVerificationsScalarWhereInput[]
   }
 
   export type SubscriptionsUpdateManyWithoutUserNestedInput = {
@@ -9138,6 +10897,20 @@ export namespace Prisma {
     deleteMany?: TransactionsScalarWhereInput | TransactionsScalarWhereInput[]
   }
 
+  export type EKYCVerificationsUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<EKYCVerificationsCreateWithoutUserInput, EKYCVerificationsUncheckedCreateWithoutUserInput> | EKYCVerificationsCreateWithoutUserInput[] | EKYCVerificationsUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: EKYCVerificationsCreateOrConnectWithoutUserInput | EKYCVerificationsCreateOrConnectWithoutUserInput[]
+    upsert?: EKYCVerificationsUpsertWithWhereUniqueWithoutUserInput | EKYCVerificationsUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: EKYCVerificationsCreateManyUserInputEnvelope
+    set?: EKYCVerificationsWhereUniqueInput | EKYCVerificationsWhereUniqueInput[]
+    disconnect?: EKYCVerificationsWhereUniqueInput | EKYCVerificationsWhereUniqueInput[]
+    delete?: EKYCVerificationsWhereUniqueInput | EKYCVerificationsWhereUniqueInput[]
+    connect?: EKYCVerificationsWhereUniqueInput | EKYCVerificationsWhereUniqueInput[]
+    update?: EKYCVerificationsUpdateWithWhereUniqueWithoutUserInput | EKYCVerificationsUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: EKYCVerificationsUpdateManyWithWhereWithoutUserInput | EKYCVerificationsUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: EKYCVerificationsScalarWhereInput | EKYCVerificationsScalarWhereInput[]
+  }
+
   export type SubscriptionsUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<SubscriptionsCreateWithoutUserInput, SubscriptionsUncheckedCreateWithoutUserInput> | SubscriptionsCreateWithoutUserInput[] | SubscriptionsUncheckedCreateWithoutUserInput[]
     connectOrCreate?: SubscriptionsCreateOrConnectWithoutUserInput | SubscriptionsCreateOrConnectWithoutUserInput[]
@@ -9194,6 +10967,28 @@ export namespace Prisma {
     deleteMany?: TransactionsScalarWhereInput | TransactionsScalarWhereInput[]
   }
 
+  export type UsersCreateNestedOneWithoutEkycInput = {
+    create?: XOR<UsersCreateWithoutEkycInput, UsersUncheckedCreateWithoutEkycInput>
+    connectOrCreate?: UsersCreateOrConnectWithoutEkycInput
+    connect?: UsersWhereUniqueInput
+  }
+
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type UsersUpdateOneRequiredWithoutEkycNestedInput = {
+    create?: XOR<UsersCreateWithoutEkycInput, UsersUncheckedCreateWithoutEkycInput>
+    connectOrCreate?: UsersCreateOrConnectWithoutEkycInput
+    upsert?: UsersUpsertWithoutEkycInput
+    connect?: UsersWhereUniqueInput
+    update?: XOR<XOR<UsersUpdateToOneWithWhereWithoutEkycInput, UsersUpdateWithoutEkycInput>, UsersUncheckedUpdateWithoutEkycInput>
+  }
+
   export type SubscriptionsCreateNestedManyWithoutBondInput = {
     create?: XOR<SubscriptionsCreateWithoutBondInput, SubscriptionsUncheckedCreateWithoutBondInput> | SubscriptionsCreateWithoutBondInput[] | SubscriptionsUncheckedCreateWithoutBondInput[]
     connectOrCreate?: SubscriptionsCreateOrConnectWithoutBondInput | SubscriptionsCreateOrConnectWithoutBondInput[]
@@ -9242,14 +11037,6 @@ export namespace Prisma {
 
   export type IntFieldUpdateOperationsInput = {
     set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
-  }
-
-  export type NullableIntFieldUpdateOperationsInput = {
-    set?: number | null
     increment?: number
     decrement?: number
     multiply?: number
@@ -9497,6 +11284,17 @@ export namespace Prisma {
     not?: NestedBigIntFilter<$PrismaModel> | bigint | number
   }
 
+  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
   export type NestedEnumRoleFilter<$PrismaModel = never> = {
     equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
     in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
@@ -9513,6 +11311,13 @@ export namespace Prisma {
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
+  }
+
+  export type NestedEnumKYCStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.KYCStatus | EnumKYCStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.KYCStatus[] | ListEnumKYCStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.KYCStatus[] | ListEnumKYCStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumKYCStatusFilter<$PrismaModel> | $Enums.KYCStatus
   }
 
   export type NestedStringWithAggregatesFilter<$PrismaModel = never> = {
@@ -9598,6 +11403,20 @@ export namespace Prisma {
     not?: NestedFloatFilter<$PrismaModel> | number
   }
 
+  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
   export type NestedEnumRoleWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
     in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
@@ -9620,6 +11439,43 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumKYCStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.KYCStatus | EnumKYCStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.KYCStatus[] | ListEnumKYCStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.KYCStatus[] | ListEnumKYCStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumKYCStatusWithAggregatesFilter<$PrismaModel> | $Enums.KYCStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumKYCStatusFilter<$PrismaModel>
+    _max?: NestedEnumKYCStatusFilter<$PrismaModel>
+  }
+
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedEnumBondTypeFilter<$PrismaModel = never> = {
@@ -9667,33 +11523,6 @@ export namespace Prisma {
     _sum?: NestedIntFilter<$PrismaModel>
     _min?: NestedIntFilter<$PrismaModel>
     _max?: NestedIntFilter<$PrismaModel>
-  }
-
-  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
-  }
-
-  export type NestedFloatNullableFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedEnumStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -9758,6 +11587,44 @@ export namespace Prisma {
     _sum?: NestedBigIntNullableFilter<$PrismaModel>
     _min?: NestedBigIntNullableFilter<$PrismaModel>
     _max?: NestedBigIntNullableFilter<$PrismaModel>
+  }
+
+  export type EKYCVerificationsCreateWithoutUserInput = {
+    id?: string
+    national_id_hash: string
+    date_of_birth: Date | string
+    age?: number | null
+    custodial_address: string
+    tx_digest?: string | null
+    status?: $Enums.KYCStatus
+    reason?: string | null
+    request_id?: string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+  }
+
+  export type EKYCVerificationsUncheckedCreateWithoutUserInput = {
+    id?: string
+    national_id_hash: string
+    date_of_birth: Date | string
+    age?: number | null
+    custodial_address: string
+    tx_digest?: string | null
+    status?: $Enums.KYCStatus
+    reason?: string | null
+    request_id?: string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+  }
+
+  export type EKYCVerificationsCreateOrConnectWithoutUserInput = {
+    where: EKYCVerificationsWhereUniqueInput
+    create: XOR<EKYCVerificationsCreateWithoutUserInput, EKYCVerificationsUncheckedCreateWithoutUserInput>
+  }
+
+  export type EKYCVerificationsCreateManyUserInputEnvelope = {
+    data: EKYCVerificationsCreateManyUserInput | EKYCVerificationsCreateManyUserInput[]
+    skipDuplicates?: boolean
   }
 
   export type SubscriptionsCreateWithoutUserInput = {
@@ -9870,6 +11737,40 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type EKYCVerificationsUpsertWithWhereUniqueWithoutUserInput = {
+    where: EKYCVerificationsWhereUniqueInput
+    update: XOR<EKYCVerificationsUpdateWithoutUserInput, EKYCVerificationsUncheckedUpdateWithoutUserInput>
+    create: XOR<EKYCVerificationsCreateWithoutUserInput, EKYCVerificationsUncheckedCreateWithoutUserInput>
+  }
+
+  export type EKYCVerificationsUpdateWithWhereUniqueWithoutUserInput = {
+    where: EKYCVerificationsWhereUniqueInput
+    data: XOR<EKYCVerificationsUpdateWithoutUserInput, EKYCVerificationsUncheckedUpdateWithoutUserInput>
+  }
+
+  export type EKYCVerificationsUpdateManyWithWhereWithoutUserInput = {
+    where: EKYCVerificationsScalarWhereInput
+    data: XOR<EKYCVerificationsUpdateManyMutationInput, EKYCVerificationsUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type EKYCVerificationsScalarWhereInput = {
+    AND?: EKYCVerificationsScalarWhereInput | EKYCVerificationsScalarWhereInput[]
+    OR?: EKYCVerificationsScalarWhereInput[]
+    NOT?: EKYCVerificationsScalarWhereInput | EKYCVerificationsScalarWhereInput[]
+    id?: StringFilter<"EKYCVerifications"> | string
+    user_id?: StringFilter<"EKYCVerifications"> | string
+    national_id_hash?: StringFilter<"EKYCVerifications"> | string
+    date_of_birth?: DateTimeFilter<"EKYCVerifications"> | Date | string
+    age?: IntNullableFilter<"EKYCVerifications"> | number | null
+    custodial_address?: StringFilter<"EKYCVerifications"> | string
+    tx_digest?: StringNullableFilter<"EKYCVerifications"> | string | null
+    status?: EnumKYCStatusFilter<"EKYCVerifications"> | $Enums.KYCStatus
+    reason?: StringNullableFilter<"EKYCVerifications"> | string | null
+    request_id?: StringNullableFilter<"EKYCVerifications"> | string | null
+    created_at?: DateTimeFilter<"EKYCVerifications"> | Date | string
+    updated_at?: DateTimeFilter<"EKYCVerifications"> | Date | string
+  }
+
   export type SubscriptionsUpsertWithWhereUniqueWithoutUserInput = {
     where: SubscriptionsWhereUniqueInput
     update: XOR<SubscriptionsUpdateWithoutUserInput, SubscriptionsUncheckedUpdateWithoutUserInput>
@@ -9971,6 +11872,98 @@ export namespace Prisma {
   export type TransactionsUpdateManyWithWhereWithoutToInput = {
     where: TransactionsScalarWhereInput
     data: XOR<TransactionsUpdateManyMutationInput, TransactionsUncheckedUpdateManyWithoutToInput>
+  }
+
+  export type UsersCreateWithoutEkycInput = {
+    id?: string
+    name?: string | null
+    national_id: bigint | number
+    wallet_address?: string | null
+    salt: string
+    email: string
+    date_of_birth?: Date | string | null
+    password?: string | null
+    role: $Enums.Role
+    hashed_mnemonic?: string | null
+    created_at?: Date | string
+    kyc_status?: $Enums.KYCStatus
+    subscriptions?: SubscriptionsCreateNestedManyWithoutUserInput
+    events?: EventsCreateNestedManyWithoutUserInput
+    transactionsFrom?: TransactionsCreateNestedManyWithoutFromInput
+    transactionsTo?: TransactionsCreateNestedManyWithoutToInput
+  }
+
+  export type UsersUncheckedCreateWithoutEkycInput = {
+    id?: string
+    name?: string | null
+    national_id: bigint | number
+    wallet_address?: string | null
+    salt: string
+    email: string
+    date_of_birth?: Date | string | null
+    password?: string | null
+    role: $Enums.Role
+    hashed_mnemonic?: string | null
+    created_at?: Date | string
+    kyc_status?: $Enums.KYCStatus
+    subscriptions?: SubscriptionsUncheckedCreateNestedManyWithoutUserInput
+    events?: EventsUncheckedCreateNestedManyWithoutUserInput
+    transactionsFrom?: TransactionsUncheckedCreateNestedManyWithoutFromInput
+    transactionsTo?: TransactionsUncheckedCreateNestedManyWithoutToInput
+  }
+
+  export type UsersCreateOrConnectWithoutEkycInput = {
+    where: UsersWhereUniqueInput
+    create: XOR<UsersCreateWithoutEkycInput, UsersUncheckedCreateWithoutEkycInput>
+  }
+
+  export type UsersUpsertWithoutEkycInput = {
+    update: XOR<UsersUpdateWithoutEkycInput, UsersUncheckedUpdateWithoutEkycInput>
+    create: XOR<UsersCreateWithoutEkycInput, UsersUncheckedCreateWithoutEkycInput>
+    where?: UsersWhereInput
+  }
+
+  export type UsersUpdateToOneWithWhereWithoutEkycInput = {
+    where?: UsersWhereInput
+    data: XOR<UsersUpdateWithoutEkycInput, UsersUncheckedUpdateWithoutEkycInput>
+  }
+
+  export type UsersUpdateWithoutEkycInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    national_id?: BigIntFieldUpdateOperationsInput | bigint | number
+    wallet_address?: NullableStringFieldUpdateOperationsInput | string | null
+    salt?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    kyc_status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    subscriptions?: SubscriptionsUpdateManyWithoutUserNestedInput
+    events?: EventsUpdateManyWithoutUserNestedInput
+    transactionsFrom?: TransactionsUpdateManyWithoutFromNestedInput
+    transactionsTo?: TransactionsUpdateManyWithoutToNestedInput
+  }
+
+  export type UsersUncheckedUpdateWithoutEkycInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    national_id?: BigIntFieldUpdateOperationsInput | bigint | number
+    wallet_address?: NullableStringFieldUpdateOperationsInput | string | null
+    salt?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    kyc_status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    subscriptions?: SubscriptionsUncheckedUpdateManyWithoutUserNestedInput
+    events?: EventsUncheckedUpdateManyWithoutUserNestedInput
+    transactionsFrom?: TransactionsUncheckedUpdateManyWithoutFromNestedInput
+    transactionsTo?: TransactionsUncheckedUpdateManyWithoutToNestedInput
   }
 
   export type SubscriptionsCreateWithoutBondInput = {
@@ -10158,13 +12151,16 @@ export namespace Prisma {
     id?: string
     name?: string | null
     national_id: bigint | number
-    wallet_address: string
+    wallet_address?: string | null
     salt: string
     email: string
+    date_of_birth?: Date | string | null
     password?: string | null
     role: $Enums.Role
     hashed_mnemonic?: string | null
     created_at?: Date | string
+    kyc_status?: $Enums.KYCStatus
+    ekyc?: EKYCVerificationsCreateNestedManyWithoutUserInput
     subscriptions?: SubscriptionsCreateNestedManyWithoutUserInput
     transactionsFrom?: TransactionsCreateNestedManyWithoutFromInput
     transactionsTo?: TransactionsCreateNestedManyWithoutToInput
@@ -10174,13 +12170,16 @@ export namespace Prisma {
     id?: string
     name?: string | null
     national_id: bigint | number
-    wallet_address: string
+    wallet_address?: string | null
     salt: string
     email: string
+    date_of_birth?: Date | string | null
     password?: string | null
     role: $Enums.Role
     hashed_mnemonic?: string | null
     created_at?: Date | string
+    kyc_status?: $Enums.KYCStatus
+    ekyc?: EKYCVerificationsUncheckedCreateNestedManyWithoutUserInput
     subscriptions?: SubscriptionsUncheckedCreateNestedManyWithoutUserInput
     transactionsFrom?: TransactionsUncheckedCreateNestedManyWithoutFromInput
     transactionsTo?: TransactionsUncheckedCreateNestedManyWithoutToInput
@@ -10261,13 +12260,16 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     national_id?: BigIntFieldUpdateOperationsInput | bigint | number
-    wallet_address?: StringFieldUpdateOperationsInput | string
+    wallet_address?: NullableStringFieldUpdateOperationsInput | string | null
     salt?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    kyc_status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    ekyc?: EKYCVerificationsUpdateManyWithoutUserNestedInput
     subscriptions?: SubscriptionsUpdateManyWithoutUserNestedInput
     transactionsFrom?: TransactionsUpdateManyWithoutFromNestedInput
     transactionsTo?: TransactionsUpdateManyWithoutToNestedInput
@@ -10277,13 +12279,16 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     national_id?: BigIntFieldUpdateOperationsInput | bigint | number
-    wallet_address?: StringFieldUpdateOperationsInput | string
+    wallet_address?: NullableStringFieldUpdateOperationsInput | string | null
     salt?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    kyc_status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    ekyc?: EKYCVerificationsUncheckedUpdateManyWithoutUserNestedInput
     subscriptions?: SubscriptionsUncheckedUpdateManyWithoutUserNestedInput
     transactionsFrom?: TransactionsUncheckedUpdateManyWithoutFromNestedInput
     transactionsTo?: TransactionsUncheckedUpdateManyWithoutToNestedInput
@@ -10342,13 +12347,16 @@ export namespace Prisma {
     id?: string
     name?: string | null
     national_id: bigint | number
-    wallet_address: string
+    wallet_address?: string | null
     salt: string
     email: string
+    date_of_birth?: Date | string | null
     password?: string | null
     role: $Enums.Role
     hashed_mnemonic?: string | null
     created_at?: Date | string
+    kyc_status?: $Enums.KYCStatus
+    ekyc?: EKYCVerificationsCreateNestedManyWithoutUserInput
     events?: EventsCreateNestedManyWithoutUserInput
     transactionsFrom?: TransactionsCreateNestedManyWithoutFromInput
     transactionsTo?: TransactionsCreateNestedManyWithoutToInput
@@ -10358,13 +12366,16 @@ export namespace Prisma {
     id?: string
     name?: string | null
     national_id: bigint | number
-    wallet_address: string
+    wallet_address?: string | null
     salt: string
     email: string
+    date_of_birth?: Date | string | null
     password?: string | null
     role: $Enums.Role
     hashed_mnemonic?: string | null
     created_at?: Date | string
+    kyc_status?: $Enums.KYCStatus
+    ekyc?: EKYCVerificationsUncheckedCreateNestedManyWithoutUserInput
     events?: EventsUncheckedCreateNestedManyWithoutUserInput
     transactionsFrom?: TransactionsUncheckedCreateNestedManyWithoutFromInput
     transactionsTo?: TransactionsUncheckedCreateNestedManyWithoutToInput
@@ -10445,13 +12456,16 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     national_id?: BigIntFieldUpdateOperationsInput | bigint | number
-    wallet_address?: StringFieldUpdateOperationsInput | string
+    wallet_address?: NullableStringFieldUpdateOperationsInput | string | null
     salt?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    kyc_status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    ekyc?: EKYCVerificationsUpdateManyWithoutUserNestedInput
     events?: EventsUpdateManyWithoutUserNestedInput
     transactionsFrom?: TransactionsUpdateManyWithoutFromNestedInput
     transactionsTo?: TransactionsUpdateManyWithoutToNestedInput
@@ -10461,13 +12475,16 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     national_id?: BigIntFieldUpdateOperationsInput | bigint | number
-    wallet_address?: StringFieldUpdateOperationsInput | string
+    wallet_address?: NullableStringFieldUpdateOperationsInput | string | null
     salt?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    kyc_status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    ekyc?: EKYCVerificationsUncheckedUpdateManyWithoutUserNestedInput
     events?: EventsUncheckedUpdateManyWithoutUserNestedInput
     transactionsFrom?: TransactionsUncheckedUpdateManyWithoutFromNestedInput
     transactionsTo?: TransactionsUncheckedUpdateManyWithoutToNestedInput
@@ -10526,13 +12543,16 @@ export namespace Prisma {
     id?: string
     name?: string | null
     national_id: bigint | number
-    wallet_address: string
+    wallet_address?: string | null
     salt: string
     email: string
+    date_of_birth?: Date | string | null
     password?: string | null
     role: $Enums.Role
     hashed_mnemonic?: string | null
     created_at?: Date | string
+    kyc_status?: $Enums.KYCStatus
+    ekyc?: EKYCVerificationsCreateNestedManyWithoutUserInput
     subscriptions?: SubscriptionsCreateNestedManyWithoutUserInput
     events?: EventsCreateNestedManyWithoutUserInput
     transactionsTo?: TransactionsCreateNestedManyWithoutToInput
@@ -10542,13 +12562,16 @@ export namespace Prisma {
     id?: string
     name?: string | null
     national_id: bigint | number
-    wallet_address: string
+    wallet_address?: string | null
     salt: string
     email: string
+    date_of_birth?: Date | string | null
     password?: string | null
     role: $Enums.Role
     hashed_mnemonic?: string | null
     created_at?: Date | string
+    kyc_status?: $Enums.KYCStatus
+    ekyc?: EKYCVerificationsUncheckedCreateNestedManyWithoutUserInput
     subscriptions?: SubscriptionsUncheckedCreateNestedManyWithoutUserInput
     events?: EventsUncheckedCreateNestedManyWithoutUserInput
     transactionsTo?: TransactionsUncheckedCreateNestedManyWithoutToInput
@@ -10563,13 +12586,16 @@ export namespace Prisma {
     id?: string
     name?: string | null
     national_id: bigint | number
-    wallet_address: string
+    wallet_address?: string | null
     salt: string
     email: string
+    date_of_birth?: Date | string | null
     password?: string | null
     role: $Enums.Role
     hashed_mnemonic?: string | null
     created_at?: Date | string
+    kyc_status?: $Enums.KYCStatus
+    ekyc?: EKYCVerificationsCreateNestedManyWithoutUserInput
     subscriptions?: SubscriptionsCreateNestedManyWithoutUserInput
     events?: EventsCreateNestedManyWithoutUserInput
     transactionsFrom?: TransactionsCreateNestedManyWithoutFromInput
@@ -10579,13 +12605,16 @@ export namespace Prisma {
     id?: string
     name?: string | null
     national_id: bigint | number
-    wallet_address: string
+    wallet_address?: string | null
     salt: string
     email: string
+    date_of_birth?: Date | string | null
     password?: string | null
     role: $Enums.Role
     hashed_mnemonic?: string | null
     created_at?: Date | string
+    kyc_status?: $Enums.KYCStatus
+    ekyc?: EKYCVerificationsUncheckedCreateNestedManyWithoutUserInput
     subscriptions?: SubscriptionsUncheckedCreateNestedManyWithoutUserInput
     events?: EventsUncheckedCreateNestedManyWithoutUserInput
     transactionsFrom?: TransactionsUncheckedCreateNestedManyWithoutFromInput
@@ -10666,13 +12695,16 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     national_id?: BigIntFieldUpdateOperationsInput | bigint | number
-    wallet_address?: StringFieldUpdateOperationsInput | string
+    wallet_address?: NullableStringFieldUpdateOperationsInput | string | null
     salt?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    kyc_status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    ekyc?: EKYCVerificationsUpdateManyWithoutUserNestedInput
     subscriptions?: SubscriptionsUpdateManyWithoutUserNestedInput
     events?: EventsUpdateManyWithoutUserNestedInput
     transactionsTo?: TransactionsUpdateManyWithoutToNestedInput
@@ -10682,13 +12714,16 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     national_id?: BigIntFieldUpdateOperationsInput | bigint | number
-    wallet_address?: StringFieldUpdateOperationsInput | string
+    wallet_address?: NullableStringFieldUpdateOperationsInput | string | null
     salt?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    kyc_status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    ekyc?: EKYCVerificationsUncheckedUpdateManyWithoutUserNestedInput
     subscriptions?: SubscriptionsUncheckedUpdateManyWithoutUserNestedInput
     events?: EventsUncheckedUpdateManyWithoutUserNestedInput
     transactionsTo?: TransactionsUncheckedUpdateManyWithoutToNestedInput
@@ -10709,13 +12744,16 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     national_id?: BigIntFieldUpdateOperationsInput | bigint | number
-    wallet_address?: StringFieldUpdateOperationsInput | string
+    wallet_address?: NullableStringFieldUpdateOperationsInput | string | null
     salt?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    kyc_status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    ekyc?: EKYCVerificationsUpdateManyWithoutUserNestedInput
     subscriptions?: SubscriptionsUpdateManyWithoutUserNestedInput
     events?: EventsUpdateManyWithoutUserNestedInput
     transactionsFrom?: TransactionsUpdateManyWithoutFromNestedInput
@@ -10725,16 +12763,33 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     national_id?: BigIntFieldUpdateOperationsInput | bigint | number
-    wallet_address?: StringFieldUpdateOperationsInput | string
+    wallet_address?: NullableStringFieldUpdateOperationsInput | string | null
     salt?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     hashed_mnemonic?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    kyc_status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    ekyc?: EKYCVerificationsUncheckedUpdateManyWithoutUserNestedInput
     subscriptions?: SubscriptionsUncheckedUpdateManyWithoutUserNestedInput
     events?: EventsUncheckedUpdateManyWithoutUserNestedInput
     transactionsFrom?: TransactionsUncheckedUpdateManyWithoutFromNestedInput
+  }
+
+  export type EKYCVerificationsCreateManyUserInput = {
+    id?: string
+    national_id_hash: string
+    date_of_birth: Date | string
+    age?: number | null
+    custodial_address: string
+    tx_digest?: string | null
+    status?: $Enums.KYCStatus
+    reason?: string | null
+    request_id?: string | null
+    created_at?: Date | string
+    updated_at?: Date | string
   }
 
   export type SubscriptionsCreateManyUserInput = {
@@ -10770,6 +12825,48 @@ export namespace Prisma {
     user_from: string
     tx_hash: string
     created_at?: Date | string
+  }
+
+  export type EKYCVerificationsUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    national_id_hash?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: DateTimeFieldUpdateOperationsInput | Date | string
+    age?: NullableIntFieldUpdateOperationsInput | number | null
+    custodial_address?: StringFieldUpdateOperationsInput | string
+    tx_digest?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    request_id?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EKYCVerificationsUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    national_id_hash?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: DateTimeFieldUpdateOperationsInput | Date | string
+    age?: NullableIntFieldUpdateOperationsInput | number | null
+    custodial_address?: StringFieldUpdateOperationsInput | string
+    tx_digest?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    request_id?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EKYCVerificationsUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    national_id_hash?: StringFieldUpdateOperationsInput | string
+    date_of_birth?: DateTimeFieldUpdateOperationsInput | Date | string
+    age?: NullableIntFieldUpdateOperationsInput | number | null
+    custodial_address?: StringFieldUpdateOperationsInput | string
+    tx_digest?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumKYCStatusFieldUpdateOperationsInput | $Enums.KYCStatus
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    request_id?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type SubscriptionsUpdateWithoutUserInput = {
