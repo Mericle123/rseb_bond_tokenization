@@ -5,12 +5,10 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -50,70 +48,81 @@ enum KYCStatus {
 }
 
 
+enum ListingStatus {
+  open
+  filled
+  cancelled
+}
+
+
 model Users {
-  id              String  @id @default(cuid())
+  id              String    @id @default(cuid())
   name            String?
-  national_id     BigInt  @unique
-  wallet_address  String?  @unique
-  salt            String  
-  email           String  @unique
+  national_id     BigInt    @unique
+  wallet_address  String?   @unique
+  salt            String
+  email           String    @unique
   date_of_birth   DateTime?
   password        String?
   role            Role
   hashed_mnemonic String?
-  created_at      DateTime @default(now())
+  created_at      DateTime  @default(now())
   kyc_status      KYCStatus @default(pending)
 
   // Relations
-  ekyc            EKYCVerifications[]
-  subscriptions   Subscriptions[]
-  events          Events[]
-  transactionsFrom Transactions[] @relation("TransactionsFrom")
-  transactionsTo   Transactions[] @relation("TransactionsTo")
+  ekyc             EKYCVerifications[]
+  subscriptions    Subscriptions[]
+  events           Events[]
+  transactionsFrom Transactions[]      @relation("TransactionsFrom")
+  transactionsTo   Transactions[]      @relation("TransactionsTo")
+  allocations      Allocations[]
+  listings         Listings[]          @relation("UserListings")
 }
 
 model EKYCVerifications {
-  id                 String   @id @default(cuid())
-  user_id            String
-  national_id_hash   String   // SHA256 hash, not the raw national ID
-  date_of_birth      DateTime
-  age                Int?
-  custodial_address  String
-  tx_digest          String?
-  status             KYCStatus @default(pending)
-  reason             String?
-  request_id         String?
-  created_at         DateTime  @default(now())
-  updated_at         DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  user_id           String
+  national_id_hash  String // SHA256 hash, not the raw national ID
+  date_of_birth     DateTime
+  age               Int?
+  custodial_address String
+  tx_digest         String?
+  status            KYCStatus @default(pending)
+  reason            String?
+  request_id        String?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
 
   // Relations
   user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 model Bonds {
-  id                  String   @id @default(cuid())
-  bond_object_id      String?
-  bond_name           String
-  bond_type           BondType
-  bond_symbol         String
-  organization_name   String
-  face_value          BigInt
-  tl_unit_offered     Int
-  tl_unit_subscribed  Int?
-  maturity            DateTime 
-  status              Status
-  interest_rate       String
-  purpose             String
-  market              Market?
-  created_at          DateTime @default(now())
-  subscription_period Int
+  id                    String   @id @default(cuid())
+  bond_object_id        String?
+  bond_name             String
+  bond_type             BondType
+  bond_symbol           String
+  organization_name     String
+  face_value            BigInt
+  tl_unit_offered       Int
+  tl_unit_subscribed    Int?
+  maturity              DateTime
+  status                Status
+  interest_rate         String
+  purpose               String
+  market                Market?
+  created_at            DateTime @default(now())
+  subscription_period   Int
   subscription_end_date DateTime
+  allocated             Boolean?
 
-  
   // Relations
-  subscriptions       Subscriptions[]
-  events              Events[]
-  transactions        Transactions[]
+  subscriptions Subscriptions[]
+  events        Events[]
+  transactions  Transactions[]
+  allocations   Allocations[]
+  listings      Listings[]   @relation("BondListings")
 }
 
 model Events {
@@ -146,15 +155,45 @@ model Subscriptions {
 }
 
 model Transactions {
-  id          String   @id @default(cuid())
-  bond_id     String
-  user_from   String
-  user_to     String
-  tx_hash     String
-  created_at  DateTime @default(now())
+  id         String   @id @default(cuid())
+  bond_id    String
+  user_from  String
+  user_to    String
+  tx_hash    String
+  created_at DateTime @default(now())
 
   // Relations
-  bond   Bonds @relation(fields: [bond_id], references: [id], onDelete: Cascade)
-  from   Users @relation("TransactionsFrom", fields: [user_from], references: [id], onDelete: Cascade)
-  to     Users @relation("TransactionsTo", fields: [user_to], references: [id], onDelete: Cascade)
+  bond Bonds @relation(fields: [bond_id], references: [id], onDelete: Cascade)
+  from Users @relation("TransactionsFrom", fields: [user_from], references: [id], onDelete: Cascade)
+  to   Users @relation("TransactionsTo", fields: [user_to], references: [id], onDelete: Cascade)
+}
+
+model Allocations {
+  id               String   @id @default(cuid())
+  bond_id          String
+  user_id          String
+  wallet_address   String
+  allocated_tenths BigInt // in tenths, same as on-chain
+  tx_hash          String
+  created_at       DateTime @default(now())
+
+  bond Bonds @relation(fields: [bond_id], references: [id], onDelete: Cascade)
+  user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model Listings {
+  id               String        @id @default(cuid())
+  bond_id          String        // required
+  seller_user_id   String        // required
+  seller_wallet    String
+  listing_onchain  Int           // u64 listing_id from Move
+  amount_tenths    BigInt        // quantity listed
+  status           ListingStatus @default(open)
+  tx_hash          String
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+
+  // Relations
+  bond   Bonds @relation("BondListings", fields: [bond_id], references: [id], onDelete: Cascade)
+  seller Users @relation("UserListings", fields: [seller_user_id], references: [id], onDelete: Cascade)
 }

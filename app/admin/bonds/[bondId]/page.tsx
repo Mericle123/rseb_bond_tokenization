@@ -6,26 +6,29 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import styles from './page.module.css';
 import { IoArrowBack } from 'react-icons/io5';
-import { fetchBondById } from '@/server/bond/creation';
+import { bondMint, fetchBondById } from '@/server/bond/creation';
 import BondCountDown from '../../countdown';
+import allocateBond, { allocateBondAndPersist, mintBond } from '@/server/blockchain/bond';
 
 
 function formatDMY(dateISO: string) {
-  const d = new Date(dateISO);
-  const day = d.getDate();
-  const suffix =
-    day % 10 === 1 && day % 100 !== 11
-      ? "st"
-      : day % 10 === 2 && day % 100 !== 12
-      ? "nd"
-      : day % 10 === 3 && day % 100 !== 13
-      ? "rd"
-      : "th";
-  const month = d.toLocaleString("en-GB", { month: "long" });
-  return `${day}${suffix} ${month} ${d.getFullYear()}`;
+    const d = new Date(dateISO);
+    const day = d.getDate();
+    const suffix =
+        day % 10 === 1 && day % 100 !== 11
+            ? "st"
+            : day % 10 === 2 && day % 100 !== 12
+                ? "nd"
+                : day % 10 === 3 && day % 100 !== 13
+                    ? "rd"
+                    : "th";
+    const month = d.toLocaleString("en-GB", { month: "long" });
+    return `${day}${suffix} ${month} ${d.getFullYear()}`;
 }
 
-const AboutBondPage = ({ params }: {params: Promise<{ bondId: string }> }) => {
+const AboutBondPage = ({ params }: { params: Promise<{ bondId: string }> }) => {
+    const [showModal, setShowModal] = useState(false);
+    const [algorithm, setAlgorithm] = useState<string>("")
     // ✅ unwrap params properly for Next.js 15+
     const { bondId } = use(params);
 
@@ -45,23 +48,40 @@ const AboutBondPage = ({ params }: {params: Promise<{ bondId: string }> }) => {
             try {
                 const data = await fetchBondById(bondId);
                 setBond(data);
-                  
+
             } catch (error) {
                 console.error("Bond not found:", error);
             }
         }
         getBond();
-     
+
 
         // Countdown timer
 
-     
+
     }, [bondId]);
 
     // ✅ Safe render guard
     if (!bond) {
         return <div className={styles.loading}>Loading bond details...</div>;
     }
+    // const trans = await bondMint({})
+ async function allocate(bond, alg) {
+  try {
+    const result = await allocateBondAndPersist(bond, alg);
+
+    if (!result) {
+      console.log("Error allocating bond: no result returned");
+      return;
+    }
+
+    console.log("Allocation successful, digest:", result);
+  } catch (err) {
+    console.error("Error allocating bond:", err);
+  }
+}
+
+
     return (
         <div className={styles.container}>
             <div className={styles.header}>
@@ -88,7 +108,7 @@ const AboutBondPage = ({ params }: {params: Promise<{ bondId: string }> }) => {
                 <div className={styles.countdown}>
                     <p>Subscription Closes In:</p>
                     <h3>
-                        <BondCountDown endDate={bond.subscription_end_date}/>
+                        <BondCountDown endDate={bond.subscription_end_date} />
                     </h3>
                 </div>
             </div>
@@ -118,13 +138,41 @@ const AboutBondPage = ({ params }: {params: Promise<{ bondId: string }> }) => {
                         <Link href={`/admin/bonds/${bondId}/delete`} className={styles.deleteBtn}>
                             Delete Bond
                         </Link>
-                            <Link href={`/admin/bonds/${bondId}/allocate`} className={styles.allocateBtn}>
+                        <button onClick={() => setShowModal(true)} className={styles.allocateBond}>
                             Allocate
-                        </Link>
+                        </button>
                     </div>
                 </div>
             </div>
+            {showModal && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modal}>
+                        <h3>Choose Allocation Method</h3>
 
+                        <div className={styles.modalActions}>
+                            <button onClick={() => allocate(bond, "prorata") }
+                                                                    
+                                className={styles.modalButton}
+                            >
+                                Pro-rata Allocation
+                            </button>
+
+                            <button onClick={() => allocate(bond, "equal")}
+                                className={styles.modalButton}
+                            >
+                                Equal Allocation
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={() => setShowModal(false)}
+                            className={styles.closeBtn}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
             <div className={styles.description}>
                 <p>
                     {bond.purpose}

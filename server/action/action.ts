@@ -5,7 +5,7 @@ import { db } from "@/server/db";
 import bcrypt from "bcryptjs";
 import { createUserSession } from "@/server/core/session";
 import { cookies } from "next/headers";
-import { Role } from "@/generated/prisma";
+import { Role } from "@prisma/client";
 import { comparePassword } from "@/server/core/passwordHasher";
 import { removeUserFromSession } from "@/server/core/session";
 import { redirect } from "next/navigation";

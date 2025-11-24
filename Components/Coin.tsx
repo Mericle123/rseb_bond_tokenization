@@ -496,8 +496,21 @@ function SendView({walletAddress, balance, mnemonics}: {walletAddress: string, b
 
 // REDEEM – step 1
 function RedeemAmount({ onNext }: { onNext: () => void }) {
-  const [amtCoin, setAmtCoin] = useState("1000");
-  const [amtNu, setAmtNu] = useState("1500");
+  const [amtCoin, setAmtCoin] = useState("");
+  const [amtNu, setAmtNu] = useState("");
+  
+  function handleRedeemChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    setAmtCoin(value);
+
+    // 1 BTN = 1 Nu – if you later change the rate, multiply here
+    const num = parseFloat(value);
+    if (!isNaN(num)) {
+      setAmtNu(value);          // or setSpend(String(num * rate))
+    } else {
+      setAmtNu("");
+    }
+  }
 
   return (
     <div className="px-6 pt-6 pb-10">
@@ -510,17 +523,17 @@ function RedeemAmount({ onNext }: { onNext: () => void }) {
         </p>
 
         <h3 className="mt-4 text-[20px] font-semibold leading-snug">
-          Coins you
+          Amount to redeem?
           <br />
-          would like to
+          
           <br />
-          Redeem
+          
         </h3>
 
         <label className="block text-left mt-6 text-[13px] font-medium text-black/60">Coin amount</label>
         <input
           value={amtCoin}
-          onChange={(e) => setAmtCoin(e.target.value)}
+          onChange={handleRedeemChange}
           className="mt-1 w-full rounded-xl border border-[#9DB6D3] px-4 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#5B50D9]/60"
         />
         <p className="mt-1 text-[12px] text-black/60">1 BTN Coin = BTN Nu 1</p>
@@ -528,7 +541,8 @@ function RedeemAmount({ onNext }: { onNext: () => void }) {
         <label className="block text-left mt-5 text-[13px] font-medium text-black/60">Redeem amount (Nu)</label>
         <input
           value={amtNu}
-          onChange={(e) => setAmtNu(e.target.value)}
+          readOnly
+          // onChange={(e) => setAmtNu(e.target.value)}
           className="mt-1 w-full rounded-xl border border-[#9DB6D3] px-4 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#5B50D9]/60"
         />
 
@@ -561,9 +575,9 @@ function RedeemBank({ onBack }: { onBack: () => void }) {
             1000 coins
           </p>
           <p className="mt-4 text-[13px]">
-            <span className="font-semibold">Wallet address:</span> 0i4u1290nfkjd809214190poij
+            <span className="font-semibold">Wallet address:</span> {useCurrentUser().wallet_address}
           </p>
-          <h3 className="mt-4 text-[20px] font-semibold">Redeem from Bank</h3>
+          <h3 className="mt-4 text-[20px] font-semibold">Redeem to Bank</h3>
         </div>
 
         <label className="block mt-6 text-[13px] font-medium text-black/60">Select Bank</label>
@@ -651,6 +665,20 @@ function BuyAmount({ walletAddress, balance }: { walletAddress: string, balance 
       setLoading(false);
     }
   }
+
+   function handleBuyChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    setBuy(value);
+
+    // 1 BTN = 1 Nu – if you later change the rate, multiply here
+    const num = parseFloat(value);
+    if (!isNaN(num)) {
+      setSpend(value);          // or setSpend(String(num * rate))
+    } else {
+      setSpend("");
+    }
+  }
+
   return (
     <div className="px-6 pt-6 pb-10">
       <div className="mx-auto max-w-[360px] text-center">
@@ -674,15 +702,15 @@ function BuyAmount({ walletAddress, balance }: { walletAddress: string, balance 
         <label className="block text-left mt-6 text-[13px] font-medium text-black/60">You Buy</label>
         <input
           value={buy}
-          onChange={(e) => setBuy(e.target.value)}
+          onChange={handleBuyChange}
           className="mt-1 w-full rounded-xl border border-[#9DB6D3] px-4 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#5B50D9]/60"
         />
-        <p className="mt-1 text-[12px] text-black/60">1 BTN Coin = BTN Nu 1</p>
+        <p className="mt-1 text-[12px] text-black/60">1 BTN Coin = BTN 1</p>
 
         <label className="block text-left mt-5 text-[13px] font-medium text-black/60">You Spend (Nu)</label>
         <input
           value={spend}
-          onChange={(e) => setSpend(e.target.value)}
+          // onChange={(e) => setBuy(e.target.value)}
           className="mt-1 w-full rounded-xl border border-[#9DB6D3] px-4 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#5B50D9]/60"
         />
 

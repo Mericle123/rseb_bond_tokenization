@@ -1,5 +1,3 @@
-export const runtime = "nodejs";
-
 import crypto  from  "crypto"
 
 export function hashPassword(password: string, salt : string) : Promise<string>{

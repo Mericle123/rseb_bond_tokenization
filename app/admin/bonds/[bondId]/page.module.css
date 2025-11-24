@@ -170,7 +170,54 @@
     color: white;
 }
 
+.allocateBond{
+    background-color: green;
+    color: white;
+}
+
 .description {
     color: #555;
     line-height: 1.7;
+}
+
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+}
+
+.modal {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  width: 350px;
+  text-align: center;
+}
+
+.modalActions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.modalButton {
+  padding: 10px;
+  background: #0070f3;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  display: block;
+}
+
+.closeBtn {
+  margin-top: 12px;
+  background: #ccc;
+  padding: 8px 12px;
+  border-radius: 6px;
 }

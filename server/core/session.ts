@@ -1,4 +1,4 @@
-export const runtime = "node";
+export const runtime = "nodejs";
 
 import { userRoles } from "@/server/db";
 import { db } from "@/server/db";
@@ -25,6 +25,7 @@ export type Cookies = {
       httpOnly?: boolean
       sameSite?: "strict" | "lax"
       expires?: number
+      path?: "/"
     }
   ) => void
   get: (key: string) => { name: string; value: string } | undefined
@@ -60,6 +61,13 @@ export async function createUserSession(
   })
 
   setCookie(sessionId, cookies)
+
+  cookies.set("role", user.role, {
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",                                    // IMPORTANT
+  });
+
 }
 
 export async function updateUserSessionExpiration(
@@ -103,3 +111,7 @@ async function getUserSessionById(sessionId: string) {
 
   return success ? user : null
 }
+
+
+
+
