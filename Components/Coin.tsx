@@ -169,32 +169,27 @@ export default function WalletSection({ walletAddress, mnemonics }: {walletAddre
 
 
               {/* Actions */}
-              <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <ActionButton
-                  label="Send"
-                  icon={SendIcon}
-                  active={activeAction === "send"}
-                  onClick={() => openSheet("send")}
-                />
-                <ActionButton
-                  label="Redeem"
-                  icon={Ticket}
-                  active={activeAction === "redeem"}
-                  onClick={() => openSheet("redeem-amount")}
-                />
-                <ActionButton
-                  label="Buy"
-                  icon={ShoppingCart}
-                  active={activeAction === "buy"}
-                  onClick={() => openSheet("buy-amount")}
-                />
-                <ActionButton
-                  label="Receive"
-                  icon={Download}
-                  active={activeAction === "receive"}
-                  onClick={() => openSheet("receive")}
-                />
-              </div>
+             <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-2">
+  <ActionButton
+    label="Send"
+    icon={SendIcon}
+    active={activeAction === "send"}
+    onClick={() => openSheet("send")}
+  />
+  <ActionButton
+    label="Redeem"
+    icon={Ticket}
+    active={activeAction === "redeem"}
+    onClick={() => openSheet("redeem-amount")}
+  />
+  <ActionButton
+    label="Buy"
+    icon={ShoppingCart}
+    active={activeAction === "buy"}
+    onClick={() => openSheet("buy-amount")}
+  />
+</div>
+
             </div>
           </div>
         </div>

@@ -458,8 +458,8 @@ async function handleConfirmSell() {
                             {row.maturity}
                           </td>
 
-                          <td className="py-5 pl-3 pr-2">
-                            <button
+                          {/* <td className="py-5 pl-3 pr-2"> */}
+                            {/* <button
                               className="inline-flex h-7 w-7 items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700 focus:outline-none"
                               aria-label={`Open ${row.name}`}
                               disabled={row.disabled}
@@ -471,8 +471,8 @@ async function handleConfirmSell() {
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 aria-hidden
-                              >
-                                <path
+                              > */}
+                                {/* <path
                                   d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5z"
                                   stroke="currentColor"
                                   strokeWidth="1.6"
@@ -486,9 +486,9 @@ async function handleConfirmSell() {
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
                                 />
-                              </svg>
-                            </button>
-                          </td>
+                              </svg> */}
+                            {/* </button> */}
+                          {/* </td> */}
                           <td className="py-5 pl-3 pr-2">
                             <button
                               className="inline-flex h-7 px-3 items-center justify-center rounded-md text-xs font-medium

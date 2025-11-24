@@ -13,6 +13,7 @@ import { fromBase64 } from "@mysten/sui/utils";
 import { restoreKeypairFromEncryptedMnemonic } from "./suiclient";
 import { BondType, Status, Market, Type as EventType } from "@prisma/client";
 import { db } from "@/server/db";
+import { useCurrentUser } from "@/context/UserContext";
 
 type Status = "up" | "down" | "flat";
 
@@ -1071,4 +1072,22 @@ export async function fetchResaleListingById(listingId: string) {
   }
 
   return listing;
+}
+
+
+export async function  fetchEventLogs(userId : string){
+  const logs = await db.events.findMany({
+    where:{
+      user_id : userId
+    }
+  })
+  return logs
+}
+
+
+export async function fetchEventLogsforCurrentUser(userid : string) {
+  // if (!userid) return [];
+  
+  const logs = await fetchEventLogs(userid);
+  return  logs
 }
