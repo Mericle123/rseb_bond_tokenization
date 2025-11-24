@@ -8,10 +8,8 @@ import { Copy, Wallet, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { fetchBondById } from "@/server/bond/creation";
 import { useCurrentUser } from "@/context/UserContext";
-import { error } from "console";
-import CountdownFromDays from "@/app/admin/countdown"
+import CountdownFromDays from "@/app/admin/countdown";
 import BondCountdown from "@/app/admin/countdown";
-import { getDefaultAdmin } from "@/server/blockchain/bond";
 import { subscribeToBond } from "@/server/blockchain/bond";
 
 /* ====================== Motion ====================== */
@@ -22,41 +20,7 @@ const fadeIn = {
   viewport: { once: true, margin: "-10% 0% -10% 0%" },
 };
 
-/* ====================== Mock data ====================== */
-type Bond = {
-  id: string;
-  name: string;
-  symbol: string;
-  issuer: string;
-  couponPct: number;
-  totalUnitsOffered: number;
-  issued: string;    // YYYY-MM-DD
-  maturity: string;  // YYYY-MM-DD
-  faceValue: number; // BTN Coin per unit
-  unitsBought: number;
-  about: string;
-};
-
-const BONDS: Record<string, Bond> = {
-  "1": {
-    id: "1",
-    name: "RSEB Bond",
-    symbol: "BNK002",
-    issuer: "Royal Security exchange of Bhutan",
-    couponPct: 0.05,
-    totalUnitsOffered: 100,
-    issued: "2024-09-02",
-    maturity: "2026-09-02",
-    faceValue: 10,
-    unitsBought: 100,
-    about:
-      "The Royal Securities Exchange of Bhutan (RSEB) is proud to introduce this digital bond as part of its mission to mobilize domestic capital for Bhutan’s long-term national development projects. These projects are vital to driving sustainable growth, modernizing infrastructure, and empowering communities across the country. By offering this bond on a secure, blockchain-based platform, RSEB opens the door for Bhutanese individuals and institutions to actively participate in shaping the nation’s financial future.\n\nFor investors, this bond represents more than just an opportunity to earn stable and transparent returns. It is also a chance to be directly involved in strengthening Bhutan’s financial ecosystem, supporting critical infrastructure initiatives, and fostering innovation in capital markets. Through digital participation, investors contribute to a collective effort that balances economic progress with Bhutan’s values of sustainability and community empowerment.",
-  },
-};
-
 /* ====================== Helpers ====================== */
-const nf = new Intl.NumberFormat("en-IN");
-
 function formatDMY(dateISO: string) {
   const d = new Date(dateISO);
   const day = d.getDate();
@@ -64,36 +28,12 @@ function formatDMY(dateISO: string) {
     day % 10 === 1 && day % 100 !== 11
       ? "st"
       : day % 10 === 2 && day % 100 !== 12
-        ? "nd"
-        : day % 10 === 3 && day % 100 !== 13
-          ? "rd"
-          : "th";
+      ? "nd"
+      : day % 10 === 3 && day % 100 !== 13
+      ? "rd"
+      : "th";
   const month = d.toLocaleString("en-GB", { month: "long" });
   return `${day}${suffix} ${month} ${d.getFullYear()}`;
-}
-
-function useCountdown(toISO: string) {
-  const [text, setText] = useState<string>("—");
-  useEffect(() => {
-    const target = new Date(toISO).getTime();
-    const tick = () => {
-      const now = Date.now();
-      const diff = Math.max(0, target - now);
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diff / (1000 * 60)) % 60);
-      setText(
-        `${String(days).padStart(2, "0")} Days : ${String(hours).padStart(
-          2,
-          "0"
-        )} Hours : ${String(minutes).padStart(2, "0")} Minutes`
-      );
-    };
-    tick();
-    const id = setInterval(tick, 60 * 1000);
-    return () => clearInterval(id);
-  }, [toISO]);
-  return text;
 }
 
 /* ====================== Wallet strip ====================== */
@@ -104,10 +44,13 @@ function WalletStrip({ walletAddress }: { walletAddress: string }) {
       await navigator.clipboard.writeText(walletAddress);
       setCopied(true);
       setTimeout(() => setCopied(false), 1100);
-    } catch { }
+    } catch {}
   };
   return (
-    <motion.div {...fadeIn} className="rounded-xl border border-black/10 bg-white shadow-sm overflow-hidden">
+    <motion.div
+      {...fadeIn}
+      className="rounded-xl border border-black/10 bg-white shadow-sm overflow-hidden"
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4">
         <div className="flex items-center gap-2 text-sm text-gray-800">
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#5B50D9]/10 ring-1 ring-[#5B50D9]/20">
@@ -164,18 +107,24 @@ function Sheet({
   }, [open, onClose]);
 
   return (
-    <div className={`fixed inset-0 z-[100] ${open ? "pointer-events-auto" : "pointer-events-none"}`}>
+    <div
+      className={`fixed inset-0 z-[100] ${
+        open ? "pointer-events-auto" : "pointer-events-none"
+      }`}
+    >
       {/* overlay */}
       <button
         aria-label="Close"
         onClick={onClose}
-        className={`absolute inset-0 bg-black/40 supports-[backdrop-filter]:backdrop-blur-[2px] transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"
-          }`}
+        className={`absolute inset-0 bg-black/40 supports-[backdrop-filter]:backdrop-blur-[2px] transition-opacity duration-300 ${
+          open ? "opacity-100" : "opacity-0"
+        }`}
       />
       {/* panel */}
       <aside
-        className={`absolute right-0 top-0 h-full w-[92%] sm:w-[420px] bg-white rounded-[18px] border border-black/15 shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-out ${open ? "translate-x-0" : "translate-x-full"
-          } flex flex-col`}
+        className={`absolute right-0 top-0 h-full w-[92%] sm:w-[420px] bg-white rounded-[18px] border border-black/15 shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-out ${
+          open ? "translate-x-0" : "translate-x-full"
+        } flex flex-col`}
         role="dialog"
         aria-modal="true"
       >
@@ -200,7 +149,6 @@ function Sheet({
   );
 }
 
-
 /* ====================== Buy sheet ====================== */
 
 function BuySheet({
@@ -208,61 +156,68 @@ function BuySheet({
   walletAddress,
   onClose,
   bond,
+  onSuccess,
+  onError,
 }: {
   bondId: string;
   walletAddress: string;
   onClose: () => void;
   bond: any;
+  onSuccess?: (res: any) => void;
+  onError?: (err: any) => void;
 }) {
   const currentUser = useCurrentUser();
 
   const [units, setUnits] = useState("100");
   const nUnits = parseInt(units.replace(/,/g, "")) || 0;
 
-  const nPrice = Number(bond.face_value); // face value per unit
+  const nPrice = Number(bond.face_value) / 10; // face value per unit
   const totalAmount = nUnits * nPrice;
 
   const [loading, setLoading] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
 
   const fmt = (v: string) =>
     v.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
   async function handleBuy() {
     if (!currentUser) {
-      alert("You must be logged in to subscribe.");
+      setLocalError("You must be logged in to subscribe.");
       return;
     }
 
     if (nUnits <= 0 || nPrice <= 0) {
-      alert("Please enter valid numbers for units and price.");
+      setLocalError("Please enter a valid number of units.");
       return;
     }
 
     if (!bond.bond_object_id) {
-      alert("Bond is missing on-chain series id.");
+      setLocalError("Bond is missing on-chain series id.");
       return;
     }
 
     setLoading(true);
+    setLocalError(null);
 
     try {
       const res = await subscribeToBond(
-        bondId,               // DB Bonds.id
-        bond.bond_object_id,  // on-chain Series object id
+        bondId, // DB Bonds.id
+        bond.bond_object_id, // on-chain Series object id
         {
           userId: currentUser.id,
-          walletAddress: currentUser.wallet_address,   // custodial Sui address
-          mnemonics: currentUser.hashed_mnemonic,      // encrypted mnemonic
-          subscription_amt: nUnits,                     // human units (e.g. 15 => 15.0)
+          walletAddress: currentUser.wallet_address, // custodial Sui address
+          mnemonics: currentUser.hashed_mnemonic, // encrypted mnemonic
+          subscription_amt: nUnits, // human units (e.g. 15 => 15.0)
         }
       );
 
       console.log("subscribe result:", res);
-      alert("Subscribed successfully!");
+      onSuccess?.(res);
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Subscription failed");
+      setLocalError("Subscription failed. Please try again.");
+      onError?.(err);
     } finally {
       setLoading(false);
     }
@@ -299,7 +254,7 @@ function BuySheet({
           Price Per Unit
         </label>
         <input
-          value={bond.face_value}
+          value={Number(bond.face_value) / 10}
           className="mt-1 w-full rounded-xl border border-[#9DB6D3] px-4 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#5B50D9]/60"
           inputMode="numeric"
           disabled
@@ -317,6 +272,10 @@ function BuySheet({
           Warning: Blockchain transfers are irreversible. Double-check the
           address before sending.
         </p>
+
+        {localError && (
+          <p className="mt-2 text-[12px] text-red-600">{localError}</p>
+        )}
 
         <button
           className="mt-5 w-full rounded-full bg-[#5B50D9] text-white py-3 font-semibold disabled:bg-neutral-400"
@@ -347,6 +306,11 @@ const AboutBondPage = ({ params }: AboutBondPageProps) => {
 
   const walletAddress = currentUser?.wallet_address || "";
 
+  // NEW: subscription success state
+  const [subSuccess, setSubSuccess] = useState(false);
+  const [subErrorGlobal, setSubErrorGlobal] = useState<string | null>(null);
+  const [subTxDigest, setSubTxDigest] = useState<string | null>(null);
+
   useEffect(() => {
     async function getBond() {
       try {
@@ -362,6 +326,25 @@ const AboutBondPage = ({ params }: AboutBondPageProps) => {
   if (!bond) {
     return <div>Loading bond details...</div>;
   }
+
+  const handleSubSuccess = (res: any) => {
+    setSubTxDigest(res?.txHash ?? null);
+    setSubErrorGlobal(null);
+    setSubSuccess(true);
+  };
+
+  const handleSubError = (err: any) => {
+    setSubErrorGlobal(err?.message || "Subscription failed.");
+  };
+
+  const closeSuccessModal = () => {
+    setSubSuccess(false);
+    setSubTxDigest(null);
+  };
+
+  const goToPortfolio = () => {
+    router.push("/investor/Assets");
+  };
 
   return (
     <div className="flex min-h-screen bg-[#F7F8FB]">
@@ -431,7 +414,10 @@ const AboutBondPage = ({ params }: AboutBondPageProps) => {
                     <dt className="font-semibold inline">
                       Total Units Offered :
                     </dt>{" "}
-                    <dd className="inline"> {bond.tl_unit_offered}</dd>
+                    <dd className="inline">
+                      {" "}
+                      {Number(bond.tl_unit_offered) / 10}
+                    </dd>
                   </div>
                   <div>
                     <dt className="font-semibold inline">Issued Date :</dt>{" "}
@@ -446,7 +432,10 @@ const AboutBondPage = ({ params }: AboutBondPageProps) => {
                   </div>
                   <div>
                     <dt className="font-semibold inline">Face value :</dt>{" "}
-                    <dd className="inline"> {bond.face_value} BTN Coin</dd>
+                    <dd className="inline">
+                      {" "}
+                      {Number(bond.face_value) / 10} BTN Coin
+                    </dd>
                   </div>
                 </dl>
 
@@ -466,6 +455,12 @@ const AboutBondPage = ({ params }: AboutBondPageProps) => {
                 >
                   Buy
                 </button>
+
+                {subErrorGlobal && (
+                  <p className="mt-2 text-[12px] text-red-600">
+                    {subErrorGlobal}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -482,18 +477,53 @@ const AboutBondPage = ({ params }: AboutBondPageProps) => {
         </motion.section>
 
         {/* Slide-over → "Purchase" + Buy Token */}
-        <Sheet
-          open={buyOpen}
-          onClose={() => setBuyOpen(false)}
-          title="Purchase"
-        >
+        <Sheet open={buyOpen} onClose={() => setBuyOpen(false)} title="Purchase">
           <BuySheet
             bond={bond}
             bondId={bondId}
             walletAddress={walletAddress}
             onClose={() => setBuyOpen(false)}
+            onSuccess={handleSubSuccess}
+            onError={handleSubError}
           />
         </Sheet>
+
+        {/* ✅ Subscription success popup */}
+        {subSuccess && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+            <div className="w-[90%] max-w-md rounded-2xl bg-white shadow-xl border border-black/10 p-5">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-1">
+                Subscription Successful 🎉
+              </h3>
+              <p className="text-sm text-neutral-600 mb-3">
+                You have successfully subscribed to this bond. Your allocation
+                will be reflected in your portfolio.
+              </p>
+              {subTxDigest && (
+                <p className="text-xs text-neutral-500 mb-3 break-all">
+                  <span className="font-semibold">Tx digest: </span>
+                  <code>{subTxDigest}</code>
+                </p>
+              )}
+              <div className="flex justify-end gap-2">
+                <button
+                  className="px-3 py-1.5 rounded-full bg-neutral-100 text-neutral-700 text-xs font-medium hover:bg-neutral-200"
+                  onClick={closeSuccessModal}
+                  type="button"
+                >
+                  Close
+                </button>
+                <button
+                  className="px-3 py-1.5 rounded-full bg-[#5B50D9] text-white text-xs font-semibold hover:bg-[#4a46c4]"
+                  onClick={goToPortfolio}
+                  type="button"
+                >
+                  View My Assets
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

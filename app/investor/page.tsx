@@ -462,12 +462,12 @@ const BondRow = forwardRef<
         <>
           {/* Total units offered */}
           <td className={`py-5 px-3 text-[14px] ${dim}`}>
-            {Number(bond.tl_unit_offered)}
+            {Number(bond.tl_unit_offered) / 10}
           </td>
           {/* Subscribed / Offered */}
           <td className={`py-5 px-3 text-[14px] ${dim}`}>
-            {nfInt.format(Number(bond.tl_unit_subscribed))} /{" "}
-            {nfInt.format(bond.tl_unit_offered)}
+            {nfInt.format(Number(bond.tl_unit_subscribed) / 10)} /{" "}
+            {nfInt.format(Number(bond.tl_unit_offered) / 10)}
           </td>
         </>
       ) : (
@@ -487,7 +487,7 @@ const BondRow = forwardRef<
 
       {/* Face value (same for both) */}
       <td className={`py-5 px-3 text-[14px] ${dim}`}>
-        {nfCurrency.format(bond.face_value)}
+        {nfCurrency.format(Number(bond.face_value) /  10) }
       </td>
 
       {/* Action changes too if you want */}

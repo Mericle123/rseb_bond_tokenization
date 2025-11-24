@@ -121,9 +121,9 @@ const AssetsPage = () => {
                     {bond.bond_name}
                   </span>
                 </div>
-                <div className={styles.interestCell}>{bond.interest_rate}</div>
-                <div>{bond.tl_unit_offered}</div>
-                <div>{bond.tl_unit_subscribed}</div>
+                <div className={styles.interestCell}>{bond.interest_rate}%/yr</div>
+                <div>{(bond.tl_unit_offered) / 10}</div>
+                <div>{(bond.tl_unit_subscribed) / 10}</div>
                 <div>
                   <Link href={`/admin/bonds/${bond.id}`} className={styles.actionButton}>
                     <IoDocumentTextOutline />
@@ -145,9 +145,9 @@ const AssetsPage = () => {
                     {bond.bond_name}
                   </span>
                 </div>
-                <div className={styles.interestCell}>{bond.interest_rate}</div>
-                <div>{bond.tl_unit_offered}</div>
-                <div>{bond.tl_unit_subscribed}</div>
+                <div className={styles.interestCell}>{bond.interest_rate}%/yr</div>
+                <div>{(bond.tl_unit_offered) / 10}</div>
+                <div>{(bond.tl_unit_subscribed) / 10}</div>
                 <div>
                   <Link href={`/admin/bonds/${bond.id}`} className={styles.actionButton}>
                     <IoDocumentTextOutline />

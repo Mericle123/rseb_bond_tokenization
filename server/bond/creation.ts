@@ -91,20 +91,26 @@ export async function bondCreation(formData: FormData) {
 
 export async function fetchBond() {
     try {
-        const bonds = await db.bonds.findMany()
+        const bonds = await db.bonds.findMany();
 
-        if (!bonds) {
-            return { error: "No Bonds found" }
+        if (!bonds || bonds.length === 0) {
+            return [];
         }
-        return bonds
-    }
-    catch (error) {
-        console.log(error)
-        return "No Bonds found"
+
+        return bonds.map((b) => ({
+            ...b,
+            face_value_human: formatBtnFromTenths(b.face_value),
+            tl_unit_offered_human: formatBtnFromTenths(b.tl_unit_offered),
+            tl_unit_subscribed_human: formatBtnFromTenths(b.tl_unit_subscribed ?? 0),
+        }));
+    } catch (error) {
+        console.error(error);
+        throw new Error("No Bonds found");
     }
 }
 
-export async function fetchBonds(page: number, limit: number, allocated:  boolean) {
+
+export async function fetchBonds(page: number, limit: number, allocated: boolean) {
     try {
         // 1. Sanitize inputs to prevent invalid queries
         const pageNum = Math.max(1, page);
@@ -119,7 +125,7 @@ export async function fetchBonds(page: number, limit: number, allocated:  boolea
 
         // 3. Use Prisma's 'take' and 'skip' arguments
         const bonds = await db.bonds.findMany({
-            where : { allocated: allocated},
+            where: { allocated: allocated },
             take: takeNum,  // 'take' is like 'limit' (how many to get)
             skip: skip,     // 'skip' is like 'offset' (how many to bypass)
             orderBy: {
@@ -129,7 +135,13 @@ export async function fetchBonds(page: number, limit: number, allocated:  boolea
 
         // 4. Return the array of bonds (or an empty array if none found)
         // The frontend logic handles an empty array correctly.
-        return bonds;
+        return bonds.map((b) => ({
+            ...b,
+            face_value_human: formatBtnFromTenths(b.face_value),
+            tl_unit_offered_human: formatBtnFromTenths(b.tl_unit_offered),
+            tl_unit_subscribed_human: formatBtnFromTenths(b.tl_unit_subscribed ?? 0),
+        }));
+
 
     } catch (error) {
         console.error("Error in fetchBond:", error);
@@ -141,63 +153,83 @@ export async function fetchBonds(page: number, limit: number, allocated:  boolea
 }
 
 
-export async function fetchBondById(bondId) {
+export async function fetchBondById(bondId: string) {
     try {
-        const bond = await db.bonds.findUnique({ where: { id: bondId } })
+        const bond = await db.bonds.findUnique({ where: { id: bondId } });
         if (!bond) {
-            return ("Such bond doesnt  exist")
+            throw new Error("Such bond doesn't exist");
         }
-        return bond
-    }
-    catch (error) {
-        console.log(error)
-        return "No such bond found"
-    }
 
+        return {
+            ...bond,
+            face_value_human: formatBtnFromTenths(bond.face_value),
+            tl_unit_offered_human: formatBtnFromTenths(bond.tl_unit_offered),
+            tl_unit_subscribed_human: formatBtnFromTenths(bond.tl_unit_subscribed ?? 0),
+        };
+    } catch (error) {
+        console.error(error);
+        throw new Error("No such bond found");
+    }
 }
 
-export async function subscribeToBond(
-  bondId: string,
-  seriesObjectId: string,
-  {
-    userId,
-    walletAddress,
-    mnemonics,
-    subscription_amt,
-  }: {
-    userId: string;
-    walletAddress: string;
-    mnemonics: string;
-    subscription_amt: string | number;
-  }
-) {
-  // 1) Convert requested units to tenths (Move contract uses tenths)
-  const amountTenths = toTenths(subscription_amt); // e.g. "15.0" -> 150
 
-  // 2) Load all BTNC coins for this custodial wallet
-  const coinType = btncCoinType();
-  const coins = await getAllCoins(walletAddress, coinType);
-  if (!coins.length) {
-    throw new Error("No BTNC balance available for subscription");
-  }
-  const paymentCoinIds = coins.map((c: any) => c.coinObjectId);
+// export async function subscribeToBond(
+//   bondId: string,
+//   seriesObjectId: string,
+//   {
+//     userId,
+//     walletAddress,
+//     mnemonics,
+//     subscription_amt,
+//   }: {
+//     userId: string;
+//     walletAddress: string;
+//     mnemonics: string;
+//     subscription_amt: string | number;
+//   }
+// ) {
+//   const amountTenths = toTenths(subscription_amt);
 
-  // 3) Call on-chain `subscribe` via subscribePrimary
-  const res = await subscribePrimary({
-    buyerMnemonic: mnemonics,
-    buyerKeypair: undefined,          // we’re using mnemonic restore
-    buyerAddress: walletAddress,
-    seriesObjectId,                   // on-chain Series object id
-    amountTenths,                     // bond quantity in tenths
-    paymentCoinIds,                   // BTNC coins used to pay
-    bondId,                           // DB bond id (for Subscriptions row)
-    userId,                           // DB user id
-  });
+//   const coinType = btncCoinType();
+//   const coins = await getAllCoins(walletAddress, coinType);
+//   if (!coins.length) {
+//     throw new Error("No BTNC balance available for subscription");
+//   }
+//   const paymentCoinIds = coins.map((c: any) => c.coinObjectId);
 
-  // subscribePrimary already:
-  // - writes Subscriptions
-  // - updates Bonds.tl_unit_subscribed
-  // - optionally writes Events
+//   const res = await subscribePrimary({
+//     buyerMnemonic: mnemonics,
+//     buyerKeypair: undefined,
+//     buyerAddress: walletAddress,
+//     seriesObjectId,
+//     amountTenths,
+//     paymentCoinIds,
+//     bondId,
+//     userId,
+//   });
 
-  return res; // { ok, tx, txHash, subscription, bond }
+//   return {
+//     ...res,
+//     subscribedTenths: amountTenths,
+//     subscribedHuman: formatBtnFromTenths(amountTenths),
+//   };
+// }
+
+
+
+// ---------- Human-friendly BTN/BTNC formatting (tenths -> string) ----------
+
+function tenthsToNumber(tenths: number | string | bigint): number {
+    if (typeof tenths === "bigint") return Number(tenths) / 10;
+    return Number(tenths) / 10;
+}
+
+const nfBTN = new Intl.NumberFormat("en-IN", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+});
+
+/** Format raw tenths (e.g. 1234) as "123.4" with Indian-style commas */
+function formatBtnFromTenths(tenths: number | string | bigint): string {
+    return nfBTN.format(tenthsToNumber(tenths));
 }

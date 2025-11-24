@@ -9,16 +9,13 @@ import {
   Send as SendIcon,
   Ticket,
   ShoppingCart,
-  Download,
   ChevronDown,
   ArrowLeft,
 } from "lucide-react";
-import { buyBtn } from '../server/blockchain/btnc'
+import { buyBtn } from "../server/blockchain/btnc";
 import { useCurrentUser } from "@/context/UserContext";
 import { getBtncBalance } from "../server/blockchain/btnc";
 import { transBtn } from "../server/blockchain/btnc";
-import { strict } from "assert";
-
 
 const fadeIn = {
   initial: { opacity: 0, y: 8, scale: 0.995 },
@@ -27,7 +24,6 @@ const fadeIn = {
   viewport: { once: true, margin: "-10% 0% -10% 0%" },
 };
 
-type Props = { walletAddress: string };
 type View =
   | null
   | "receive"
@@ -41,7 +37,13 @@ type View =
 /* =================================================================== */
 /*                                MAIN                                  */
 /* =================================================================== */
-export default function WalletSection({ walletAddress, mnemonics }: {walletAddress: Props, mnemonics: string}) {
+export default function WalletSection({
+  walletAddress,
+  mnemonics,
+}: {
+  walletAddress: string;
+  mnemonics: string;
+}) {
   const currentUser = useCurrentUser();
 
   const [balance, setBalance] = useState<string | null>(null);
@@ -54,8 +56,17 @@ export default function WalletSection({ walletAddress, mnemonics }: {walletAddre
     null | "send" | "redeem" | "buy" | "receive"
   >(null);
 
+  // ✅ Success popup state (for send + buy)
+  const [successModal, setSuccessModal] = useState<null | {
+    type: "send" | "buy";
+    txDigest?: string;
+  }>(null);
+
   const timeoutRef = useRef<number | null>(null);
-  useEffect(() => () => timeoutRef.current && clearTimeout(timeoutRef.current), []);
+  useEffect(
+    () => () => timeoutRef.current && clearTimeout(timeoutRef.current),
+    []
+  );
 
   const copyMainAddr = async () => {
     await navigator.clipboard.writeText(walletAddress);
@@ -66,7 +77,10 @@ export default function WalletSection({ walletAddress, mnemonics }: {walletAddre
 
   const openSheet = (v: Exclude<View, null>) => {
     setView(v);
-    const map: Record<Exclude<View, null>, "send" | "redeem" | "buy" | "receive"> = {
+    const map: Record<
+      Exclude<View, null>,
+      "send" | "redeem" | "buy" | "receive"
+    > = {
       receive: "receive",
       send: "send",
       "redeem-amount": "redeem",
@@ -87,20 +101,24 @@ export default function WalletSection({ walletAddress, mnemonics }: {walletAddre
     }, 250);
   };
 
-  useEffect(() => {
-    async function loadBalance() {
-      try {
-        const data = await getBtncBalance({ address: walletAddress });
-        setBalance(data.balanceHuman);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
+  // helper to reload balance (also used after buy/send)
+  async function loadBalanceFor(address: string) {
+    try {
+      setLoading(true);
+      const data = await getBtncBalance({ address });
+      setBalance(data.balanceHuman);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
     }
-    if (walletAddress) loadBalance();
-  }, [walletAddress]);
+  }
 
+  useEffect(() => {
+    if (walletAddress) {
+      loadBalanceFor(walletAddress);
+    }
+  }, [walletAddress]);
 
   return (
     <>
@@ -147,12 +165,18 @@ export default function WalletSection({ walletAddress, mnemonics }: {walletAddre
               <div className="mx-auto mb-3 grid place-items-center w-12 h-12 rounded-full bg-[#5B50D9]/10 ring-1 ring-[#5B50D9]/20">
                 <Image src="/coin.png" alt="coin" width={24} height={24} />
               </div>
-              <h2 id="wallet-summary-title" className="text-lg font-semibold text-gray-900">
+              <h2
+                id="wallet-summary-title"
+                className="text-lg font-semibold text-gray-900"
+              >
                 {loading ? (
                   "Loading balance..."
                 ) : balance && parseFloat(balance) > 0 ? (
                   <>
-                    {balance} <span className="text-sm font-medium text-gray-500">BTN₵</span>
+                    {balance}{" "}
+                    <span className="text-sm font-medium text-gray-500">
+                      BTN₵
+                    </span>
                   </>
                 ) : (
                   "No coins"
@@ -163,54 +187,130 @@ export default function WalletSection({ walletAddress, mnemonics }: {walletAddre
                 {loading
                   ? "Please wait..."
                   : balance && parseFloat(balance) > 0
-                    ? "Your current BTN₵ balance"
-                    : "Once you have purchased or received coins, they will appear here."}
+                  ? "Your current BTN₵ balance"
+                  : "Once you have purchased or received coins, they will appear here."}
               </p>
 
-
               {/* Actions */}
-             <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-2">
-  <ActionButton
-    label="Send"
-    icon={SendIcon}
-    active={activeAction === "send"}
-    onClick={() => openSheet("send")}
-  />
-  <ActionButton
-    label="Redeem"
-    icon={Ticket}
-    active={activeAction === "redeem"}
-    onClick={() => openSheet("redeem-amount")}
-  />
-  <ActionButton
-    label="Buy"
-    icon={ShoppingCart}
-    active={activeAction === "buy"}
-    onClick={() => openSheet("buy-amount")}
-  />
-</div>
-
+              <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <ActionButton
+                  label="Send"
+                  icon={SendIcon}
+                  active={activeAction === "send"}
+                  onClick={() => openSheet("send")}
+                />
+                <ActionButton
+                  label="Redeem"
+                  icon={Ticket}
+                  active={activeAction === "redeem"}
+                  onClick={() => openSheet("redeem-amount")}
+                />
+                <ActionButton
+                  label="Buy"
+                  icon={ShoppingCart}
+                  active={activeAction === "buy"}
+                  onClick={() => openSheet("buy-amount")}
+                />
+              </div>
             </div>
           </div>
         </div>
       </motion.section>
 
-      {/* ===== Slide-over sheet for all 4 flows ===== */}
+      {/* ===== Slide-over sheet for all flows ===== */}
       <Sheet open={open} onClose={closeSheet} title={titleFor(view)}>
-        {view === "receive" && <ReceiveView walletAddress={walletAddress} />}
-        {view === "send" && <SendView mnemonics={mnemonics} balance={balance} walletAddress={walletAddress}/>}
-        {view === "redeem-amount" && <RedeemAmount onNext={() => setView("redeem-bank")} />}
-        {view === "redeem-bank" && <RedeemBank onBack={() => setView("redeem-amount")} />}
-        {view === "buy-amount" && <BuyAmount balance={balance} walletAddress={walletAddress} />}
-        {view === "buy-bank" && (
-          <BuyBank
-            walletAddress={walletAddress}
-            onBack={() => setView("buy-amount")}
-            onNext={() => setView("buy-otp")}
-          />
-        )}
-        {view === "buy-otp" && <BuyOtp onBack={() => setView("buy-bank")} />}
-      </Sheet>
+  {view === "receive" && <ReceiveView walletAddress={walletAddress} />}
+
+  {view === "send" && (
+    <SendView
+      mnemonics={mnemonics}
+      balance={balance ?? "0"}
+      walletAddress={walletAddress}
+      onSuccess={(res) => {
+        // ✅ Close side panel
+        closeSheet();
+
+        // ✅ Show success popup
+        setSuccessModal({
+          type: "send",
+          txDigest: res.txDigest,
+        });
+
+        // ✅ Refresh balance
+        loadBalanceFor(walletAddress);
+      }}
+    />
+  )}
+
+  {view === "redeem-amount" && (
+    <RedeemAmount onNext={() => setView("redeem-bank")} />
+  )}
+
+  {view === "redeem-bank" && (
+    <RedeemBank onBack={() => setView("redeem-amount")} />
+  )}
+
+  {view === "buy-amount" && (
+    <BuyAmount
+      balance={balance ?? "0"}
+      walletAddress={walletAddress}
+      onSuccess={() => {
+        // ✅ Close side panel
+        closeSheet();
+
+        // ✅ Show success popup
+        setSuccessModal({ type: "buy" });
+
+        // ✅ Refresh balance
+        loadBalanceFor(walletAddress);
+      }}
+    />
+  )}
+
+  {view === "buy-bank" && (
+    <BuyBank
+      walletAddress={walletAddress}
+      onBack={() => setView("buy-amount")}
+      onNext={() => setView("buy-otp")}
+    />
+  )}
+
+  {view === "buy-otp" && <BuyOtp onBack={() => setView("buy-bank")} />}
+</Sheet>
+
+
+      {/* ✅ Success popup for Buy & Send */}
+      {successModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+          <div className="w-[90%] max-w-md rounded-2xl bg-white shadow-xl border border-black/10 p-5">
+            <h3 className="text-lg font-semibold text-neutral-900 mb-1">
+              {successModal.type === "send"
+                ? "Transfer Successful 🎉"
+                : "Purchase Successful 🎉"}
+            </h3>
+            <p className="text-sm text-neutral-600 mb-3">
+              {successModal.type === "send"
+                ? "Your BTN₵ has been sent successfully."
+                : "Your BTN₵ purchase was successful and your balance has been updated."}
+            </p>
+            {successModal.txDigest && (
+              <p className="text-xs text-neutral-500 mb-3 break-all">
+                <span className="font-semibold">Tx digest: </span>
+                <code>{successModal.txDigest}</code>
+              </p>
+            )}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSuccessModal(null)}
+                className="px-3 py-1.5 rounded-full bg-[#5B50D9] text-white text-xs font-semibold hover:bg-[#4a46c4]"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -280,13 +380,18 @@ function Sheet({
   }, [open, onClose]);
 
   return (
-    <div className={`fixed inset-0 z-[100] ${open ? "pointer-events-auto" : "pointer-events-none"}`}>
+    <div
+      className={`fixed inset-0 z-[100] ${
+        open ? "pointer-events-auto" : "pointer-events-none"
+      }`}
+    >
       {/* overlay */}
       <button
         aria-label="Close"
         onClick={onClose}
-        className={`absolute inset-0 bg-black/40 supports-[backdrop-filter]:backdrop-blur-[2px] transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"
-          }`}
+        className={`absolute inset-0 bg-black/40 supports-[backdrop-filter]:backdrop-blur-[2px] transition-opacity duration-300 ${
+          open ? "opacity-100" : "opacity-0"
+        }`}
       />
       {/* panel */}
       <aside
@@ -294,9 +399,9 @@ function Sheet({
         aria-modal="true"
         className={[
           "absolute right-0 top-0 h-full",
-          "w-[92%] sm:w-[420px]", // FIXED: sm:w-[420px]
+          "w-[92%] sm:w-[420px]",
           "bg-white border border-black/10",
-          "rounded-l-[18px]", // rounded leading edge like mock
+          "rounded-l-[18px]",
           "shadow-[0_12px_40px_rgba(0,0,0,0.10)]",
           "transition-transform duration-300 ease-out",
           open ? "translate-x-0" : "translate-x-full",
@@ -360,11 +465,17 @@ function ReceiveView({ walletAddress }: { walletAddress: string }) {
     <div className="px-6 pt-6 pb-10">
       <div className="mx-auto max-w-[360px]">
         <div className="rounded-2xl border border-black/10 bg-white p-3 mx-auto w-[260px] shadow-sm">
-          {/* Replace src with your QR image or generator */}
-          <img src="/wallet.png" alt="QR code" className="rounded-xl border border-black/10 w-full h-auto" />
+          <img
+            src="/wallet.png"
+            alt="QR code"
+            className="rounded-xl border border-black/10 w-full h-auto"
+          />
         </div>
 
-        <button onClick={copy} className="mt-8 w-full rounded-full bg-[#5B50D9] text-white py-3 font-semibold">
+        <button
+          onClick={copy}
+          className="mt-8 w-full rounded-full bg-[#5B50D9] text-white py-3 font-semibold"
+        >
           {copied ? "Copied" : "Copy address"}
         </button>
       </div>
@@ -373,14 +484,24 @@ function ReceiveView({ walletAddress }: { walletAddress: string }) {
 }
 
 // SEND – amount + recipient
-function SendView({walletAddress, balance, mnemonics}: {walletAddress: string, balance: string, mnemonics: string}) {
-  const  currentUser = useCurrentUser()
-  const mnemonic = currentUser.hashed_mnemonic
+function SendView({
+  walletAddress,
+  balance,
+  mnemonics,
+  onSuccess,
+}: {
+  walletAddress: string;
+  balance: string;
+  mnemonics: string;
+  onSuccess?: (res: any) => void;
+}) {
+  const currentUser = useCurrentUser();
+  const mnemonic = currentUser.hashed_mnemonic;
 
-  const [sender, setSender] = useState(walletAddress)
-  const [to, setTo] = useState<string |  null>()
-  const [amt, setAmt] = useState<string |  null>()
-   const [loading, setLoading] = useState(false);
+  const [sender] = useState(walletAddress);
+  const [to, setTo] = useState<string | null>("");
+  const [amt, setAmt] = useState<string | null>("");
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>();
 
   async function handleSend() {
@@ -401,9 +522,10 @@ function SendView({walletAddress, balance, mnemonics}: {walletAddress: string, b
       });
 
       if (res.ok) {
-        setMessage(`✅ Transfer successful! TX: ${res.txDigest}`);
-        setAmt("");
+        setMessage(null);
         setTo("");
+        setAmt("");
+        onSuccess?.(res);
       } else {
         setMessage(`❌ ${res.detail || "Transfer failed"}`);
       }
@@ -415,22 +537,21 @@ function SendView({walletAddress, balance, mnemonics}: {walletAddress: string, b
     }
   }
 
-   return (
+  return (
     <div className="px-6 pt-6 pb-10">
       <div className="mx-auto max-w-[360px] text-center">
         <LogoBlob />
         <p className="mt-2 text-[13px] text-black/70">
           <span className="font-semibold">Your wallet</span>
-          <br/>
-             {loading ? (
-                  "Loading balance..."
-                ) : balance && parseFloat(balance) > 0 ? (
-                  <>
-                    {balance} <span className="text-sm font-medium text-gray-500">BTN₵</span>
-                  </>
-                ) : (
-                  "No coins"
-                )}
+          <br />
+          {balance && parseFloat(balance) > 0 ? (
+            <>
+              {balance}{" "}
+              <span className="text-sm font-medium text-gray-500">BTN₵</span>
+            </>
+          ) : (
+            "No coins"
+          )}
           <br />
           <span className="text-xs text-gray-600 break-all">{sender}</span>
         </p>
@@ -445,7 +566,7 @@ function SendView({walletAddress, balance, mnemonics}: {walletAddress: string, b
           Coin amount
         </label>
         <input
-          value={amt}
+          value={amt ?? ""}
           onChange={(e) => setAmt(e.target.value)}
           className="mt-1 w-full rounded-xl border border-[#9DB6D3] px-4 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#5B50D9]/60"
           placeholder="Enter amount"
@@ -455,7 +576,7 @@ function SendView({walletAddress, balance, mnemonics}: {walletAddress: string, b
           Recipient address
         </label>
         <input
-          value={to}
+          value={to ?? ""}
           onChange={(e) => setTo(e.target.value)}
           className="mt-1 w-full rounded-xl border border-[#9DB6D3] px-4 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#5B50D9]/60"
           placeholder="0x..."
@@ -493,15 +614,14 @@ function SendView({walletAddress, balance, mnemonics}: {walletAddress: string, b
 function RedeemAmount({ onNext }: { onNext: () => void }) {
   const [amtCoin, setAmtCoin] = useState("");
   const [amtNu, setAmtNu] = useState("");
-  
+
   function handleRedeemChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
     setAmtCoin(value);
 
-    // 1 BTN = 1 Nu – if you later change the rate, multiply here
     const num = parseFloat(value);
     if (!isNaN(num)) {
-      setAmtNu(value);          // or setSpend(String(num * rate))
+      setAmtNu(value);
     } else {
       setAmtNu("");
     }
@@ -520,24 +640,26 @@ function RedeemAmount({ onNext }: { onNext: () => void }) {
         <h3 className="mt-4 text-[20px] font-semibold leading-snug">
           Amount to redeem?
           <br />
-          
-          <br />
-          
         </h3>
 
-        <label className="block text-left mt-6 text-[13px] font-medium text-black/60">Coin amount</label>
+        <label className="block text-left mt-6 text-[13px] font-medium text-black/60">
+          Coin amount
+        </label>
         <input
           value={amtCoin}
           onChange={handleRedeemChange}
           className="mt-1 w-full rounded-xl border border-[#9DB6D3] px-4 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#5B50D9]/60"
         />
-        <p className="mt-1 text-[12px] text-black/60">1 BTN Coin = BTN Nu 1</p>
+        <p className="mt-1 text-[12px] text-black/60">
+          1 BTN Coin = BTN Nu 1
+        </p>
 
-        <label className="block text-left mt-5 text-[13px] font-medium text-black/60">Redeem amount (Nu)</label>
+        <label className="block text-left mt-5 text-[13px] font-medium text-black/60">
+          Redeem amount (Nu)
+        </label>
         <input
           value={amtNu}
           readOnly
-          // onChange={(e) => setAmtNu(e.target.value)}
           className="mt-1 w-full rounded-xl border border-[#9DB6D3] px-4 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#5B50D9]/60"
         />
 
@@ -570,12 +692,15 @@ function RedeemBank({ onBack }: { onBack: () => void }) {
             1000 coins
           </p>
           <p className="mt-4 text-[13px]">
-            <span className="font-semibold">Wallet address:</span> {useCurrentUser().wallet_address}
+            <span className="font-semibold">Wallet address:</span>{" "}
+            {useCurrentUser().wallet_address}
           </p>
           <h3 className="mt-4 text-[20px] font-semibold">Redeem to Bank</h3>
         </div>
 
-        <label className="block mt-6 text-[13px] font-medium text-black/60">Select Bank</label>
+        <label className="block mt-6 text-[13px] font-medium text-black/60">
+          Select Bank
+        </label>
         <div className="relative mt-1">
           <button
             type="button"
@@ -600,7 +725,11 @@ function RedeemBank({ onBack }: { onBack: () => void }) {
                     }}
                     className="w-full px-4 py-2.5 text-left hover:bg-neutral-50 flex items-center gap-2"
                   >
-                    <img src={b.icon} alt="" className="w-5 h-5 rounded-full" />
+                    <img
+                      src={b.icon}
+                      alt=""
+                      className="w-5 h-5 rounded-full"
+                    />
                     {b.name}
                   </button>
                 </li>
@@ -632,7 +761,10 @@ function RedeemBank({ onBack }: { onBack: () => void }) {
           Redeem
         </button>
 
-        <button onClick={onBack} className="mt-3 w-full text-[13px] text-black/60 underline">
+        <button
+          onClick={onBack}
+          className="mt-3 w-full text-[13px] text-black/60 underline"
+        >
           Back
         </button>
       </div>
@@ -641,34 +773,49 @@ function RedeemBank({ onBack }: { onBack: () => void }) {
 }
 
 // BUY – step 1
-function BuyAmount({ walletAddress, balance }: { walletAddress: string, balance : string }) {
-  const [coinbalance, setBalance] = useState(balance)
+function BuyAmount({
+  walletAddress,
+  balance,
+  onSuccess,
+}: {
+  walletAddress: string;
+  balance: string;
+  onSuccess?: () => void;
+}) {
+  const [coinbalance] = useState(balance);
   const [buy, setBuy] = useState("");
   const [spend, setSpend] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
   async function handleBuy() {
+    setMessage(null);
+
+    const amountBTN = parseFloat(buy);
+    if (isNaN(amountBTN) || amountBTN <= 0) {
+      setMessage("Please enter a valid amount.");
+      return;
+    }
+
     try {
       setLoading(true);
-      const amountBTN = parseFloat(buy);
       await buyBtn(walletAddress, amountBTN);
-      alert("Transaction successful!");
+      onSuccess?.();
     } catch (e) {
       console.error("Buy failed:", e);
-      alert("Transaction failed. Please try again.");
+      setMessage("Transaction failed. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
-   function handleBuyChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleBuyChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
     setBuy(value);
 
-    // 1 BTN = 1 Nu – if you later change the rate, multiply here
     const num = parseFloat(value);
     if (!isNaN(num)) {
-      setSpend(value);          // or setSpend(String(num * rate))
+      setSpend(value);
     } else {
       setSpend("");
     }
@@ -681,20 +828,23 @@ function BuyAmount({ walletAddress, balance }: { walletAddress: string, balance 
         <p className="mt-2 text-[13px] text-black/70">
           <span className="font-semibold">Your wallet has</span>
           <br />
-           {loading ? (
-                  "Loading balance..."
-                ) : coinbalance && parseFloat(coinbalance) > 0 ? (
-                  <>
-                    {coinbalance} <span className="text-sm font-medium text-gray-500">BTN₵</span>
-                  </>
-                ) : (
-                  "No coins"
-                )}
+          {loading ? (
+            "Loading balance..."
+          ) : coinbalance && parseFloat(coinbalance) > 0 ? (
+            <>
+              {coinbalance}{" "}
+              <span className="text-sm font-medium text-gray-500">BTN₵</span>
+            </>
+          ) : (
+            "No coins"
+          )}
         </p>
 
         <h3 className="mt-4 text-[20px] font-semibold">Buy BTN Coin</h3>
 
-        <label className="block text-left mt-6 text-[13px] font-medium text-black/60">You Buy</label>
+        <label className="block text-left mt-6 text-[13px] font-medium text-black/60">
+          You Buy
+        </label>
         <input
           value={buy}
           onChange={handleBuyChange}
@@ -702,16 +852,26 @@ function BuyAmount({ walletAddress, balance }: { walletAddress: string, balance 
         />
         <p className="mt-1 text-[12px] text-black/60">1 BTN Coin = BTN 1</p>
 
-        <label className="block text-left mt-5 text-[13px] font-medium text-black/60">You Spend (Nu)</label>
+        <label className="block text-left mt-5 text-[13px] font-medium text-black/60">
+          You Spend (Nu)
+        </label>
         <input
           value={spend}
-          // onChange={(e) => setBuy(e.target.value)}
+          readOnly
           className="mt-1 w-full rounded-xl border border-[#9DB6D3] px-4 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#5B50D9]/60"
         />
 
-        <button onClick={handleBuy} disabled={loading} className="mt-8 w-full rounded-full bg-[#5B50D9] text-white py-3 font-semibold">
+        <button
+          onClick={handleBuy}
+          disabled={loading}
+          className="mt-8 w-full rounded-full bg-[#5B50D9] text-white py-3 font-semibold"
+        >
           {loading ? "Processing..." : "Buy"}
         </button>
+
+        {message && (
+          <p className="mt-3 text-[12px] text-red-600">{message}</p>
+        )}
       </div>
     </div>
   );
@@ -753,15 +913,24 @@ function BuyBank({
           <div className="mt-4 flex items-center justify-center gap-2 text-[13px]">
             <span className="font-semibold">Wallet address:</span>
             <span className="truncate max-w-[170px]">{walletAddress}</span>
-            <button onClick={copy} title="Copy" className="p-1 rounded hover:bg-black/5" type="button">
+            <button
+              onClick={copy}
+              title="Copy"
+              className="p-1 rounded hover:bg-black/5"
+              type="button"
+            >
               <Copy className="w-4 h-4" />
             </button>
           </div>
 
-          <h3 className="mt-4 text-[20px] font-semibold">Enter account detail</h3>
+          <h3 className="mt-4 text-[20px] font-semibold">
+            Enter account detail
+          </h3>
         </div>
 
-        <label className="block mt-6 text-[13px] font-medium text-black/60">Select Bank</label>
+        <label className="block mt-6 text-[13px] font-medium text-black/60">
+          Select Bank
+        </label>
         <div className="relative mt-1">
           <button
             type="button"
@@ -786,7 +955,11 @@ function BuyBank({
                     }}
                     className="w-full px-4 py-2.5 text-left hover:bg-neutral-50 flex items-center gap-2"
                   >
-                    <img src={b.icon} alt="" className="w-5 h-5 rounded-full" />
+                    <img
+                      src={b.icon}
+                      alt=""
+                      className="w-5 h-5 rounded-full"
+                    />
                     {b.name}
                   </button>
                 </li>
@@ -796,13 +969,21 @@ function BuyBank({
         </div>
 
         <p className="mt-3 text-[12px] text-black/70">
-          The coin will be transferred to <span className="font-semibold">{bank.name}</span>
+          The coin will be transferred to{" "}
+          <span className="font-semibold">{bank.name}</span>
           <br />
           Wallet address : <span className="font-mono">{walletAddress}</span>
-          <button onClick={copy} className="ml-2 p-1 rounded hover:bg-black/5" title="Copy" type="button">
+          <button
+            onClick={copy}
+            className="ml-2 p-1 rounded hover:bg-black/5"
+            title="Copy"
+            type="button"
+          >
             <Copy className="w-4 h-4 inline" />
           </button>
-          {copied && <span className="ml-2 text-[12px] text-black/60">Copied</span>}
+          {copied && (
+            <span className="ml-2 text-[12px] text-black/60">Copied</span>
+          )}
         </p>
 
         <input
@@ -812,11 +993,17 @@ function BuyBank({
           className="mt-4 w-full rounded-xl border border-[#9DB6D3] px-4 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-[#5B50D9]/60"
         />
 
-        <button onClick={onNext} className="mt-6 w-full rounded-full bg-[#5B50D9] text-white py-3 font-semibold">
+        <button
+          onClick={onNext}
+          className="mt-6 w-full rounded-full bg-[#5B50D9] text-white py-3 font-semibold"
+        >
           Confirm
         </button>
 
-        <button onClick={onBack} className="mt-3 w-full text-[13px] text-black/60 underline">
+        <button
+          onClick={onBack}
+          className="mt-3 w-full text-[13px] text-black/60 underline"
+        >
           Back
         </button>
       </div>
@@ -839,8 +1026,14 @@ function BuyOtp({ onBack }: { onBack: () => void }) {
 
         <div className="mt-4 flex items-center justify-center gap-2 text-[13px]">
           <span className="font-semibold">Wallet address:</span>
-          <span className="truncate max-w-[170px]">0i4u1290nfkjd809214190poij</span>
-          <button className="p-1 rounded hover:bg-black/5" title="Copy" type="button">
+          <span className="truncate max-w-[170px]">
+            0i4u1290nfkjd809214190poij
+          </span>
+          <button
+            className="p-1 rounded hover:bg-black/5"
+            title="Copy"
+            type="button"
+          >
             <Copy className="w-4 h-4" />
           </button>
         </div>
@@ -864,11 +1057,18 @@ function BuyOtp({ onBack }: { onBack: () => void }) {
           ))}
         </div>
 
-        <button className="mt-2 text-[13px] text-[#5B50D9]">Resend OTP</button>
+        <button className="mt-2 text-[13px] text-[#5B50D9]">
+          Resend OTP
+        </button>
 
-        <button className="mt-6 w-full rounded-full bg-[#5B50D9] text-white py-3 font-semibold">Confirm</button>
+        <button className="mt-6 w-full rounded-full bg-[#5B50D9] text-white py-3 font-semibold">
+          Confirm
+        </button>
 
-        <button onClick={onBack} className="mt-3 w-full text-[13px] text-black/60 underline">
+        <button
+          onClick={onBack}
+          className="mt-3 w-full text-[13px] text-black/60 underline"
+        >
           Back
         </button>
       </div>
@@ -889,7 +1089,6 @@ function LogoBlob() {
 }
 
 function demoBanks() {
-  // Replace with real assets
   return [
     { id: "bnb", name: "Bhutan National Bank", icon: "/RSEB.png" },
     { id: "bob", name: "Bank of Bhutan", icon: "/RSEB.png" },

@@ -81,7 +81,7 @@ export default function AdminHomePage() {
 
     setLoadingMore(true);
     try {
-      const data = await fetchBonds(page, BONDS_PER_PAGE);
+      const data = await fetchBonds(page, BONDS_PER_PAGE, false);
       setBonds((prevBonds) => [...prevBonds, ...data]); // Append new bonds
       setPage((prevPage) => prevPage + 1); // Increment page number
       setHasMore(data.length === BONDS_PER_PAGE); // Check if there's more data
@@ -200,8 +200,8 @@ export default function AdminHomePage() {
                     <span>{bond.bond_name}</span>
                   </div>
                   <div>{new Date(bond.created_at).toLocaleDateString()}</div>
-                  <div className={styles.interestCell}>{bond.interest_rate || "—"}</div>
-                  <div>{bond.tl_unit_offered}</div>
+                  <div className={styles.interestCell}>{bond.interest_rate || "—"} % yr</div>
+                  <div>{(bond.tl_unit_offered) / 10}</div>
                   {/* <div>{bond.tl_units_available || "—"}</div> Fixed this from original code */}
                   <div>
                     <Link href={`/admin/bonds/${bond.id}`} className={styles.actionButton}>
@@ -223,8 +223,8 @@ export default function AdminHomePage() {
                     <span>{bond.bond_name}</span>
                   </div>
                   <div>{new Date(bond.created_at).toLocaleDateString()}</div>
-                  <div className={styles.interestCell}>{bond.interest_rate || "—"}</div>
-                  <div>{bond.tl_unit_offered}</div>
+                  <div className={styles.interestCell}>{bond.interest_rate || "—"} %/yr</div>
+                  <div>{bond.tl_unit_offered / 10}</div>
                   {/* <div>{bond.unit_available || "—"}</div> Fixed this from original code */}
                   <div>
                     <Link href={`/admin/bonds/${bond.id}`} className={styles.actionButton}>

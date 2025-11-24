@@ -32,20 +32,47 @@ const BTNC_ADMIN_KEY_HEX = (process.env.NEXT_PUBLIC_BTNC_ADMIN_KEY_HEX || '').tr
 // -----------------------------
 const client = new SuiClient({ url: SUI_RPC });
 
-export async function buyBtn(recipient, amountBTN){
+// export async function buyBtn(recipient, amountBTN){
+//   try {
+//     // Mint BTNC base units equal to tenths
+//     const digest = await mintBtncTo({ recipient, tenths: amountBTN });
+//     if(!digest){
+//         return Error("Transaction error")
+//     }
+
+//   } catch (e) {
+//     console.error('/fiat/convert-to-btnc error:', e);
+//     return Error('convert_failed')
+//   }
+// }
+
+export async function buyBtn(recipient: string, amountBTN: string | number) {
   try {
-    // Mint BTNC base units equal to tenths
-    const digest = await mintBtncTo({ recipient, tenths: amountBTN });
-    if(!digest){
-        return Error("Transaction error")
+    // Convert human BTN (e.g. "100" or 100.0) -> tenths
+    const tenths = toTenths(amountBTN);
+
+    const digest = await mintBtncTo({ recipient, tenths });
+    if (!digest) {
+      throw new Error("Transaction error");
     }
 
+    return {
+      ok: true,
+      recipient,
+      // numeric (tenths)
+      amountBaseUnits: tenths,
+      // human-friendly
+      amountBTNC: formatBtnFromTenths(tenths),
+      txDigest: digest,
+    };
   } catch (e) {
-    console.error('/fiat/convert-to-btnc error:', e);
-    return Error('convert_failed')
+    console.error("/fiat/convert-to-btnc error:", e);
+    return {
+      ok: false,
+      error: "convert_failed",
+    };
   }
 }
-
 
 
 async function mintBtncTo({ recipient, tenths }) {
@@ -118,14 +145,17 @@ export async function getBtncBalance({ address }) {
 
     const coinType = BTNCCoinType();
     const r = await client.getBalance({ owner, coinType });
-    const baseStr = r?.totalBalance ?? '0';
+    const baseStr = r?.totalBalance ?? "0";
+    const balanceTenths = BigInt(baseStr);
 
     return {
       address: owner,
       coinType,
       balanceBaseUnits: baseStr,
-      balanceHuman: formatTenthsFromBigInt(baseStr), // decimals=1
+      balanceTenths,                          // raw tenths (as bigint)
+      balanceHuman: formatBtnFromTenths(balanceTenths), // "1,234.5"
     };
+
   } catch (e) {
     console.error('getBtncBalance error:', e);
     throw e; // rethrow to handle upstream
@@ -133,11 +163,11 @@ export async function getBtncBalance({ address }) {
 }
 
 
-export async function transBtn({mnemonics, sender, toAddress, amountBTNC }: {
-    mnemonics: string,
-    sender: string;    
-    toAddress: string;
-    amountBTNC: string | number;
+export async function transBtn({ mnemonics, sender, toAddress, amountBTNC }: {
+  mnemonics: string,
+  sender: string;
+  toAddress: string;
+  amountBTNC: string | number;
 
 }) {
   try {
@@ -192,10 +222,11 @@ export async function transBtn({mnemonics, sender, toAddress, amountBTNC }: {
       ok: true,
       from: sender,
       to: toAddress,
-      amountBTNC: formatTenths(tenths),
-      amountBaseUnits: tenths,
+      amountBTNC: formatBtnFromTenths(tenths), // "1,234.5"
+      amountBaseUnits: tenths,                 // 12345 (tenths)
       txDigest: result.digest,
     };
+
   } catch (e: any) {
     console.error("transBtn error:", e);
     return {
@@ -355,4 +386,24 @@ async function fundSuiIfNeeded(address) {
   const bal = await getSuiBalanceMist(address);
   if (bal >= MIN_SUI_MIST) return null; // already enough for gas
   return await fundSuiTo(address, TOPUP_SUI_MIST);
+}
+
+
+// ---------- Human-friendly BTN formatting ----------
+
+// Convert tenths -> numeric BTN (e.g. 1234 -> 123.4)
+function tenthsToNumber(tenths: number | string | bigint): number {
+  if (typeof tenths === "bigint") return Number(tenths) / 10;
+  return Number(tenths) / 10;
+}
+
+// Indian-style number format, 1 decimal place
+const nfBTN = new Intl.NumberFormat("en-IN", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
+// Format from tenths to something like "1,234.5"
+function formatBtnFromTenths(tenths: number | string | bigint): string {
+  return nfBTN.format(tenthsToNumber(tenths));
 }

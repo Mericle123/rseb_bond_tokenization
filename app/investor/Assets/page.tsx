@@ -448,7 +448,7 @@ async function handleConfirmSell() {
                           <td
                             className={`py-5 px-3 text-[14px] font-medium ${rateCol}`}
                           >
-                            {(row.ratePct * 100).toFixed(2)}% / yr
+                            {(row.ratePct).toFixed(2)}% / yr
                           </td>
 
                           <td className={`py-5 px-3 text-[14px] ${dim}`}>

@@ -286,6 +286,7 @@ export async function createBondSeries(params: {
       tl_unit_subscribed: 0,
       maturity: maturityDate,
       status: Status.open,
+      allocated: false,
       interest_rate: (rateBps / 100).toFixed(2), // "10.00"
       purpose,
       market: Market.current,
@@ -341,10 +342,8 @@ export async function subscribeToBond(
     subscription_amt: string | number;
   }
 ) {
-  // 1) Convert requested units to tenths (Move contract uses tenths)
-  const amountTenths = toTenths(subscription_amt); // e.g. "15.0" -> 150
+  const amountTenths = toTenths(subscription_amt);
 
-  // 2) Load all BTNC coins for this custodial wallet
   const coinType = BTNCCoinType();
   const coins = await getAllCoins(walletAddress, coinType);
   if (!coins.length) {
@@ -352,25 +351,24 @@ export async function subscribeToBond(
   }
   const paymentCoinIds = coins.map((c: any) => c.coinObjectId);
 
-  // 3) Call on-chain `subscribe` via subscribePrimary
   const res = await subscribePrimary({
     buyerMnemonic: mnemonics,
-    buyerKeypair: undefined,          // we’re using mnemonic restore
+    buyerKeypair: undefined,
     buyerAddress: walletAddress,
-    seriesObjectId,                   // on-chain Series object id
-    amountTenths,                     // bond quantity in tenths
-    paymentCoinIds,                   // BTNC coins used to pay
-    bondId,                           // DB bond id (for Subscriptions row)
-    userId,                           // DB user id
+    seriesObjectId,
+    amountTenths,
+    paymentCoinIds,
+    bondId,
+    userId,
   });
 
-  // subscribePrimary already:
-  // - writes Subscriptions
-  // - updates Bonds.tl_unit_subscribed
-  // - optionally writes Events
-
-  return res; // { ok, tx, txHash, subscription, bond }
+  return {
+    ...res,
+    subscribedTenths: amountTenths,
+    subscribedHuman: formatBtnFromTenths(amountTenths),
+  };
 }
+
 
 export async function subscribePrimary({
   buyerMnemonic,
@@ -881,23 +879,30 @@ export async function fetchInvestorAllocations(userId: string): Promise<Row[]> {
   const allocations = await db.allocations.findMany({
     where: { user_id: userId },
     include: {
-      bond: true, // includes Bonds row
+      bond: true,
     },
   });
 
   return allocations.map((a) => {
     const b = a.bond;
+    const totalUnits = tenthsToUnits(a.allocated_tenths); // tenths -> units
+    const ratePct = parseFloat(b.interest_rate);          // e.g. "10.00" -> 10
+
     return {
       bondId: b.id,
       seriesObjectId: b.bond_object_id!, // assume allocated bonds always have this
       name: b.bond_name,
-      ratePct: parseFloat(b.interest_rate), // if you store "0.05" as string
-      total: Number(a.allocated_tenths) / 10, // convert tenths -> units
-      maturity: new Date(b.maturity).toLocaleDateString("en-GB"), // DD/MM/YYYY
-      status: "up" as const, // you can derive later if you want
+      ratePct,                           // numeric 10
+      // readable variants (if your Row type allows extra fields)
+      total: totalUnits,                 // 150.0 etc.
+      // totalLabel: formatUnitsFromTenths(a.allocated_tenths),   // "150.0" formatted
+      maturity: formatDMY(b.maturity),   // "1st November 2025"
+      // maturityRaw: b.maturity,        // keep if you want raw date too
+      status: "up" as const,
     };
   });
 }
+
 
 
 type ListForSaleInput = {
@@ -1010,17 +1015,31 @@ export async function fetchOpenListings() {
     orderBy: { created_at: "desc" },
   });
 
-  return listings.map((l) => ({
-    id: l.id,
-    bondId: l.bond_id,
-    listingOnchain: l.listing_onchain,
-    sellerWallet: l.seller_wallet,
-    amountUnits: Number(l.amount_tenths) / 10,
-    bondName: l.bond.bond_name,
-    interestRate: l.bond.interest_rate,
-    maturity: new Date(l.bond.maturity).toLocaleDateString("en-GB"),
-  }));
+  return listings.map((l) => {
+    const amountUnits = tenthsToUnits(l.amount_tenths);
+    const faceValueUnits = tenthsToUnits(l.bond.face_value);
+
+    return {
+      id: l.id,
+      bondId: l.bond_id,
+      listingOnchain: l.listing_onchain,
+      sellerWallet: l.seller_wallet,
+
+      // numeric
+      amountUnits,                      // 1.5, 10.0 etc.
+      faceValue: faceValueUnits,        // price per unit (numeric)
+
+      // nicely formatted labels
+      amountUnitsLabel: nfUnits.format(amountUnits),       // "1.5", "10.0" with commas
+      faceValueLabel: formatBtnFromTenths(l.bond.face_value), // "100.00" BTN etc.
+
+      bondName: l.bond.bond_name,
+      interestRate: l.bond.interest_rate,                 // e.g. "10.00"
+      maturity: formatDMY(l.bond.maturity),
+    };
+  });
 }
+
 
 
 export async function fetchResaleBonds(page: number, pageSize: number) {
@@ -1036,21 +1055,37 @@ export async function fetchResaleBonds(page: number, pageSize: number) {
     take: pageSize,
   });
 
-  return listings.map((l) => ({
-    id: l.id, // listing id (for key)
-    bond_id: l.bond_id,
-    bond_name: l.bond.bond_name,
-    interest_rate: l.bond.interest_rate,
-    tl_unit_offered: l.bond.tl_unit_offered,
-    tl_unit_subscribed: Number(l.amount_tenths) / 10, // units in this listing
-    face_value: Number(l.bond.face_value),
-    market: "resale" as Market,
-    seller: l.seller_wallet,
-    price: Number(l.bond.face_value),
-    listing_onchain: Number(l.listing_onchain)
-    // you can add seller, price, etc. here too
-  }));
+  return listings.map((l) => {
+    const totalOfferedUnits = tenthsToUnits(l.bond.tl_unit_offered);
+    const listingUnits = tenthsToUnits(l.amount_tenths);
+    const faceValueUnits = tenthsToUnits(l.bond.face_value);
+
+    return {
+      id: l.id, // listing id (for key)
+      bond_id: l.bond_id,
+      bond_name: l.bond.bond_name,
+      interest_rate: l.bond.interest_rate,
+
+      // numeric units
+      tl_unit_offered: totalOfferedUnits,  // total units offered in series
+      tl_unit_subscribed: listingUnits,    // units in this particular listing
+
+      // formatted labels (if UI wants them directly)
+      tl_unit_offered_label: nfUnits.format(totalOfferedUnits),
+      tl_unit_subscribed_label: nfUnits.format(listingUnits),
+
+      // face value & price per unit (human)
+      face_value: faceValueUnits,
+      price: faceValueUnits,
+      face_value_label: formatBtnFromTenths(l.bond.face_value),
+
+      market: "resale" as Market,
+      seller: l.seller_wallet,
+      listing_onchain: Number(l.listing_onchain),
+    };
+  });
 }
+
 
 
 export async function fetchResaleListingById(listingId: string) {
@@ -1075,14 +1110,20 @@ export async function fetchResaleListingById(listingId: string) {
 }
 
 
-export async function  fetchEventLogs(userId : string){
+export async function fetchEventLogs(userId: string) {
   const logs = await db.events.findMany({
-    where:{
-      user_id : userId
-    }
-  })
-  return logs
+    where: { user_id: userId },
+    orderBy: { created_at: "desc" },
+  });
+
+  return logs.map((ev) => ({
+    ...ev,
+    createdAtLabel: formatDMY(ev.created_at),
+    // if you have numeric amount fields on events, format them similarly:
+    // amountLabel: ev.amount_tenths ? formatBtnFromTenths(ev.amount_tenths) : null,
+  }));
 }
+
 
 
 export async function fetchEventLogsforCurrentUser(userid : string) {
@@ -1090,4 +1131,53 @@ export async function fetchEventLogsforCurrentUser(userid : string) {
   
   const logs = await fetchEventLogs(userid);
   return  logs
+}
+
+
+
+// ---------- Shared formatting helpers ----------
+
+// Format numbers like 1,23,456.7
+const nfUnits = new Intl.NumberFormat("en-IN", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
+// Format money (BTN / BTNC) with 2 decimals
+const nfMoney = new Intl.NumberFormat("en-IN", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+// Nice date formatting: 1st November 2025
+function formatDMY(date: Date | string) {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const day = d.getDate();
+  const suffix =
+    day % 10 === 1 && day % 100 !== 11
+      ? "st"
+      : day % 10 === 2 && day % 100 !== 12
+      ? "nd"
+      : day % 10 === 3 && day % 100 !== 13
+      ? "rd"
+      : "th";
+  const month = d.toLocaleString("en-GB", { month: "long" });
+  const year = d.getFullYear();
+  return `${day}${suffix} ${month} ${year}`;
+}
+
+// Convert on-chain “tenths” to number of units
+function tenthsToUnits(t: bigint | number | string): number {
+  if (typeof t === "bigint") return Number(t) / 10;
+  return Number(t) / 10;
+}
+
+// Human label for units (e.g. "1,234.5")
+function formatUnitsFromTenths(t: bigint | number | string): string {
+  return nfUnits.format(tenthsToUnits(t));
+}
+
+// Human BTN label from tenths (e.g. "1,000.00")
+function formatBtnFromTenths(t: bigint | number | string): string {
+  return nfMoney.format(tenthsToUnits(t));
 }
