@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
 import { Copy, Wallet, FileText, Currency } from "lucide-react";
 import { motion } from "framer-motion";
@@ -92,8 +93,6 @@ function WalletStrip({ walletAddress }: { walletAddress: string }) {
 }
 
 /* ========================= Page ========================= */
-
-
 
 export default function EarningsPage() {
   const  currentUser = useCurrentUser();
@@ -239,14 +238,15 @@ export default function EarningsPage() {
                         {/* Maturity */}
                         <td className="py-5 px-3 text-[14px] text-neutral-900">{row.maturity}</td>
 
-                        {/* Action */}
+                        {/* Action - Updated to Link */}
                         <td className="py-5 pl-3 pr-4">
-                          <button
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700 focus:outline-none"
-                            aria-label={`Open ${row.name}`}
+                          <Link
+                            href="/investor/Earnings/InterestAcc"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700 focus:outline-none transition-colors"
+                            aria-label={`View interest details for ${row.name}`}
                           >
                             <FileText className="w-4 h-4" />
-                          </button>
+                          </Link>
                         </td>
                       </tr>
                     );
@@ -298,12 +298,14 @@ export default function EarningsPage() {
                       </div>
                     </div>
 
-                    <button
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700 focus:outline-none"
-                      aria-label={`Open ${row.name}`}
+                    {/* Mobile Action - Updated to Link */}
+                    <Link
+                      href="/investor/Earnings/InterestAcc"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700 focus:outline-none transition-colors"
+                      aria-label={`View interest details for ${row.name}`}
                     >
                       <FileText className="w-4 h-4" />
-                    </button>
+                    </Link>
                   </div>
 
                   <div className="mt-3 grid grid-cols-2 gap-2 text-[13px]">

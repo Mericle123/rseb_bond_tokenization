@@ -20,7 +20,6 @@ import { Market } from "@/generated/prisma";
 import { useCurrentUser } from "@/context/UserContext";
 import { fetchResaleBonds } from "@/server/blockchain/bond";
 
-
 // ========================= Types =========================
 
 type Status = "up" | "down" | "flat";
@@ -248,7 +247,7 @@ export default function InvestorPage() {
                     type="search"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    className="h-10 w-[min(270px,75vw)] sm:w-[270px] rounded-lg border border-neutral-200 bg-white pl-9 pr-3 text-sm text-neutral-800 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-neutral-200"
+                    className="h-10 w-full sm:w-[270px] rounded-lg border border-neutral-200 bg-white pl-9 pr-3 text-sm text-neutral-800 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-neutral-200"
                     placeholder="Search by name"
                   />
                 </div>
@@ -289,7 +288,7 @@ export default function InvestorPage() {
                   {activeTab === "current"
                     ? "current offerings"
                     : "resale listings"}{" "}
-                  match “{query}”.
+                  match "{query}".
                 </p>
                 <button
                   type="button"
@@ -301,11 +300,14 @@ export default function InvestorPage() {
               </div>
             )}
 
-            {/* Table */}
+            {/* Loading state */}
             {initialLoading && (
-              <p className="mt-6 text-sm text-neutral-600">Loading bonds...</p>
+              <div className="mt-6 text-center py-8">
+                <p className="text-sm text-neutral-600">Loading bonds...</p>
+              </div>
             )}
 
+            {/* Desktop Table */}
             {filtered.length > 0 && (
               <div className="mt-6 overflow-x-auto rounded-2xl hidden sm:block">
                 <table
@@ -324,18 +326,6 @@ export default function InvestorPage() {
                       <th className="py-3 pl-3 pr-2 font-medium">Action</th>
                     </tr>
                   </thead>
-                  {/* <tbody className="divide-y divide-neutral-100">
-                    {filtered.map((bond, index) => {
-                      const isLast = index === filtered.length - 1;
-                      return (
-                        <BondRow
-                          key={bond.id}
-                          bond={bond}
-                          ref={isLast ? lastRowRef : undefined}
-                        />
-                      );
-                    })}
-                  </tbody> */}
                   <tbody className="divide-y divide-neutral-100">
                     {filtered.map((bond, index) => {
                       const isLast =
@@ -351,13 +341,37 @@ export default function InvestorPage() {
                       );
                     })}
                   </tbody>
-
                 </table>
 
                 {loadingMore && (
                   <p className="py-3 text-center text-sm text-neutral-500">
                     Loading more...
                   </p>
+                )}
+              </div>
+            )}
+
+            {/* Mobile Cards */}
+            {filtered.length > 0 && (
+              <div className="mt-6 sm:hidden space-y-4">
+                {filtered.map((bond, index) => {
+                  const isLast =
+                    activeTab === "current" && index === filtered.length - 1;
+
+                  return (
+                    <MobileBondCard
+                      key={bond.id}
+                      bond={bond}
+                      variant={activeTab === "current" ? "primary" : "resale"}
+                      ref={isLast ? lastRowRef : undefined}
+                    />
+                  );
+                })}
+
+                {loadingMore && (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-neutral-500">Loading more...</p>
+                  </div>
                 )}
               </div>
             )}
@@ -474,12 +488,9 @@ const BondRow = forwardRef<
         <>
           {/* For resale, maybe "Units listed" & "—" or something else */}
           <td className={`py-5 px-3 text-[14px] ${dim}`}>
-            {/* interpret tl_unit_subscribed as "listed units" here, or add a dedicated field */}
             {nfInt.format(bond.tl_unit_offered)} Units
           </td>
           <td className={`py-5 px-3 text-[14px] ${dim}`}>
-            {/* space for price / seller / whatever you want */}
-            {/* Example: show original total units */}
             {nfInt.format(bond.tl_unit_offered)} Units
           </td>
         </>
@@ -487,19 +498,18 @@ const BondRow = forwardRef<
 
       {/* Face value (same for both) */}
       <td className={`py-5 px-3 text-[14px] ${dim}`}>
-        {nfCurrency.format(Number(bond.face_value) /  10) }
+        {nfCurrency.format(Number(bond.face_value) / 10)}
       </td>
 
       {/* Action changes too if you want */}
       <td className="py-5 pl-3 pr-2">
         {variant === "primary" ? (
           <Link href={`/investor/AboutBond/${bond.id}`}>
-            <IoDocumentTextOutline />
+            <IoDocumentTextOutline className="w-5 h-5 hover:text-[#5B50D9] transition-colors" />
           </Link>
         ) : (
-          // On resale you might show a "Buy" button or a different link
           <Link href={`/investor/resale/${bond.id}`}>
-            <IoDocumentTextOutline />
+            <IoDocumentTextOutline className="w-5 h-5 hover:text-[#5B50D9] transition-colors" />
           </Link>
         )}
       </td>
@@ -508,3 +518,112 @@ const BondRow = forwardRef<
 });
 
 BondRow.displayName = "BondRow";
+
+// Mobile Bond Card Component
+const MobileBondCard = forwardRef<
+  HTMLDivElement,
+  { bond: Bond; variant: "primary" | "resale" }
+>(({ bond, variant }, ref) => {
+  const dim = bond.disabled ? "text-neutral-300" : "text-neutral-900";
+  const rateCol = bond.disabled
+    ? "text-neutral-300"
+    : bond.status === "down"
+      ? "text-red-600"
+      : bond.status === "flat"
+        ? "text-neutral-600"
+        : "text-emerald-600";
+
+  return (
+    <div
+      ref={ref}
+      className="bg-white rounded-2xl p-4 shadow-sm border border-neutral-200"
+    >
+      {/* Header with Bond name and status */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div className="relative h-10 w-10 rounded-full border border-neutral-200 bg-white grid place-items-center">
+            <Image
+              src="/RSEB.png"
+              alt="RSEB logo"
+              width={22}
+              height={22}
+              className={`object-contain ${bond.disabled ? "opacity-40" : ""}`}
+            />
+            <span
+              aria-hidden="true"
+              className={`absolute -bottom-0.5 left-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-white ${bond.status === "up"
+                  ? "bg-emerald-500"
+                  : bond.status === "down"
+                    ? "bg-red-500"
+                    : "bg-neutral-300"
+                }`}
+            />
+          </div>
+          <span className={`text-[15px] font-medium ${dim}`}>
+            {bond.bond_name}
+          </span>
+        </div>
+        <div className={`text-[14px] font-medium ${rateCol}`}>
+          {bond.interest_rate}% / yr
+        </div>
+      </div>
+
+      {/* Details Grid */}
+      <div className="grid grid-cols-2 gap-3 text-sm">
+        {variant === "primary" ? (
+          <>
+            <div className="space-y-1">
+              <p className="text-neutral-500 text-xs">Total Units</p>
+              <p className={dim}>{Number(bond.tl_unit_offered) / 10}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-neutral-500 text-xs">Available</p>
+              <p className={dim}>
+                {nfInt.format(Number(bond.tl_unit_subscribed) / 10)} /{" "}
+                {nfInt.format(Number(bond.tl_unit_offered) / 10)}
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="space-y-1">
+              <p className="text-neutral-500 text-xs">Units Listed</p>
+              <p className={dim}>{nfInt.format(bond.tl_unit_offered)}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-neutral-500 text-xs">Total Units</p>
+              <p className={dim}>{nfInt.format(bond.tl_unit_offered)}</p>
+            </div>
+          </>
+        )}
+
+        <div className="space-y-1">
+          <p className="text-neutral-500 text-xs">Face Value</p>
+          <p className={dim}>{nfCurrency.format(Number(bond.face_value) / 10)}</p>
+        </div>
+
+        <div className="space-y-1 flex items-end">
+          {variant === "primary" ? (
+            <Link 
+              href={`/investor/AboutBond/${bond.id}`}
+              className="inline-flex items-center gap-1 text-[#5B50D9] hover:text-[#4a45b5] transition-colors"
+            >
+              <IoDocumentTextOutline className="w-4 h-4" />
+              <span className="text-sm font-medium">View Details</span>
+            </Link>
+          ) : (
+            <Link 
+              href={`/investor/resale/${bond.id}`}
+              className="inline-flex items-center gap-1 text-[#5B50D9] hover:text-[#4a45b5] transition-colors"
+            >
+              <IoDocumentTextOutline className="w-4 h-4" />
+              <span className="text-sm font-medium">View Listing</span>
+            </Link>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+MobileBondCard.displayName = "MobileBondCard";

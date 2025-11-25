@@ -5,12 +5,17 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowLeft } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Home, 
+  PieChart, 
+  DollarSign, 
+  Activity,
+  Menu,
+  X
+} from "lucide-react";
 import { logout } from "@/server/action/action";
 import { useCurrentUser } from "@/context/UserContext";
-
-
-
 
 /* ------------------------------ Helpers ------------------------------ */
 
@@ -24,22 +29,23 @@ function useMounted() {
 
 export default function InvestorSideNavbar() {
   const currentUser = useCurrentUser();
-  const username = currentUser?.name
   const pathname = usePathname();
   const [accountOpen, setAccountOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // ✅ FIX: Use consistent user data with fallbacks
   const user = {
-    name: username,
-    id: currentUser?.national_id,
-    walletAddress: currentUser?.wallet_address,
+    name: currentUser?.name || "User",
+    id: currentUser?.national_id || "Loading...",
+    walletAddress: currentUser?.wallet_address || "Loading...",
   };
 
   // Match your folder casing exactly
   const NAV_ITEMS = [
-    { label: "Home", href: "/investor", icon: "🏠" },
-    { label: "Assets", href: "/investor/Assets", icon: "🖼️" },
-    { label: "Earnings", href: "/investor/Earnings", icon: "💰" },
-    { label: "Activity", href: "/investor/Activity", icon: "👤" },
+    { label: "Home", href: "/investor", icon: Home },
+    { label: "Assets", href: "/investor/Assets", icon: PieChart },
+    { label: "Earnings", href: "/investor/Earnings", icon: DollarSign },
+    { label: "Activity", href: "/investor/Activity", icon: Activity },
   ];
 
   // ✅ FIXED: make Home active only on exact path
@@ -73,24 +79,27 @@ export default function InvestorSideNavbar() {
 
           {/* -------- Navigation Items -------- */}
           <nav className="flex flex-col gap-6">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`
-                  flex items-center gap-3 px-4 py-2 rounded-full
-                  font-semibold text-[14px] transition-all duration-300
-                  ${
-                    isActive(item.href)
-                      ? "bg-white text-black shadow-md scale-[1.02]"
-                      : "hover:bg-white/10 text-white/90 hover:scale-[1.03]"
-                  }
-                `}
-              >
-                <span className="text-[16px]">{item.icon}</span>
-                {item.label}
-              </Link>
-            ))}
+            {NAV_ITEMS.map((item) => {
+              const IconComponent = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`
+                    flex items-center gap-3 px-4 py-2 rounded-full
+                    font-semibold text-[14px] transition-all duration-300
+                    ${
+                      isActive(item.href)
+                        ? "bg-white text-black shadow-md scale-[1.02]"
+                        : "hover:bg-white/10 text-white/90 hover:scale-[1.03]"
+                    }
+                  `}
+                >
+                  <IconComponent className="w-5 h-5" />
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
 
@@ -108,36 +117,33 @@ export default function InvestorSideNavbar() {
             height={28}
             className="rounded-full"
           />
+          {/* ✅ FIX: Consistent text that won't cause hydration mismatch */}
           <p className="text-[13px] font-semibold">{user.id}</p>
         </button>
       </aside>
 
-      {/* ==================== Mobile Navbar ==================== */}
-      <nav
-        className="
-          sm:hidden fixed inset-x-3 bottom-3 z-40
-          bg-[#5B50D9] text-white rounded-[20px] px-3 py-2
-          shadow-xl ring-1 ring-black/5 flex justify-around
-        "
+      {/* ==================== Floating Hamburger Button ==================== */}
+      <button
+        type="button"
+        onClick={() => setMobileMenuOpen(true)}
+        className="sm:hidden fixed top-4 right-4 z-50 p-3 bg-[#5B50D9] text-white rounded-2xl shadow-2xl hover:shadow-3xl hover:scale-110 active:scale-105 transition-all duration-200"
+        aria-label="Open menu"
       >
-        {NAV_ITEMS.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`
-              flex flex-col items-center gap-1 text-[12px] font-medium transition-all
-              ${
-                isActive(item.href)
-                  ? "text-white scale-[1.1]"
-                  : "text-white/80 hover:text-white hover:scale-[1.08]"
-              }
-            `}
-          >
-            <span className="text-[18px]">{item.icon}</span>
-            {item.label}
-          </Link>
-        ))}
-      </nav>
+        <Menu className="w-6 h-6" />
+      </button>
+
+      {/* ==================== Mobile Menu Slide-out ==================== */}
+      <MobileMenu
+        open={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        navItems={NAV_ITEMS}
+        isActive={isActive}
+        onAccountOpen={() => {
+          setMobileMenuOpen(false);
+          setAccountOpen(true);
+        }}
+        user={user}
+      />
 
       {/* ==================== Slide-over Account Panel ==================== */}
       <AccountPanel
@@ -152,6 +158,126 @@ export default function InvestorSideNavbar() {
   );
 }
 
+/* --------------------------- Mobile Menu --------------------------- */
+
+type MobileMenuProps = {
+  open: boolean;
+  onClose: () => void;
+  navItems: { label: string; href: string; icon: any }[];
+  isActive: (href: string) => boolean;
+  onAccountOpen: () => void;
+  user: { name: string; id: string; walletAddress: string };
+};
+
+function MobileMenu({
+  open,
+  onClose,
+  navItems,
+  isActive,
+  onAccountOpen,
+  user,
+}: MobileMenuProps) {
+  const mounted = useMounted();
+  if (!mounted) return null;
+
+  return createPortal(
+    <div
+      className={`fixed inset-0 z-[100] ${
+        open ? "pointer-events-auto" : "pointer-events-none"
+      }`}
+    >
+      {/* Backdrop */}
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close menu"
+        className={`absolute inset-0 bg-black/40 supports-[backdrop-filter]:backdrop-blur-[2px] transition-opacity duration-300 ${
+          open ? "opacity-100" : "opacity-0"
+        }`}
+      />
+
+      {/* Menu Panel */}
+      <aside
+        className={`absolute right-0 top-0 h-full w-[85%] max-w-[320px] bg-[#5B50D9] rounded-l-[20px] shadow-2xl transition-transform duration-300 ease-out ${
+          open ? "translate-x-0" : "translate-x-full"
+        } flex flex-col`}
+        role="dialog"
+        aria-modal="true"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-white/20">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 bg-white rounded-full grid place-items-center shadow-inner">
+              <Image src="/logo.png" alt="Logo" width={32} height={32} />
+            </div>
+            <span className="font-semibold text-white">Menu</span>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close menu"
+            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Navigation Items */}
+        <nav className="flex-1 p-6">
+          <div className="flex flex-col gap-4">
+            {navItems.map((item) => {
+              const IconComponent = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onClose}
+                  className={`
+                    flex items-center gap-4 px-4 py-3 rounded-2xl
+                    font-semibold text-[16px] transition-all duration-200
+                    ${
+                      isActive(item.href)
+                        ? "bg-white text-[#5B50D9] shadow-md"
+                        : "text-white hover:bg-white/10"
+                    }
+                  `}
+                >
+                  <IconComponent className="w-5 h-5" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* Footer */}
+        <div className="p-6 border-t border-white/20">
+          <button
+            type="button"
+            onClick={onAccountOpen}
+            className="w-full bg-white text-[#5B50D9] rounded-2xl py-3 px-4 flex items-center gap-3 justify-center shadow hover:shadow-md active:scale-[0.99] transition"
+            aria-label="Open account panel"
+          >
+            <Image
+              src="/NDI.png"
+              alt="Profile"
+              width={32}
+              height={32}
+              className="rounded-full"
+            />
+            <div className="flex flex-col items-start">
+              {/* ✅ FIX: Consistent text that won't cause hydration mismatch */}
+              <p className="text-[14px] font-semibold">{user.name}</p>
+              <p className="text-[12px] text-gray-600">View Account</p>
+            </div>
+          </button>
+        </div>
+      </aside>
+    </div>,
+    document.body
+  );
+}
+
 /* --------------------------- Account Panel --------------------------- */
 
 type AccountPanelProps = {
@@ -162,8 +288,6 @@ type AccountPanelProps = {
   onDelete: () => void;
   onLogout: () => void;
 };
-
-
 
 function AccountPanel({
   open,
@@ -215,6 +339,7 @@ function AccountPanel({
         <div className="flex-1 overflow-y-auto p-6">
           <div className="mx-auto max-w-[360px]">
             <h3 className="text-[15px] font-semibold">User</h3>
+            {/* ✅ FIX: Consistent text that won't cause hydration mismatch */}
             <p className="mt-1 text-[13px] text-black/70">{user.name}</p>
 
             <div className="mt-4 rounded-2xl border border-[#5B50D9]/20 bg-[#5B50D9]/10 p-4">
@@ -228,10 +353,12 @@ function AccountPanel({
                     className="rounded-full"
                   />
                   <span className="font-medium">ID :</span>
+                  {/* ✅ FIX: Consistent text that won't cause hydration mismatch */}
                   <span>{user.id}</span>
                 </div>
                 <div className="mt-2 text-[13px]">
                   <span className="font-medium">Wallet address: </span>
+                  {/* ✅ FIX: Consistent text that won't cause hydration mismatch */}
                   <span className="break-all">{user.walletAddress}</span>
                 </div>
 

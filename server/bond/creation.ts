@@ -27,7 +27,7 @@ export async function bondCreation(formData: FormData) {
     const organization_name = formData.get("org_name") as string
     const purpose = formData.get("purpose") as string
     const tl_unit = formData.get("totalUnitOffered") as string
-
+    
     const sub_period = formData.get("subscription_period") as string
     const subscription_period = Number(sub_period);        // days
     const tl_unit_offered = Number(tl_unit);              // human units (e.g. 150)
@@ -71,7 +71,7 @@ export async function bondCreation(formData: FormData) {
             startMs,
             maturityMs,
             subscriptionPeriodDays: subscription_period,
-            purpose,
+            purpose
         });
         if (!result.ok) {
             throw new Error("Bond creation transaction failed");
