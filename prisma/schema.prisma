@@ -120,7 +120,6 @@ model Bonds {
   // Relations
   subscriptions Subscriptions[]
   events        Events[]
-  transactions  Transactions[]
   allocations   Allocations[]
   listings      Listings[]   @relation("BondListings")
 }
@@ -156,14 +155,12 @@ model Subscriptions {
 
 model Transactions {
   id         String   @id @default(cuid())
-  bond_id    String
   user_from  String
   user_to    String
   tx_hash    String
   created_at DateTime @default(now())
 
   // Relations
-  bond Bonds @relation(fields: [bond_id], references: [id], onDelete: Cascade)
   from Users @relation("TransactionsFrom", fields: [user_from], references: [id], onDelete: Cascade)
   to   Users @relation("TransactionsTo", fields: [user_to], references: [id], onDelete: Cascade)
 }

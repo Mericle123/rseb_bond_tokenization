@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Wallet,
   Copy,
@@ -11,8 +11,10 @@ import {
   ShoppingCart,
   ChevronDown,
   ArrowLeft,
+  CheckCircle,
+  X,
 } from "lucide-react";
-import { buyBtn } from "../server/blockchain/btnc";
+import { buyBtn, getUserFromAddress } from "../server/blockchain/btnc";
 import { useCurrentUser } from "@/context/UserContext";
 import { getBtncBalance } from "../server/blockchain/btnc";
 import { transBtn } from "../server/blockchain/btnc";
@@ -30,6 +32,7 @@ type View =
   | "send"
   | "redeem-amount"
   | "redeem-bank"
+  | "redeem-otp"
   | "buy-amount"
   | "buy-bank"
   | "buy-otp";
@@ -57,10 +60,10 @@ export default function WalletSection({
     null | "send" | "redeem" | "buy" | "receive"
   >(null);
 
-  // ✅ Success popup state (for send + buy)
-  const [successModal, setSuccessModal] = useState<null | {
-    type: "send" | "buy";
-    txDigest?: string;
+  // ✅ Simplified success state
+  const [successMessage, setSuccessMessage] = useState<null | {
+    type: "send" | "buy" | "redeem";
+    amount?: string;
   }>(null);
 
   const timeoutRef = useRef<number | null>(null);
@@ -91,6 +94,7 @@ export default function WalletSection({
       send: "send",
       "redeem-amount": "redeem",
       "redeem-bank": "redeem",
+      "redeem-otp": "redeem",
       "buy-amount": "buy",
       "buy-bank": "buy",
       "buy-otp": "buy",
@@ -125,6 +129,12 @@ export default function WalletSection({
       loadBalanceFor(walletAddress);
     }
   }, [walletAddress, isClient]);
+
+  // Format wallet address for display
+  const formatWalletAddress = (address: string) => {
+    if (address.length <= 16) return address;
+    return `${address.slice(0, 8)}...${address.slice(-8)}`;
+  };
 
   // Show loading skeleton on server and initial client render
   const displayBalance = !isClient ? (
@@ -166,22 +176,30 @@ export default function WalletSection({
             <span className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#5B50D9]/10 ring-1 ring-[#5B50D9]/20">
               <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-[#5B50D9]" strokeWidth={1.75} />
             </span>
-            <span className="font-medium whitespace-nowrap">Wallet address:</span>
-            <code className="px-3 py-2 rounded-lg bg-gray-50 text-gray-700 border border-black/5 break-all text-xs sm:text-sm font-mono max-w-full overflow-x-auto">
-              {walletAddress}
-            </code>
+            <span className="font-medium whitespace-nowrap">Your wallet:</span>
+            <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-black/5">
+              <code className="text-gray-700 break-all text-xs sm:text-sm font-mono">
+                {formatWalletAddress(walletAddress)}
+              </code>
+              <button
+                type="button"
+                onClick={copyMainAddr}
+                className="p-1 rounded hover:bg-gray-200 transition-colors"
+                aria-label="Copy wallet address"
+              >
+                <Copy className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
-              onClick={copyMainAddr}
+              onClick={() => openSheet("receive")}
               className="group inline-flex items-center gap-2 rounded-full px-4 py-2 sm:px-5 sm:py-2.5 text-sm ring-1 ring-black/10 hover:ring-black/20 bg-white hover:shadow-md transition-all whitespace-nowrap"
-              aria-live="polite"
-              aria-label="Copy wallet address"
             >
               <Copy className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span>{copied ? "Copied" : "Copy"}</span>
+              <span>Receive</span>
             </button>
             <span className="sr-only" role="status" aria-live="polite">
               {copied ? "Wallet address copied" : ""}
@@ -210,7 +228,6 @@ export default function WalletSection({
                 {displayBalance}
               </h2>
 
-              {/* FIX: Use div instead of p to avoid hydration error with nested divs */}
               <div className="mt-2 text-sm sm:text-base text-gray-600">
                 {displayBalanceText}
               </div>
@@ -242,7 +259,7 @@ export default function WalletSection({
       </motion.section>
 
       {/* ===== Slide-over sheet for all flows ===== */}
-      <Sheet open={open} onClose={closeSheet} title={titleFor(view)}>
+      <Sheet open={open} onClose={closeSheet} title={titleFor(view)} view={view} setView={setView}>
         {view === "receive" && <ReceiveView walletAddress={walletAddress} />}
 
         {view === "send" && (
@@ -250,17 +267,12 @@ export default function WalletSection({
             mnemonics={mnemonics}
             balance={balance ?? "0"}
             walletAddress={walletAddress}
-            onSuccess={(res) => {
-              // ✅ Close side panel
+            onSuccess={(res, amount, recipient) => {
               closeSheet();
-
-              // ✅ Show success popup
-              setSuccessModal({
+              setSuccessMessage({
                 type: "send",
-                txDigest: res.txDigest,
+                amount,
               });
-
-              // ✅ Refresh balance
               loadBalanceFor(walletAddress);
             }}
           />
@@ -271,21 +283,36 @@ export default function WalletSection({
         )}
 
         {view === "redeem-bank" && (
-          <RedeemBank onBack={() => setView("redeem-amount")} />
+          <RedeemBank 
+            onBack={() => setView("redeem-amount")} 
+            onNext={() => setView("redeem-otp")}
+          />
+        )}
+
+        {view === "redeem-otp" && (
+          <RedeemOtp 
+            onBack={() => setView("redeem-bank")}
+            onSuccess={(amount) => {
+              closeSheet();
+              setSuccessMessage({
+                type: "redeem",
+                amount,
+              });
+              loadBalanceFor(walletAddress);
+            }}
+          />
         )}
 
         {view === "buy-amount" && (
           <BuyAmount
             balance={balance ?? "0"}
             walletAddress={walletAddress}
-            onSuccess={() => {
-              // ✅ Close side panel
+            onSuccess={(amount) => {
               closeSheet();
-
-              // ✅ Show success popup
-              setSuccessModal({ type: "buy" });
-
-              // ✅ Refresh balance
+              setSuccessMessage({ 
+                type: "buy",
+                amount 
+              });
               loadBalanceFor(walletAddress);
             }}
           />
@@ -302,47 +329,75 @@ export default function WalletSection({
         {view === "buy-otp" && <BuyOtp onBack={() => setView("buy-bank")} />}
       </Sheet>
 
-      {/* ✅ Success popup for Buy & Send */}
-      {successModal && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-xl border border-black/10 p-6">
-            <h3 className="text-xl font-bold text-neutral-900 mb-2">
-              {successModal.type === "send"
-                ? "Transfer Successful 🎉"
-                : "Purchase Successful 🎉"}
-            </h3>
-            <p className="text-base text-neutral-600 mb-4">
-              {successModal.type === "send"
-                ? "Your BTN₵ has been sent successfully."
-                : "Your BTN₵ purchase was successful and your balance has been updated."}
-            </p>
-            {successModal.txDigest && (
-              <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                <p className="text-xs text-neutral-500 mb-1 font-semibold">Tx digest:</p>
-                <code className="text-xs sm:text-sm text-neutral-500 break-all">
-                  {successModal.txDigest}
-                </code>
-              </div>
-            )}
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setSuccessModal(null)}
-                className="px-6 py-3 rounded-full bg-[#5B50D9] text-white text-sm font-semibold hover:bg-[#4a46c4] transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ✅ Simple Success Toast */}
+      <SuccessToast 
+        successMessage={successMessage} 
+        onClose={() => setSuccessMessage(null)} 
+      />
     </>
   );
 }
 
-// Keep all the other components exactly the same as in the previous version
-// ActionButton, Sheet, titleFor, ReceiveView, SendView, RedeemAmount, 
-// RedeemBank, BuyAmount, BuyBank, BuyOtp, LogoBlob, demoBanks
+/* =================================================================== */
+/*                          SIMPLE SUCCESS TOAST                       */
+/* =================================================================== */
+
+function SuccessToast({ 
+  successMessage, 
+  onClose 
+}: { 
+  successMessage: null | {
+    type: "send" | "buy" | "redeem";
+    amount?: string;
+  };
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(onClose, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage, onClose]);
+
+  const getMessage = () => {
+    if (!successMessage) return "";
+    
+    const amount = successMessage.amount ? `${successMessage.amount} ` : "";
+    
+    switch (successMessage.type) {
+      case "send": return `Sent ${amount}BTN₵ successfully!`;
+      case "buy": return `Purchased ${amount}BTN₵ successfully!`;
+      case "redeem": return `Redeemed ${amount}BTN₵ successfully!`;
+      default: return "Operation completed successfully!";
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {successMessage && (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 50, scale: 0.9 }}
+          className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-[120]"
+        >
+          <div className="bg-green-500 text-white px-6 py-4 rounded-xl shadow-lg border border-green-600 max-w-sm mx-4">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 flex-shrink-0" />
+              <span className="font-medium">{getMessage()}</span>
+              <button
+                onClick={onClose}
+                className="p-1 hover:bg-green-600 rounded-full transition-colors flex-shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
 
 /* =================================================================== */
 /*                           SHARED COMPONENTS                          */
@@ -387,26 +442,49 @@ function Sheet({
   onClose,
   title,
   children,
+  view,
+  setView,
 }: {
   open: boolean;
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
+  view: View;
+  setView: (view: View) => void;
 }) {
   const firstRef = useRef<HTMLButtonElement | null>(null);
+  
   useEffect(() => {
     if (!open) return;
+    
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    
     window.addEventListener("keydown", onKey);
     const t = setTimeout(() => firstRef.current?.focus(), 0);
+    
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
+      document.documentElement.style.overflow = prev;
       clearTimeout(t);
     };
   }, [open, onClose]);
+
+  // Handle back button based on current view
+  const handleBack = () => {
+    if (view === "redeem-bank" || view === "buy-bank") {
+      setView("redeem-amount");
+    } else if (view === "redeem-otp") {
+      setView("redeem-bank");
+    } else if (view === "buy-otp") {
+      setView("buy-bank");
+    } else {
+      onClose();
+    }
+  };
 
   return (
     <div
@@ -435,12 +513,13 @@ function Sheet({
           "transition-transform duration-300 ease-out",
           open ? "translate-x-0" : "translate-x-full",
           "flex flex-col",
+          "will-change-transform",
         ].join(" ")}
       >
         <div className="relative flex items-center border-b border-black/10 px-4 sm:px-6 py-4">
           <button
             ref={firstRef}
-            onClick={onClose}
+            onClick={handleBack}
             aria-label="Back"
             className="relative z-20 p-2 rounded-full hover:bg-black/5 active:bg-black/10 transition-colors"
             type="button"
@@ -452,7 +531,11 @@ function Sheet({
           </h2>
         </div>
 
-        <div className="flex-1 overflow-y-auto">{children}</div>
+        <div className="flex-1 overflow-y-auto">
+          <div className="min-h-full">
+            {children}
+          </div>
+        </div>
       </aside>
     </div>
   );
@@ -466,6 +549,7 @@ function titleFor(v: View) {
       return "Send";
     case "redeem-amount":
     case "redeem-bank":
+    case "redeem-otp":
       return "Redeem";
     case "buy-amount":
     case "buy-bank":
@@ -474,6 +558,45 @@ function titleFor(v: View) {
     default:
       return "";
   }
+}
+
+/* =================================================================== */
+/*                          LOADING ANIMATION                          */
+/* =================================================================== */
+
+function LoadingAnimation() {
+  return (
+    <div className="flex flex-col items-center justify-center space-y-2">
+      <div className="loader">
+        <style>{`
+          .loader {
+            width: 120px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+          }
+          .loader::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+            animation: loading-shimmer 1.5s infinite;
+            border-radius: 4px;
+          }
+          @keyframes loading-shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+          }
+        `}</style>
+      </div>
+      <span className="text-white text-sm font-medium">Processing...</span>
+    </div>
+  );
 }
 
 /* =================================================================== */
@@ -490,9 +613,15 @@ function ReceiveView({ walletAddress }: { walletAddress: string }) {
     setTimeout(() => setCopied(false), 1100);
   };
 
+  const formatWalletAddress = (address: string) => {
+    if (address.length <= 16) return address;
+    return `${address.slice(0, 8)}...${address.slice(-8)}`;
+  };
+
   return (
     <div className="px-4 sm:px-6 pt-6 pb-10">
       <div className="mx-auto max-w-[360px] w-full">
+        <LogoBlob />
         <div className="rounded-2xl border border-black/10 bg-white p-4 mx-auto w-full max-w-[280px] shadow-sm">
           <img
             src="/wallet.png"
@@ -502,10 +631,22 @@ function ReceiveView({ walletAddress }: { walletAddress: string }) {
         </div>
 
         <div className="mt-6 sm:mt-8 p-4 bg-gray-50 rounded-xl border border-black/5">
-          <p className="text-sm text-gray-600 mb-2 font-medium">Wallet Address</p>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-gray-600 font-medium">Wallet Address</p>
+            <button
+              onClick={copy}
+              className="p-1 rounded hover:bg-gray-200 transition-colors"
+              aria-label="Copy address"
+            >
+              <Copy className="w-4 h-4 text-gray-600" />
+            </button>
+          </div>
           <p className="text-sm font-mono break-all bg-white p-3 rounded-lg border border-black/5">
-            {walletAddress}
+            {formatWalletAddress(walletAddress)}
           </p>
+          {copied && (
+            <p className="mt-2 text-sm text-green-600 text-center">Copied to clipboard!</p>
+          )}
         </div>
 
         <button
@@ -529,7 +670,7 @@ function SendView({
   walletAddress: string;
   balance: string;
   mnemonics: string;
-  onSuccess?: (res: any) => void;
+  onSuccess?: (res: any, amount?: string, recipient?: string) => void;
 }) {
   const currentUser = useCurrentUser();
   const mnemonic = currentUser.hashed_mnemonic;
@@ -547,6 +688,7 @@ function SendView({
       setMessage("Please fill in all fields.");
       return;
     }
+    const toUserId = await getUserFromAddress(to)
 
     try {
       setLoading(true);
@@ -555,13 +697,15 @@ function SendView({
         sender: sender.trim(),
         toAddress: to.trim(),
         amountBTNC: amt,
+        fromUserId: currentUser.id,
+        toUserId: toUserId,
       });
 
       if (res.ok) {
         setMessage(null);
+        onSuccess?.(res, amt, to);
         setTo("");
         setAmt("");
-        onSuccess?.(res);
       } else {
         setMessage(`❌ ${res.detail || "Transfer failed"}`);
       }
@@ -572,6 +716,11 @@ function SendView({
       setLoading(false);
     }
   }
+
+  const formatWalletAddress = (address: string) => {
+    if (address.length <= 16) return address;
+    return `${address.slice(0, 8)}...${address.slice(-8)}`;
+  };
 
   return (
     <div className="px-4 sm:px-6 pt-6 pb-10">
@@ -591,7 +740,7 @@ function SendView({
             )}
             <br />
             <span className="text-sm text-gray-600 break-all mt-2 inline-block">
-              {sender}
+              {formatWalletAddress(sender)}
             </span>
           </p>
         </div>
@@ -629,15 +778,12 @@ function SendView({
         <button
           onClick={handleSend}
           disabled={loading}
-          className={`mt-8 w-full rounded-full bg-[#5B50D9] text-white py-4 font-semibold text-lg flex justify-center items-center gap-2 hover:bg-[#4a46c4] transition-colors shadow-lg ${
-            loading ? "opacity-70 cursor-not-allowed" : ""
+          className={`mt-8 w-full rounded-full bg-[#5B50D9] text-white py-4 font-semibold text-lg flex justify-center items-center gap-2 hover:bg-[#4a46c4] transition-colors shadow-lg min-h-[60px] ${
+            loading ? "opacity-90 cursor-not-allowed" : ""
           }`}
         >
           {loading ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Processing...
-            </>
+            <LoadingAnimation />
           ) : (
             "Confirm Transfer"
           )}
@@ -733,7 +879,7 @@ function RedeemAmount({ onNext }: { onNext: () => void }) {
 }
 
 // REDEEM – step 2
-function RedeemBank({ onBack }: { onBack: () => void }) {
+function RedeemBank({ onBack, onNext }: { onBack: () => void; onNext: () => void }) {
   const banks = demoBanks();
   const [openDD, setOpenDD] = useState(false);
   const [bank, setBank] = useState(banks[1]);
@@ -821,8 +967,120 @@ function RedeemBank({ onBack }: { onBack: () => void }) {
         </div>
         <p className="text-sm text-black/60 mt-1">(1 BTN coin = Nu 1)</p>
 
-        <button className="mt-6 w-full rounded-full bg-[#5B50D9] text-white py-4 font-semibold text-lg hover:bg-[#4a46c4] transition-colors shadow-lg">
-          Redeem
+        <button 
+          onClick={onNext}
+          className="mt-6 w-full rounded-full bg-[#5B50D9] text-white py-4 font-semibold text-lg hover:bg-[#4a46c4] transition-colors shadow-lg"
+        >
+          Continue to OTP
+        </button>
+
+        <button
+          onClick={onBack}
+          className="mt-4 w-full text-center text-base text-black/60 hover:text-black/80 transition-colors py-2"
+        >
+          Back
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// REDEEM – step 3 (OTP STEP)
+function RedeemOtp({ 
+  onBack, 
+  onSuccess 
+}: { 
+  onBack: () => void; 
+  onSuccess?: (amount?: string) => void;
+}) {
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [loading, setLoading] = useState(false);
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (value.length <= 1 && /^\d*$/.test(value)) {
+      const newOtp = [...otp];
+      newOtp[index] = value;
+      setOtp(newOtp);
+
+      // Auto-focus next input
+      if (value && index < 5) {
+        const nextInput = document.getElementById(`redeem-otp-${index + 1}`);
+        if (nextInput) nextInput.focus();
+      }
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      const prevInput = document.getElementById(`redeem-otp-${index - 1}`);
+      if (prevInput) prevInput.focus();
+    }
+  };
+
+  const handleRedeemConfirm = async () => {
+    const enteredOtp = otp.join('');
+    if (enteredOtp.length !== 6) {
+      alert('Please enter the complete 6-digit OTP');
+      return;
+    }
+
+    setLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      setLoading(false);
+      onSuccess?.("1000"); // Pass the redeemed amount
+    }, 2000);
+  };
+
+  return (
+    <div className="px-4 sm:px-6 pt-6 pb-10">
+      <div className="mx-auto max-w-[400px] w-full">
+        <LogoBlob />
+        <div className="text-center">
+          <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-black/5">
+            <p className="text-base text-black/70">
+              <span className="font-semibold">Redeeming</span>
+              <br />
+              1000 BTN₵
+            </p>
+          </div>
+
+          <h3 className="mt-6 text-2xl font-bold">Enter OTP</h3>
+          <p className="mt-2 text-base text-black/60">
+            Please enter the 6-digit OTP sent to your registered mobile number
+          </p>
+        </div>
+
+        <div className="mt-6 flex items-center justify-center gap-2 sm:gap-3">
+          {otp.map((value, index) => (
+            <input
+              key={index}
+              id={`redeem-otp-${index}`}
+              value={value}
+              onChange={(e) => handleOtpChange(index, e.target.value)}
+              onKeyDown={(e) => handleKeyDown(index, e)}
+              className="w-12 h-14 sm:w-14 sm:h-16 rounded-xl border border-[#9DB6D3] text-center text-xl sm:text-2xl font-semibold outline-none focus:ring-2 focus:ring-[#5B50D9]/60 transition-all"
+              inputMode="numeric"
+              maxLength={1}
+              type="text"
+            />
+          ))}
+        </div>
+
+        <button className="mt-4 text-base text-[#5B50D9] hover:text-[#4a46c4] transition-colors font-medium">
+          Resend OTP
+        </button>
+
+        <button
+          onClick={handleRedeemConfirm}
+          disabled={loading}
+          className="mt-6 w-full rounded-full bg-[#5B50D9] text-white py-4 font-semibold text-lg hover:bg-[#4a46c4] transition-colors shadow-lg disabled:opacity-90 disabled:cursor-not-allowed min-h-[60px]"
+        >
+          {loading ? (
+            <LoadingAnimation />
+          ) : (
+            "Confirm Redeem"
+          )}
         </button>
 
         <button
@@ -844,7 +1102,7 @@ function BuyAmount({
 }: {
   walletAddress: string;
   balance: string;
-  onSuccess?: () => void;
+  onSuccess?: (amount?: string) => void;
 }) {
   const [coinbalance] = useState(balance);
   const [buy, setBuy] = useState("");
@@ -864,7 +1122,7 @@ function BuyAmount({
     try {
       setLoading(true);
       await buyBtn(walletAddress, amountBTN);
-      onSuccess?.();
+      onSuccess?.(buy);
     } catch (e) {
       console.error("Buy failed:", e);
       setMessage("Transaction failed. Please try again.");
@@ -936,13 +1194,10 @@ function BuyAmount({
         <button
           onClick={handleBuy}
           disabled={loading}
-          className="mt-8 w-full rounded-full bg-[#5B50D9] text-white py-4 font-semibold text-lg hover:bg-[#4a46c4] transition-colors shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+          className="mt-8 w-full rounded-full bg-[#5B50D9] text-white py-4 font-semibold text-lg hover:bg-[#4a46c4] transition-colors shadow-lg disabled:opacity-90 disabled:cursor-not-allowed min-h-[60px]"
         >
           {loading ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Processing...
-            </>
+            <LoadingAnimation />
           ) : (
             "Buy"
           )}
@@ -980,6 +1235,11 @@ function BuyBank({
     setTimeout(() => setCopied(false), 1100);
   };
 
+  const formatWalletAddress = (address: string) => {
+    if (address.length <= 16) return address;
+    return `${address.slice(0, 8)}...${address.slice(-8)}`;
+  };
+
   return (
     <div className="px-4 sm:px-6 pt-6 pb-10">
       <div className="mx-auto max-w-[400px] w-full">
@@ -1006,7 +1266,7 @@ function BuyBank({
               </button>
             </div>
             <p className="mt-2 text-sm text-gray-600 break-all font-mono text-left">
-              {walletAddress}
+              {formatWalletAddress(walletAddress)}
             </p>
             {copied && (
               <p className="mt-1 text-sm text-green-600">Copied to clipboard!</p>

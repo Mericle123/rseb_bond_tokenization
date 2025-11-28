@@ -12,6 +12,7 @@ import {
   DollarSign, 
   Activity,
   Menu,
+  SubscriptIcon,
   X
 } from "lucide-react";
 import { logout } from "@/server/action/action";
@@ -46,6 +47,7 @@ export default function InvestorSideNavbar() {
     { label: "Assets", href: "/investor/Assets", icon: PieChart },
     { label: "Earnings", href: "/investor/Earnings", icon: DollarSign },
     { label: "Activity", href: "/investor/Activity", icon: Activity },
+    { label: "Subscriptions",  href: "/investor/Subscriptions", icon: SubscriptIcon}
   ];
 
   // ✅ FIXED: make Home active only on exact path

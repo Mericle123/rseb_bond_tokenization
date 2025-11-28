@@ -16,6 +16,9 @@ CREATE TYPE "Market" AS ENUM ('current', 'resale');
 -- CreateEnum
 CREATE TYPE "KYCStatus" AS ENUM ('pending', 'verified', 'rejected', 'error');
 
+-- CreateEnum
+CREATE TYPE "ListingStatus" AS ENUM ('open', 'filled', 'cancelled');
+
 -- CreateTable
 CREATE TABLE "Users" (
     "id" TEXT NOT NULL,
@@ -71,6 +74,7 @@ CREATE TABLE "Bonds" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "subscription_period" INTEGER NOT NULL,
     "subscription_end_date" TIMESTAMP(3) NOT NULL,
+    "allocated" BOOLEAN,
 
     CONSTRAINT "Bonds_pkey" PRIMARY KEY ("id")
 );
@@ -105,7 +109,6 @@ CREATE TABLE "Subscriptions" (
 -- CreateTable
 CREATE TABLE "Transactions" (
     "id" TEXT NOT NULL,
-    "bond_id" TEXT NOT NULL,
     "user_from" TEXT NOT NULL,
     "user_to" TEXT NOT NULL,
     "tx_hash" TEXT NOT NULL,
@@ -125,6 +128,22 @@ CREATE TABLE "Allocations" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Allocations_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Listings" (
+    "id" TEXT NOT NULL,
+    "bond_id" TEXT NOT NULL,
+    "seller_user_id" TEXT NOT NULL,
+    "seller_wallet" TEXT NOT NULL,
+    "listing_onchain" INTEGER NOT NULL,
+    "amount_tenths" BIGINT NOT NULL,
+    "status" "ListingStatus" NOT NULL DEFAULT 'open',
+    "tx_hash" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Listings_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -152,9 +171,6 @@ ALTER TABLE "Subscriptions" ADD CONSTRAINT "Subscriptions_bond_id_fkey" FOREIGN 
 ALTER TABLE "Subscriptions" ADD CONSTRAINT "Subscriptions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "Users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Transactions" ADD CONSTRAINT "Transactions_bond_id_fkey" FOREIGN KEY ("bond_id") REFERENCES "Bonds"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Transactions" ADD CONSTRAINT "Transactions_user_from_fkey" FOREIGN KEY ("user_from") REFERENCES "Users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -165,3 +181,9 @@ ALTER TABLE "Allocations" ADD CONSTRAINT "Allocations_bond_id_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "Allocations" ADD CONSTRAINT "Allocations_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "Users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Listings" ADD CONSTRAINT "Listings_bond_id_fkey" FOREIGN KEY ("bond_id") REFERENCES "Bonds"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Listings" ADD CONSTRAINT "Listings_seller_user_id_fkey" FOREIGN KEY ("seller_user_id") REFERENCES "Users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

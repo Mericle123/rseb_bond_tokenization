@@ -1,8 +1,11 @@
+"use server"
+
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { fromBase64 } from '@mysten/sui/utils';
 import { restoreKeypairFromEncryptedMnemonic } from './suiclient';
+import { db } from '../db';
 
 // -----------------------------
 // Env
@@ -163,76 +166,188 @@ export async function getBtncBalance({ address }) {
 }
 
 
-export async function transBtn({ mnemonics, sender, toAddress, amountBTNC }: {
-  mnemonics: string,
+// export async function transBtn({ mnemonics, sender, toAddress, amountBTNC }: {
+//   mnemonics: string,
+//   sender: string;
+//   toAddress: string;
+//   amountBTNC: string | number;
+
+// }) {
+//   try {
+//     if (!toAddress) throw new Error("missing_toAddress");
+//     // if (!fromRequestId) throw new Error("missing_fromRequestId");
+
+//     // Validate sender session
+//     // const s = sessions.get(fromRequestId);
+//     // if (!s || s.state !== "VERIFIED" || !s.custodialAddress) {
+//     //   throw new Error("session_invalid");
+//     // }
+
+//     // Retrieve sender’s custodial keypair
+//     // const kp = custodialsByAddress.get(sender);
+//     // if (!kp) throw new Error("custodial_key_missing (re-verify to regenerate key)");
+
+//     const tenths = toTenths(amountBTNC);
+//     const coinType = BTNCCoinType();
+
+//     const signer = await restoreKeypairFromEncryptedMnemonic(mnemonics)
+//     // Ensure sender has SUI for gas
+//     await fundSuiIfNeeded(sender);
+
+//     // Load all BTNC coins owned by sender
+//     const coins = await getAllCoins(sender, coinType);
+//     if (coins.length === 0) throw new Error("no_btnc");
+
+//     const total = coins.reduce((acc, c) => acc + BigInt(c.balance || "0"), 0n);
+//     if (total < BigInt(tenths)) throw new Error("insufficient_btnc");
+
+//     // Build transaction
+//     const primaryId = coins[0].coinObjectId;
+//     const otherIds = coins.slice(1).map((c) => c.coinObjectId);
+
+//     const tx = new Transaction();
+//     const primary = tx.object(primaryId);
+
+//     if (otherIds.length > 0) {
+//       tx.mergeCoins(primary, otherIds.map((id) => tx.object(id)));
+//     }
+
+//     const split = tx.splitCoins(primary, [tx.pure.u64(tenths)]);
+//     tx.transferObjects([split], tx.pure.address(toAddress));
+
+//     const result = await client.signAndExecuteTransaction({
+//       transaction: tx,
+//       signer,
+//       options: { showEffects: true },
+//     });
+//     try {
+//       await db.transactions.create({
+//         data: {
+//           user_from: sender,
+//           user_to: toAddress,
+//           tx_hash: result.digest,
+//           // created_at is auto set by Prisma
+//         },
+//       });
+//     } catch (dbErr) {
+//       console.error("Failed to persist Transactions record:", dbErr);
+//       // decide if you want to surface this to caller or just log it
+//     }
+
+//     return {
+//       ok: true,
+//       from: sender,
+//       to: toAddress,
+//       amountBTNC: formatBtnFromTenths(tenths), // "1,234.5"
+//       amountBaseUnits: tenths,                 // 12345 (tenths)
+//       txDigest: result.digest,
+//     };
+
+//   } catch (e: any) {
+//     console.error("transBtn error:", e);
+//     return {
+//       ok: false,
+//       error: "transfer_failed",
+//       detail: e.message,
+//     };
+//   }
+// }
+export async  function getUserFromAddress(wallet_address : string){
+  const receiverid = await db.users.findFirst({
+    where: {wallet_address : wallet_address}
+  })
+  return receiverid?.id
+}
+
+export async function transBtn({
+  mnemonics,
+  sender,        // sender wallet address (0x...)
+  toAddress,     // receiver wallet address (0x...)
+  amountBTNC,
+  fromUserId,    // Users.id of sender
+  toUserId,      // Users.id of receiver
+}: {
+  mnemonics: string;
   sender: string;
   toAddress: string;
   amountBTNC: string | number;
-
+  fromUserId: string;
+  toUserId: string;
 }) {
   try {
     if (!toAddress) throw new Error("missing_toAddress");
-    // if (!fromRequestId) throw new Error("missing_fromRequestId");
 
-    // Validate sender session
-    // const s = sessions.get(fromRequestId);
-    // if (!s || s.state !== "VERIFIED" || !s.custodialAddress) {
-    //   throw new Error("session_invalid");
-    // }
-
-    // Retrieve sender’s custodial keypair
-    // const kp = custodialsByAddress.get(sender);
-    // if (!kp) throw new Error("custodial_key_missing (re-verify to regenerate key)");
-
+    // ---- 1. convert BTN₵ to base units (tenths) ----
     const tenths = toTenths(amountBTNC);
     const coinType = BTNCCoinType();
 
-    const signer = await restoreKeypairFromEncryptedMnemonic(mnemonics)
-    // Ensure sender has SUI for gas
+    // ---- 2. restore signer from encrypted mnemonic ----
+    const signer = await restoreKeypairFromEncryptedMnemonic(mnemonics);
+
+    // ---- 3. ensure sender has SUI for gas ----
     await fundSuiIfNeeded(sender);
 
-    // Load all BTNC coins owned by sender
+    // ---- 4. load all BTNC coins owned by sender ----
     const coins = await getAllCoins(sender, coinType);
     if (coins.length === 0) throw new Error("no_btnc");
 
-    const total = coins.reduce((acc, c) => acc + BigInt(c.balance || "0"), 0n);
+    const total = coins.reduce(
+      (acc, c) => acc + BigInt(c.balance || "0"),
+      0n
+    );
     if (total < BigInt(tenths)) throw new Error("insufficient_btnc");
 
-    // Build transaction
+    // ---- 5. build the Sui transaction ----
     const primaryId = coins[0].coinObjectId;
     const otherIds = coins.slice(1).map((c) => c.coinObjectId);
 
     const tx = new Transaction();
     const primary = tx.object(primaryId);
 
+    // merge all BTNC into the primary coin
     if (otherIds.length > 0) {
       tx.mergeCoins(primary, otherIds.map((id) => tx.object(id)));
     }
 
+    // split out the amount to transfer
     const split = tx.splitCoins(primary, [tx.pure.u64(tenths)]);
     tx.transferObjects([split], tx.pure.address(toAddress));
 
+    // ---- 6. sign & execute on Sui ----
     const result = await client.signAndExecuteTransaction({
       transaction: tx,
       signer,
       options: { showEffects: true },
     });
 
+    const txDigest = result.digest;
+
+    // ---- 7. store in Transactions table (Prisma model: Transactions) ----
+    // Prisma client exposes this as `transactions`
+    await db.transactions.create({
+      data: {
+        user_from: fromUserId,  // Users.id
+        user_to:   toUserId,    // Users.id
+        tx_hash:   txDigest,
+        // created_at is auto with @default(now())
+      },
+    });
+
+    // ---- 8. return structured result to caller ----
     return {
-      ok: true,
+      ok: true as const,
       from: sender,
       to: toAddress,
-      amountBTNC: formatBtnFromTenths(tenths), // "1,234.5"
-      amountBaseUnits: tenths,                 // 12345 (tenths)
-      txDigest: result.digest,
+      amountBTNC: formatBtnFromTenths(tenths),  // "123.4"
+      amountBaseUnits: tenths,                  // 1234n
+      txDigest,
     };
-
   } catch (e: any) {
     console.error("transBtn error:", e);
     return {
-      ok: false,
+      ok: false as const,
       error: "transfer_failed",
-      detail: e.message,
+      detail: e?.message ?? "unknown_error",
     };
   }
 }

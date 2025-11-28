@@ -622,11 +622,32 @@ function BuyResaleSheet({
   const [units, setUnits] = useState("0");
   const [loading, setLoading] = useState(false);
 
-  const totalUnitsAvailable =
-    Number(listing.amount_tenths ?? 0) / 10; // tenths -> units
-  const faceValue = Number(listing.bond.face_value); // BTN per unit
+  const totalUnitsAvailable = Number(listing.amount_tenths ?? 0) / 10; // tenths -> units
+
+  // ---- PRICING LOGIC WITH ACCRUED INTEREST ----
+  const faceValuePerUnit = Number(listing.bond.face_value) / 10; // face_value is in tenths
+  const ratePct = parseFloat(listing.bond.interest_rate ?? "0"); // e.g. "10.00" -> 10
+
+  const MS_PER_DAY = 86_400_000;
+  // You can use listing.created_at instead if you want interest only until resale listing date
+  const issuedAt = new Date(listing.bond.created_at);
+  const now = new Date();
+  const daysHeld = Math.max(
+    1,
+    Math.floor((now.getTime() - issuedAt.getTime()) / MS_PER_DAY)
+  );
+
+  // Simple interest per unit
+  const interestPerUnit =
+    faceValuePerUnit * (ratePct / 100) * (daysHeld / 365);
+
+  const resalePricePerUnit = faceValuePerUnit + interestPerUnit;
+
   const nUnits = parseFloat(units) || 0;
-  const totalAmount = nUnits * faceValue;
+  const totalFace = nUnits * faceValuePerUnit;
+  const totalInterest = nUnits * interestPerUnit;
+  const totalAmount = totalFace + totalInterest;
+  // ---------------------------------------------
 
   async function handleBuy() {
     if (!currentUser) {
@@ -644,20 +665,26 @@ function BuyResaleSheet({
 
     setLoading(true);
     try {
-      // 👇 Hook this into your secondary-market buy logic
+      // 👇 Plug your actual blockchain + DB logic here
       // await buyFromListingAndPersist({
       //   listingId: listing.id,
       //   buyerUserId: currentUser.id,
       //   buyerAddress: currentUser.wallet_address,
       //   buyerMnemonic: currentUser.hashed_mnemonic,
       //   amountUnits: nUnits,
+      //   totalAmountNu: totalAmount, // include principal + accrued interest
       // });
 
       console.log("Buying from resale listing...", {
         listingId: listing.id,
         units: nUnits,
+        faceValuePerUnit,
+        interestPerUnit,
+        totalAmount,
       });
-      alert("Resale purchase logic not wired yet – plug buyFromListingAndPersist here.");
+      alert(
+        "Resale purchase logic not wired yet – plug buyFromListingAndPersist here."
+      );
       onClose();
     } catch (err) {
       console.error(err);
@@ -684,7 +711,9 @@ function BuyResaleSheet({
 
         <p className="mt-3 text-center text-sm text-gray-600">
           Units listed:{" "}
-          <span className="font-semibold text-gray-900">{totalUnitsAvailable}</span>
+          <span className="font-semibold text-gray-900">
+            {totalUnitsAvailable}
+          </span>
         </p>
 
         {/* Units to buy */}
@@ -701,21 +730,47 @@ function BuyResaleSheet({
           className="mt-2 w-full rounded-xl border border-[#9DB6D3] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#5B50D9]/60 font-medium"
         />
 
-        <label className="block text-left mt-4 text-sm font-semibold text-gray-800">
-          Face value per unit
-        </label>
-        <input
-          value={faceValue.toLocaleString()}
-          disabled
-          className="mt-2 w-full rounded-xl border border-[#9DB6D3] px-4 py-3 text-sm outline-none bg-gray-50 font-medium"
-        />
+        {/* Face value + interest per unit */}
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          <div className="border rounded-xl px-3 py-3 bg-gray-50">
+            <p className="font-semibold text-gray-800">Face value / unit</p>
+            <p className="mt-1 font-bold text-gray-900">
+              BTN Nu {faceValuePerUnit.toLocaleString()}
+            </p>
+          </div>
+          <div className="border rounded-xl px-3 py-3 bg-indigo-50">
+            <p className="font-semibold text-indigo-800">
+              Accrued interest / unit
+            </p>
+            <p className="mt-1 font-bold text-indigo-900">
+              BTN Nu {interestPerUnit.toLocaleString()}
+            </p>
+            <p className="mt-1 text-[11px] text-indigo-700">
+              {ratePct}% p.a. for ~{daysHeld} days
+            </p>
+          </div>
+        </div>
 
+        <div className="mt-4 border rounded-xl px-3 py-3 bg-emerald-50 text-sm">
+          <p className="font-semibold text-emerald-800">
+            Effective resale price / unit
+          </p>
+          <p className="mt-1 text-base font-bold text-emerald-900">
+            BTN Nu {resalePricePerUnit.toLocaleString()}
+          </p>
+        </div>
+
+        {/* Total amount breakdown */}
         <div className="mt-6 text-center text-xl font-bold text-gray-900">
           Total Amount:{" "}
           <span className="text-[#5B50D9]">
             BTN Nu {totalAmount.toLocaleString()}
           </span>
         </div>
+        <p className="mt-2 text-xs text-gray-600 text-center">
+          (Principal: BTN Nu {totalFace.toLocaleString()} &nbsp;·&nbsp; Interest:
+          BTN Nu {totalInterest.toLocaleString()})
+        </p>
 
         <p className="mt-4 text-xs text-red-600 font-medium text-center leading-5">
           Warning: Blockchain transfers are irreversible. Double-check all
@@ -734,6 +789,7 @@ function BuyResaleSheet({
     </div>
   );
 }
+
 
 /* ====================== PAGE ====================== */
 
@@ -845,23 +901,25 @@ const ResaleBondPage = ({ params }: ResalePageProps) => {
                       <div>
                         <h3 className="text-sm font-semibold text-gray-700">Face Value</h3>
                         <p className="text-lg font-bold text-gray-900">
-                          {nf.format(Number(bond.face_value))} BTN
+                          {nf.format(Number(bond.face_value) / 10)} BTN
                         </p>
                       </div>
                     </div>
                   </div>
 
                   <div className="bg-white rounded-xl border border-gray-200 p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                        <Package className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-700">Units Available</h3>
-                        <p className="text-lg font-bold text-gray-900">{bond.tl_unit_offered}</p>
-                      </div>
-                    </div>
-                  </div>
+  <div className="flex items-center gap-3 mb-3">
+    <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+      <Package className="w-5 h-5 text-green-600" />
+    </div>
+    <div>
+      <h3 className="text-sm font-semibold text-gray-700">Units Available</h3>
+      {/* 👇 use unitsListed instead of bond.tl_unit_offered / 10 */}
+      <p className="text-lg font-bold text-gray-900">{unitsListed}</p>
+    </div>
+  </div>
+</div>
+
                 </div>
 
                 {/* Dates Grid */}
