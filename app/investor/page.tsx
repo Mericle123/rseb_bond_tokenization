@@ -9,9 +9,20 @@ import {
   useCallback,
 } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { IoDocumentTextOutline } from "react-icons/io5";
+import { 
+  IoDocumentTextOutline, 
+  IoSearch, 
+  IoFilter,
+  IoClose,
+  IoCheckmarkCircle,
+  IoInformationCircle,
+  IoAlertCircle,
+  IoWallet,
+  IoTrendingUp,
+  IoStatsChart
+} from "react-icons/io5";
 
 import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
 import WalletSection from "@/Components/Coin";
@@ -31,10 +42,18 @@ interface Bond {
   tl_unit_offered: number;
   tl_unit_subscribed: number;
   listing_onchain?: Number;
-  face_value: number;
+  face_value: bigint;
   market: Market;
   status?: Status;
   disabled?: boolean;
+}
+
+interface Notification {
+  id: string;
+  type: "success" | "error" | "info" | "warning";
+  title: string;
+  message: string;
+  timestamp: Date;
 }
 
 // ========================= Motion presets =========================
@@ -44,6 +63,56 @@ const fadeIn = {
   whileInView: { opacity: 1, y: 0, scale: 1 },
   transition: { duration: 0.45, ease: "easeOut" },
   viewport: { once: true, margin: "-10% 0% -10% 0%" },
+};
+
+const notificationVariants = {
+  hidden: { opacity: 0, x: 300, scale: 0.8 },
+  visible: { 
+    opacity: 1, 
+    x: 0, 
+    scale: 1,
+    transition: { 
+      type: "spring",
+      damping: 25,
+      stiffness: 300,
+      duration: 0.4
+    }
+  },
+  exit: {
+    opacity: 0,
+    x: 300,
+    scale: 0.8,
+    transition: { duration: 0.2 }
+  }
+};
+
+const modalVariants = {
+  hidden: { 
+    opacity: 0,
+    scale: 0.8,
+    transition: { duration: 0.2 }
+  },
+  visible: { 
+    opacity: 1,
+    scale: 1,
+    transition: { 
+      type: "spring",
+      damping: 25,
+      stiffness: 300,
+      duration: 0.4
+    }
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.8,
+    transition: { duration: 0.15 }
+  }
+};
+
+const backdropVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+  exit: { opacity: 0 }
 };
 
 // ========================= Number formatters =========================
@@ -56,7 +125,355 @@ const nfCurrency = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 0,
 });
 
-// ========================= Loading Animation =========================
+// ========================= Helper Functions =========================
+
+const safeBigIntToNumber = (value: bigint): number => {
+  if (value > BigInt(Number.MAX_SAFE_INTEGER)) {
+    console.warn('BigInt value exceeds safe integer range, truncating');
+    return Number(value) / 10;
+  }
+  return Number(value);
+};
+
+const formatBigIntCurrency = (value: bigint): string => {
+  const numberValue = safeBigIntToNumber(value);
+  return nfCurrency.format(numberValue);
+};
+
+// ========================= Notification System =========================
+
+function NotificationSystem({ 
+  notifications, 
+  onRemove 
+}: { 
+  notifications: Notification[];
+  onRemove: (id: string) => void;
+}) {
+  return (
+    <div className="fixed top-4 right-4 z-50 space-y-3 max-w-sm w-full">
+      <AnimatePresence>
+        {notifications.map((notification) => (
+          <motion.div
+            key={notification.id}
+            variants={notificationVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="relative bg-white rounded-xl shadow-lg border border-gray-200 p-4"
+          >
+            <button
+              onClick={() => onRemove(notification.id)}
+              className="absolute top-3 right-3 p-1 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <IoClose className="w-4 h-4 text-gray-400" />
+            </button>
+            
+            <div className="flex items-start gap-3 pr-6">
+              <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
+                notification.type === "success" ? "bg-emerald-100 text-emerald-600" :
+                notification.type === "error" ? "bg-red-100 text-red-600" :
+                notification.type === "warning" ? "bg-amber-100 text-amber-600" :
+                "bg-blue-100 text-blue-600"
+              }`}>
+                {notification.type === "success" && <IoCheckmarkCircle className="w-4 h-4" />}
+                {notification.type === "error" && <IoAlertCircle className="w-4 h-4" />}
+                {notification.type === "warning" && <IoAlertCircle className="w-4 h-4" />}
+                {notification.type === "info" && <IoInformationCircle className="w-4 h-4" />}
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                  {notification.title}
+                </h4>
+                <p className="text-sm text-gray-600 mb-2">
+                  {notification.message}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {notification.timestamp.toLocaleTimeString()}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ========================= Negotiation Modal Component - EXACT DESIGN FROM IMAGE =========================
+
+function NegotiationModal({
+  bond,
+  isOpen,
+  onClose,
+  onConfirm
+}: {
+  bond: Bond;
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (offerData: any) => Promise<void>;
+}) {
+  const [proposedInterestRate, setProposedInterestRate] = useState("");
+  const [negotiationLoading, setNegotiationLoading] = useState(false);
+
+  if (!bond || !isOpen) return null;
+
+  const baseRatePct = parseFloat(bond.interest_rate);
+  const proposedRatePct = parseFloat(proposedInterestRate) || baseRatePct;
+  
+  const interestDifference = proposedRatePct - baseRatePct;
+  const isValid = proposedInterestRate !== "" && 
+                  proposedRatePct >= baseRatePct - 0.2 && 
+                  proposedRatePct <= baseRatePct + 0.2;
+
+  const resetModal = () => {
+    setProposedInterestRate("");
+    setNegotiationLoading(false);
+  };
+
+  const handleClose = () => {
+    resetModal();
+    onClose();
+  };
+
+  const handleConfirm = async () => {
+    if (!isValid) return;
+    
+    try {
+      setNegotiationLoading(true);
+      
+      const offerData = {
+        bondId: bond.id,
+        bondName: bond.bond_name,
+        proposedInterestRate: proposedRatePct,
+        baseInterestRate: baseRatePct,
+        interestDifference: interestDifference
+      };
+
+      await onConfirm(offerData);
+      handleClose();
+    } catch (error) {
+      console.error("Negotiation failed:", error);
+    } finally {
+      setNegotiationLoading(false);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            variants={backdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            onClick={handleClose}
+          />
+          
+          {/* Modal */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              variants={modalVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="w-full max-w-md"
+            >
+              <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+                
+                {/* Header */}
+                <div className="relative p-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100">
+                  <button
+                    onClick={handleClose}
+                    className="absolute right-4 top-4 p-1.5 rounded-lg hover:bg-white/50 transition-colors"
+                  >
+                    <IoClose className="w-5 h-5 text-gray-600" />
+                  </button>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 rounded-xl">
+                      <IoTrendingUp className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">
+                        Negotiate Price
+                      </h2>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Propose a better price for {bond.bond_name}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-6">
+                  
+                  {/* Bond Info Card */}
+                  <div className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <Image
+                          src="/RSEB.png"
+                          alt="Issuer"
+                          width={32}
+                          height={32}
+                          className="rounded-lg"
+                        />
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{bond.bond_name}</h3>
+                          <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                            <span>• {baseRatePct}% / yr (current)</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-500">Available Units</p>
+                        <p className="font-semibold text-gray-900">{bond.tl_unit_offered.toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Current Price/Unit</p>
+                        <p className="font-semibold text-gray-900">BTN Nu 300.066</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Proposed Interest Rate Input */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Proposed Interest Rate (%)
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          min={baseRatePct - 0.2}
+                          max={baseRatePct + 0.2}
+                          step="0.01"
+                          value={proposedInterestRate}
+                          onChange={(e) => setProposedInterestRate(e.target.value)}
+                          className="w-full px-4 py-3 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                          placeholder={baseRatePct.toString()}
+                        />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                          %
+                        </div>
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>Min: {(baseRatePct - 0.2).toFixed(2)}%</span>
+                        <span>Current: {baseRatePct}%</span>
+                        <span>Max: {(baseRatePct + 0.2).toFixed(2)}%</span>
+                      </div>
+                    </div>
+
+                    {/* Interest Rate Slider */}
+                    <div className="mt-4">
+                      <input
+                        type="range"
+                        min={baseRatePct - 0.2}
+                        max={baseRatePct + 0.2}
+                        step="0.01"
+                        value={proposedInterestRate || baseRatePct}
+                        onChange={(e) => setProposedInterestRate(e.target.value)}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer interest-slider"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>-0.2%</span>
+                        <span className="font-semibold">
+                          {interestDifference > 0 ? '+' : ''}{interestDifference.toFixed(2)}%
+                        </span>
+                        <span>+0.2%</span>
+                      </div>
+                      <div className="text-center text-sm mt-2">
+                        <span className="text-gray-600">Proposed Rate: </span>
+                        <span className="font-semibold text-gray-900">
+                          {proposedRatePct.toFixed(2)}%
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Rules Info */}
+                    <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
+                      <div className="flex items-center gap-2">
+                        <IoInformationCircle className="w-4 h-4 text-amber-600" />
+                        <span className="text-sm font-medium text-amber-800">Negotiation Rules</span>
+                      </div>
+                      <p className="text-xs text-amber-700 mt-1">
+                        You can adjust the interest rate by ±0.2%. The seller will review your offer and can accept, reject, or counter-offer.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Actions */}
+                <div className="px-6 pb-6">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleClose}
+                      className="flex-1 px-4 py-3 text-gray-700 font-medium bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleConfirm}
+                      disabled={!isValid || negotiationLoading}
+                      className="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                    >
+                      {negotiationLoading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          Continue
+                          <span>→</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Custom slider styles */}
+                <style jsx>{`
+                  .interest-slider::-webkit-slider-thumb {
+                    appearance: none;
+                    height: 20px;
+                    width: 20px;
+                    border-radius: 50%;
+                    background: #8b5cf6;
+                    cursor: pointer;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                  }
+                  
+                  .interest-slider::-moz-range-thumb {
+                    height: 20px;
+                    width: 20px;
+                    border-radius: 50%;
+                    background: #8b5cf6;
+                    cursor: pointer;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                  }
+                `}</style>
+              </div>
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ... Rest of the code remains exactly the same (LoadingAnimation, FilterSortBar, main component, etc.) ...
+
+// ========================= Original Loading Animation =========================
 
 function LoadingAnimation() {
   return (
@@ -345,6 +762,59 @@ function LoadingAnimation() {
   );
 }
 
+// ========================= Filter & Sort Component =========================
+
+function FilterSortBar({ 
+  onFilterChange, 
+  activeFilter,
+  onClose
+}: {
+  onFilterChange: (filter: string) => void;
+  activeFilter: string;
+  onClose: () => void;
+}) {
+  const filters = [
+    { key: "all", label: "All Bonds" },
+    { key: "up", label: "High Interest" },
+    { key: "down", label: "Low Interest" },
+    { key: "flat", label: "Stable" }
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50"
+    >
+      <div className="px-4 py-2 border-b border-gray-100">
+        <span className="text-sm font-medium text-gray-700">Filter by Status</span>
+      </div>
+      {filters.map((filter) => (
+        <button
+          key={filter.key}
+          onClick={() => {
+            onFilterChange(filter.key);
+            onClose();
+          }}
+          className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors duration-150 ${
+            activeFilter === filter.key
+              ? "bg-blue-50 text-blue-600"
+              : "text-gray-700"
+          }`}
+        >
+          <div className={`w-2 h-2 rounded-full ${
+            filter.key === "all" ? "bg-gray-400" :
+            filter.key === "up" ? "bg-emerald-500" :
+            filter.key === "down" ? "bg-red-500" : "bg-amber-500"
+          }`} />
+          <span>{filter.label}</span>
+        </button>
+      ))}
+    </motion.div>
+  );
+}
+
 // ========================= Component =========================
 
 const PAGE_SIZE = 10;
@@ -355,9 +825,16 @@ export default function InvestorPage() {
   const [bonds, setBonds] = useState<Bond[]>([]);
   const [currentBonds, setCurrentBonds] = useState<Bond[]>([]);
   const [resaleBonds, setResaleBonds] = useState<Bond[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [negotiationModal, setNegotiationModal] = useState<{ isOpen: boolean; bond: Bond | null }>({
+    isOpen: false,
+    bond: null
+  });
 
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<Market>("current");
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -367,6 +844,46 @@ export default function InvestorPage() {
   const walletAddress = currentUser?.wallet_address;
   const mnemonics = currentUser?.hashed_mnemonics;
   const [resaleLoading, setResaleLoading] = useState(false);
+
+  // Notification system
+  const addNotification = useCallback((notification: Omit<Notification, "id" | "timestamp">) => {
+    const newNotification: Notification = {
+      ...notification,
+      id: Math.random().toString(36).substr(2, 9),
+      timestamp: new Date()
+    };
+    
+    setNotifications(prev => [newNotification, ...prev.slice(0, 4)]);
+    
+    setTimeout(() => {
+      removeNotification(newNotification.id);
+    }, 5000);
+  }, []);
+
+  const removeNotification = useCallback((id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  }, []);
+
+  // Negotiation handlers
+  const openNegotiationModal = (bond: Bond) => {
+    setNegotiationModal({ isOpen: true, bond });
+  };
+
+  const closeNegotiationModal = () => {
+    setNegotiationModal({ isOpen: false, bond: null });
+  };
+
+  const handleNegotiationConfirm = async (offerData: any) => {
+    // Implement your negotiation logic here
+    console.log("Negotiation offer:", offerData);
+    // await createNegotiationOffer(offerData);
+    
+    addNotification({
+      type: "success",
+      title: "Offer Sent",
+      message: `Interest rate proposal sent for ${offerData.bondName}`
+    });
+  };
 
   // -------- Load one page of bonds --------
   const loadPage = useCallback(
@@ -383,6 +900,11 @@ export default function InvestorPage() {
 
         if (pageToLoad === 1) {
           setCurrentBonds(data || []);
+          addNotification({
+            type: "success",
+            title: "Marketplace Loaded",
+            message: `Found ${data?.length || 0} current bond offerings`
+          });
         } else {
           setCurrentBonds((prev) => [...prev, ...(data || [])]);
         }
@@ -391,6 +913,11 @@ export default function InvestorPage() {
         setPage(pageToLoad + 1);
       } catch (error) {
         console.error("Error fetching bonds:", error);
+        addNotification({
+          type: "error",
+          title: "Loading Failed",
+          message: "Unable to fetch bond offerings. Please try again."
+        });
       } finally {
         if (pageToLoad === 1) {
           setInitialLoading(false);
@@ -399,7 +926,7 @@ export default function InvestorPage() {
         }
       }
     },
-    [loadingMore]
+    [loadingMore, addNotification]
   );
 
   // Initial load
@@ -407,16 +934,25 @@ export default function InvestorPage() {
     loadPage(1);
   }, [loadPage]);
 
-  // Memoized derived data (search + tab filter)
+  // Memoized derived data (search + tab filter + status filter)
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const source = activeTab === "current" ? currentBonds : resaleBonds;
 
-    if (!q) return source;
-    return source.filter((b) =>
-      b.bond_name.toLowerCase().includes(q)
-    );
-  }, [currentBonds, resaleBonds, activeTab, query]);
+    let filteredData = source;
+    
+    if (q) {
+      filteredData = filteredData.filter((b) =>
+        b.bond_name.toLowerCase().includes(q)
+      );
+    }
+    
+    if (activeFilter !== "all") {
+      filteredData = filteredData.filter((b) => b.status === activeFilter);
+    }
+    
+    return filteredData;
+  }, [currentBonds, resaleBonds, activeTab, query, activeFilter]);
 
   const counts = useMemo(
     () => ({
@@ -425,6 +961,26 @@ export default function InvestorPage() {
     }),
     [currentBonds, resaleBonds]
   );
+
+  // Calculate statistics safely
+  const stats = useMemo(() => {
+    if (filtered.length === 0) return null;
+
+    const totalFaceValue = filtered.reduce((sum, bond) => {
+      return sum + safeBigIntToNumber(bond.face_value);
+    }, 0);
+
+    const avgFaceValue = totalFaceValue / filtered.length;
+    const totalUnits = filtered.reduce((sum, bond) => sum + bond.tl_unit_offered, 0);
+    const avgInterest = filtered.reduce((sum, bond) => sum + parseFloat(bond.interest_rate), 0) / filtered.length;
+
+    return {
+      totalOfferings: filtered.length,
+      avgInterest,
+      totalUnits,
+      avgFaceValue
+    };
+  }, [filtered]);
 
   useEffect(() => {
     if (activeTab !== "resale") return;
@@ -441,17 +997,27 @@ export default function InvestorPage() {
           tl_unit_offered: l.tl_unit_subscribed,
           listing_onchain: l.listing_onchain,
           tl_unit_subscribed: l.tl_unit_subscribed,
-          face_value: l.face_value,
+          face_value: BigInt(l.face_value || 0),
           market: "resale",
         }));
         setResaleBonds(mapped);
+        addNotification({
+          type: "success",
+          title: "Resale Market Loaded",
+          message: `Found ${mapped.length} resale listings`
+        });
       } catch (e) {
         console.error("Error fetching resale bonds:", e);
+        addNotification({
+          type: "error",
+          title: "Resale Load Failed",
+          message: "Unable to fetch resale listings"
+        });
       } finally {
         setResaleLoading(false);
       }
     })();
-  }, [activeTab, resaleBonds.length]);
+  }, [activeTab, resaleBonds.length, addNotification]);
 
   // -------- IntersectionObserver for lazy loading --------
   const observer = useRef<IntersectionObserver | null>(null);
@@ -471,11 +1037,30 @@ export default function InvestorPage() {
     [initialLoading, hasMore, loadingMore, loadPage, page]
   );
 
+  // Close filter dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.filter-dropdown-container')) {
+        setShowFilterDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // ========================= Render =========================
 
   return (
     <div className="flex min-h-screen bg-[#F7F8FB]">
       <InvestorSideNavbar />
+
+      {/* Notification System */}
+      <NotificationSystem 
+        notifications={notifications} 
+        onRemove={removeNotification} 
+      />
 
       <main className="flex-1 min-w-0 p-4 sm:p-6">
         <motion.header {...fadeIn} className="mb-6">
@@ -505,42 +1090,135 @@ export default function InvestorPage() {
                 <p className="mt-2 text-sm text-gray-600 max-w-3xl">
                   Discover and invest in government bonds listed on the Royal Securities Exchange of Bhutan
                 </p>
+                
+                {/* Active Filter Badge */}
+                {activeFilter !== "all" && (
+                  <div className="flex items-center gap-2 mt-3">
+                    <span className="text-sm text-gray-600">Active filter:</span>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                      <span>
+                        {activeFilter === "all" ? "All Bonds" : 
+                         activeFilter === "up" ? "High Interest" : 
+                         activeFilter === "down" ? "Low Interest" : "Stable"}
+                      </span>
+                      <button
+                        onClick={() => setActiveFilter("all")}
+                        className="hover:text-blue-900"
+                        aria-label="Clear filter"
+                      >
+                        <IoClose className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Search */}
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="relative">
+              {/* Search and Filters */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+                <div className="relative flex-1 min-w-0">
                   <label htmlFor="search" className="sr-only">
                     Search bonds
                   </label>
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+                  <div className="relative">
+                    <IoSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      id="search"
+                      type="search"
+                      enterKeyHint="search"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      className="w-full h-10 sm:h-11 pl-10 pr-4 rounded-lg sm:rounded-xl border border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm sm:text-base"
+                      placeholder="Search bonds..."
+                    />
+                  </div>
+                </div>
+                
+                {/* Filter Button with Dropdown */}
+                <div className="filter-dropdown-container relative">
+                  <button 
+                    className="h-10 sm:h-11 px-3 sm:px-4 rounded-lg sm:rounded-xl border border-gray-300 bg-white hover:bg-gray-50 transition-colors flex items-center gap-2 justify-center sm:justify-start"
+                    onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                    aria-expanded={showFilterDropdown}
+                    aria-haspopup="true"
+                  >
+                    <IoFilter className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Filter</span>
+                  </button>
+                  
+                  <AnimatePresence>
+                    {showFilterDropdown && (
+                      <FilterSortBar
+                        onFilterChange={setActiveFilter}
+                        activeFilter={activeFilter}
+                        onClose={() => setShowFilterDropdown(false)}
                       />
-                    </svg>
-                  </span>
-                  <input
-                    id="search"
-                    type="search"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    className="h-11 w-full sm:w-64 rounded-xl border border-gray-200 bg-white pl-10 pr-4 text-sm text-gray-800 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#5B50D9]/20 focus:border-[#5B50D9] transition-colors"
-                    placeholder="Search bonds..."
-                  />
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             </div>
+
+            {/* Stats Overview */}
+            {stats && (
+              <motion.div 
+                {...fadeIn}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8"
+              >
+                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium text-gray-600">Total {activeTab === "current" ? "Offerings" : "Listings"}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{stats.totalOfferings}</p>
+                    </div>
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-lg sm:rounded-xl flex items-center justify-center">
+                      <IoDocumentTextOutline className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium text-gray-600">Avg. Interest</p>
+                      <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">
+                        {stats.avgInterest.toFixed(2)}%
+                      </p>
+                    </div>
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-50 rounded-lg sm:rounded-xl flex items-center justify-center">
+                      <IoTrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium text-gray-600">Total Units</p>
+                      <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">
+                        {stats.totalUnits.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-50 rounded-lg sm:rounded-xl flex items-center justify-center">
+                      <IoStatsChart className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium text-gray-600">Avg. Face Value</p>
+                      <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">
+                        {nfCurrency.format(stats.avgFaceValue)}
+                      </p>
+                    </div>
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-50 rounded-lg sm:rounded-xl flex items-center justify-center">
+                      <IoWallet className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             {/* Tabs */}
             <div className="mt-8 border-b border-gray-200">
@@ -570,14 +1248,18 @@ export default function InvestorPage() {
               </div>
             </div>
 
-            {/* Loading State */}
+            {/* Loading State - USING ORIGINAL ANIMATION */}
             {(initialLoading && activeTab === "current") || (resaleLoading && activeTab === "resale") ? (
               <LoadingAnimation />
             ) : (
               <>
                 {/* Empty search state */}
                 {filtered.length === 0 && (
-                  <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-8 text-center">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-8 rounded-2xl border-2 border-dashed border-gray-300 bg-white p-8 text-center"
+                  >
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <IoDocumentTextOutline className="w-8 h-8 text-gray-400" />
                     </div>
@@ -585,26 +1267,33 @@ export default function InvestorPage() {
                       No {activeTab === "current" ? "current offerings" : "resale listings"} found
                     </h3>
                     <p className="text-gray-600 mb-4 max-w-sm mx-auto">
-                      {query 
-                        ? `No ${activeTab === "current" ? "offerings" : "listings"} match "${query}".`
+                      {query || activeFilter !== "all"
+                        ? `No ${activeTab === "current" ? "offerings" : "listings"} match your current filters.`
                         : `No ${activeTab === "current" ? "bond offerings" : "resale listings"} available at the moment.`
                       }
                     </p>
-                    {query && (
+                    {(query || activeFilter !== "all") && (
                       <button
                         type="button"
-                        onClick={() => setQuery("")}
+                        onClick={() => {
+                          setQuery("");
+                          setActiveFilter("all");
+                        }}
                         className="inline-flex items-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                       >
-                        Clear search
+                        Clear all filters
                       </button>
                     )}
-                  </div>
+                  </motion.div>
                 )}
 
                 {/* Desktop Table */}
                 {filtered.length > 0 && (
-                  <div className="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm hidden lg:block">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm hidden lg:block"
+                  >
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50/80">
                         <tr>
@@ -637,6 +1326,7 @@ export default function InvestorPage() {
                               bond={bond}
                               variant={activeTab === "current" ? "primary" : "resale"}
                               ref={isLast ? lastRowRef : undefined}
+                              onNegotiate={openNegotiationModal}
                             />
                           );
                         })}
@@ -651,7 +1341,7 @@ export default function InvestorPage() {
                         </div>
                       </div>
                     )}
-                  </div>
+                  </motion.div>
                 )}
 
                 {/* Mobile Cards */}
@@ -665,6 +1355,7 @@ export default function InvestorPage() {
                           bond={bond}
                           variant={activeTab === "current" ? "primary" : "resale"}
                           ref={isLast ? lastRowRef : undefined}
+                          onNegotiate={openNegotiationModal}
                         />
                       );
                     })}
@@ -683,6 +1374,14 @@ export default function InvestorPage() {
             )}
           </div>
         </section>
+
+        {/* Negotiation Modal */}
+        <NegotiationModal
+          bond={negotiationModal.bond!}
+          isOpen={negotiationModal.isOpen}
+          onClose={closeNegotiationModal}
+          onConfirm={handleNegotiationConfirm}
+        />
       </main>
     </div>
   );
@@ -711,10 +1410,11 @@ function TabButton({
       role="tab"
       aria-selected={active}
       onClick={onClick}
-      className={`relative inline-flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors rounded-t-lg ${active
-        ? "text-[#5B50D9] border-b-2 border-[#5B50D9] bg-white"
-        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-        }`}
+      className={`relative inline-flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors rounded-t-lg ${
+        active
+          ? "text-[#5B50D9] border-b-2 border-[#5B50D9] bg-white"
+          : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+      }`}
     >
       <span>{children}</span>
       {loading ? (
@@ -722,10 +1422,11 @@ function TabButton({
       ) : (
         typeof badge === "number" && (
           <span
-            className={`inline-flex items-center justify-center text-xs font-medium rounded-full px-2 py-1 min-w-6 ${active
-              ? "bg-[#5B50D9]/10 text-[#5B50D9]"
-              : "bg-gray-100 text-gray-600"
-              }`}
+            className={`inline-flex items-center justify-center text-xs font-medium rounded-full px-2 py-1 min-w-6 ${
+              active
+                ? "bg-[#5B50D9]/10 text-[#5B50D9]"
+                : "bg-gray-100 text-gray-600"
+            }`}
           >
             {badge}
           </span>
@@ -737,12 +1438,28 @@ function TabButton({
 
 const BondRow = forwardRef<
   HTMLTableRowElement,
-  { bond: Bond; variant: "primary" | "resale" }
->(({ bond, variant }, ref) => {
+  { 
+    bond: Bond; 
+    variant: "primary" | "resale";
+    onNegotiate?: (bond: Bond) => void;
+  }
+>(({ bond, variant, onNegotiate }, ref) => {
   const dim = bond.disabled ? "text-gray-300" : "text-gray-900";
   const rateCol = bond.disabled
     ? "text-gray-300"
     : "text-emerald-600";
+
+  // Calculate subscription percentage and determine color
+  const subscribed = Number(bond.tl_unit_subscribed) / 10;
+  const offered = Number(bond.tl_unit_offered) / 10;
+  const subscriptionPercentage = (subscribed / offered) * 100;
+  
+  let progressBarColor = "#5B50D9"; // default purple
+  if (subscriptionPercentage > 100) {
+    progressBarColor = "#EF4444"; // red for over-subscribed
+  } else if (subscriptionPercentage === 100) {
+    progressBarColor = "#10B981"; // green for exactly subscribed
+  }
 
   return (
     <tr 
@@ -764,12 +1481,13 @@ const BondRow = forwardRef<
             </div>
             <span
               aria-hidden="true"
-              className={`absolute -bottom-1 -right-1 h-3 w-3 rounded-full ring-2 ring-white ${bond.status === "up"
+              className={`absolute -bottom-1 -right-1 h-3 w-3 rounded-full ring-2 ring-white ${
+                bond.status === "up"
                   ? "bg-emerald-500"
                   : bond.status === "down"
                     ? "bg-red-500"
                     : "bg-blue-500"
-                }`}
+              }`}
             />
           </div>
           <div>
@@ -797,22 +1515,23 @@ const BondRow = forwardRef<
           {/* Total units offered */}
           <td className="py-5 px-4">
             <div className={`text-base font-medium ${dim}`}>
-              {nfInt.format(Number(bond.tl_unit_offered) / 10)}
+              {nfInt.format(offered)}
             </div>
           </td>
           {/* Subscribed / Offered */}
           <td className="py-5 px-4">
             <div className={`text-base font-medium ${dim}`}>
-              {nfInt.format(Number(bond.tl_unit_subscribed) / 10)}
+              {nfInt.format(subscribed)}
               <span className="text-sm text-gray-500 font-normal ml-1">
-                / {nfInt.format(Number(bond.tl_unit_offered) / 10)}
+                / {nfInt.format(offered)}
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
               <div 
-                className="bg-[#5B50D9] h-1.5 rounded-full transition-all duration-300" 
+                className="h-1.5 rounded-full transition-all duration-300" 
                 style={{ 
-                  width: `${Math.min(100, (Number(bond.tl_unit_subscribed) / Number(bond.tl_unit_offered)) * 100)}%` 
+                  width: `${Math.min(100, subscriptionPercentage)}%`,
+                  backgroundColor: progressBarColor
                 }}
               />
             </div>
@@ -839,7 +1558,7 @@ const BondRow = forwardRef<
       {/* Face value */}
       <td className="py-5 px-4">
         <div className={`text-base font-bold ${dim}`}>
-          {nfCurrency.format(Number(bond.face_value) / 10)}
+          {formatBigIntCurrency(bond.face_value)}
         </div>
         <div className="text-xs text-gray-500 mt-0.5">per unit</div>
       </td>
@@ -855,13 +1574,24 @@ const BondRow = forwardRef<
             View Details
           </Link>
         ) : (
-          <Link 
-            href={`/investor/resale/${bond.id}`}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#5B50D9] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#4a45b5] transition-colors shadow-sm hover:shadow-md"
-          >
-            <IoDocumentTextOutline className="w-4 h-4" />
-            View Listing
-          </Link>
+          <div className="flex flex-col gap-2">
+            <Link 
+              href={`/investor/resale/${bond.id}`}
+              className="inline-flex items-center gap-2 rounded-lg bg-[#5B50D9] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#4a45b5] transition-colors shadow-sm hover:shadow-md"
+            >
+              <IoDocumentTextOutline className="w-4 h-4" />
+              View Listing
+            </Link>
+            {onNegotiate && (
+              <button
+                onClick={() => onNegotiate(bond)}
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 px-4 py-2.5 text-sm font-semibold text-white hover:from-purple-600 hover:to-purple-700 transition-colors shadow-sm hover:shadow-md"
+              >
+                <IoTrendingUp className="w-4 h-4" />
+                Negotiate
+              </button>
+            )}
+          </div>
         )}
       </td>
     </tr>
@@ -872,10 +1602,26 @@ BondRow.displayName = "BondRow";
 
 const MobileBondCard = forwardRef<
   HTMLDivElement,
-  { bond: Bond; variant: "primary" | "resale" }
->(({ bond, variant }, ref) => {
+  { 
+    bond: Bond; 
+    variant: "primary" | "resale";
+    onNegotiate?: (bond: Bond) => void;
+  }
+>(({ bond, variant, onNegotiate }, ref) => {
   const dim = bond.disabled ? "text-gray-300" : "text-gray-900";
   const rateCol = bond.disabled ? "text-gray-300" : "text-emerald-600";
+
+  // Calculate subscription percentage and determine color
+  const subscribed = Number(bond.tl_unit_subscribed) / 10;
+  const offered = Number(bond.tl_unit_offered) / 10;
+  const subscriptionPercentage = (subscribed / offered) * 100;
+  
+  let progressBarColor = "#5B50D9"; // default purple
+  if (subscriptionPercentage > 100) {
+    progressBarColor = "#EF4444"; // red for over-subscribed
+  } else if (subscriptionPercentage === 100) {
+    progressBarColor = "#10B981"; // green for exactly subscribed
+  }
 
   return (
     <div
@@ -897,12 +1643,13 @@ const MobileBondCard = forwardRef<
             </div>
             <span
               aria-hidden="true"
-              className={`absolute -bottom-1 -right-1 h-3 w-3 rounded-full ring-2 ring-white ${bond.status === "up"
+              className={`absolute -bottom-1 -right-1 h-3 w-3 rounded-full ring-2 ring-white ${
+                bond.status === "up"
                   ? "bg-emerald-500"
                   : bond.status === "down"
                     ? "bg-red-500"
                     : "bg-blue-500"
-                }`}
+              }`}
             />
           </div>
           <div>
@@ -926,19 +1673,20 @@ const MobileBondCard = forwardRef<
             <div className="space-y-1">
               <p className="text-xs font-medium text-gray-500">Total Units</p>
               <p className={`text-base font-semibold ${dim}`}>
-                {nfInt.format(Number(bond.tl_unit_offered) / 10)}
+                {nfInt.format(offered)}
               </p>
             </div>
             <div className="space-y-1">
               <p className="text-xs font-medium text-gray-500">Subscribed</p>
               <p className={`text-base font-semibold ${dim}`}>
-                {nfInt.format(Number(bond.tl_unit_subscribed) / 10)}
+                {nfInt.format(subscribed)}
               </p>
               <div className="w-full bg-gray-200 rounded-full h-1.5">
                 <div 
-                  className="bg-[#5B50D9] h-1.5 rounded-full" 
+                  className="h-1.5 rounded-full" 
                   style={{ 
-                    width: `${Math.min(100, (Number(bond.tl_unit_subscribed) / Number(bond.tl_unit_offered)) * 100)}%` 
+                    width: `${Math.min(100, subscriptionPercentage)}%`,
+                    backgroundColor: progressBarColor
                   }}
                 />
               </div>
@@ -964,7 +1712,7 @@ const MobileBondCard = forwardRef<
         <div className="space-y-1">
           <p className="text-xs font-medium text-gray-500">Face Value</p>
           <p className={`text-base font-bold ${dim}`}>
-            {nfCurrency.format(Number(bond.face_value))}
+            {formatBigIntCurrency(bond.face_value)}
           </p>
         </div>
       </div>
@@ -980,13 +1728,24 @@ const MobileBondCard = forwardRef<
             View Bond Details
           </Link>
         ) : (
-          <Link 
-            href={`/investor/resale/${bond.id}`}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#5B50D9] px-4 py-3 text-sm font-semibold text-white hover:bg-[#4a45b5] transition-colors shadow-sm"
-          >
-            <IoDocumentTextOutline className="w-4 h-4" />
-            View Resale Listing
-          </Link>
+          <div className="flex flex-col gap-2">
+            <Link 
+              href={`/investor/resale/${bond.id}`}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#5B50D9] px-4 py-3 text-sm font-semibold text-white hover:bg-[#4a45b5] transition-colors shadow-sm"
+            >
+              <IoDocumentTextOutline className="w-4 h-4" />
+              View Resale Listing
+            </Link>
+            {onNegotiate && (
+              <button
+                onClick={() => onNegotiate(bond)}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 px-4 py-3 text-sm font-semibold text-white hover:from-purple-600 hover:to-purple-700 transition-colors shadow-sm"
+              >
+                <IoTrendingUp className="w-4 h-4" />
+                Negotiate
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

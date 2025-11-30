@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
-import { Copy, Wallet, FileText, Calendar, Hash, Coins } from "lucide-react";
+import { Copy, Wallet, FileText, Calendar, Hash, Coins, Send, ShoppingCart, Ticket } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCurrentUser } from "@/context/UserContext";
 import {
@@ -14,7 +14,7 @@ import {
 } from "@/server/blockchain/bond";
 
 /* ========================= Types ========================= */
-type ActivityKind = "event" | "peer" | "allocation" | "subscription" | "buy_sell";
+type ActivityKind = "event" | "peer" | "allocation" | "subscription" | "buy_sell" | "send" | "redeem" | "buy";
 
 type Status = "Completed" | "Complete" | "Pending" | "In progress";
 
@@ -28,7 +28,9 @@ type ActivityRow = {
     | "Owner transfer"
     | "Airdrop"
     | "Redeem"
-    | "Subscription";
+    | "Subscription"
+    | "Send"
+    | "Buy";
   date: string;
   amountLabel: string;
   status: Status;
@@ -608,6 +610,67 @@ function mapAllocationToActivityRow(a: any): ActivityRow {
   };
 }
 
+// Send transaction → ActivityRow
+function mapSendToActivityRow(txData: {
+  id: string;
+  amount: string;
+  recipient: string;
+  transactionHash?: string;
+  date: string;
+}): ActivityRow {
+  return {
+    id: `send-${txData.id}`,
+    asset: "BTN coin",
+    type: "Send",
+    date: formatDate(txData.date),
+    amountLabel: `${txData.amount} BTN₵`,
+    status: "Completed",
+    detail: `Sent ${txData.amount} BTN₵ to ${txData.recipient.slice(0, 8)}...${txData.recipient.slice(-8)}`,
+    tx_hash: txData.transactionHash || "",
+    kind: "send",
+  };
+}
+
+// Buy transaction → ActivityRow
+function mapBuyToActivityRow(txData: {
+  id: string;
+  amount: string;
+  transactionHash?: string;
+  date: string;
+}): ActivityRow {
+  return {
+    id: `buy-${txData.id}`,
+    asset: "BTN coin",
+    type: "Buy",
+    date: formatDate(txData.date),
+    amountLabel: `${txData.amount} BTN₵`,
+    status: "Completed",
+    detail: `Purchased ${txData.amount} BTN₵`,
+    tx_hash: txData.transactionHash || "",
+    kind: "buy",
+  };
+}
+
+// Redeem transaction → ActivityRow
+function mapRedeemToActivityRow(txData: {
+  id: string;
+  amount: string;
+  transactionHash?: string;
+  date: string;
+}): ActivityRow {
+  return {
+    id: `redeem-${txData.id}`,
+    asset: "BTN coin",
+    type: "Redeem",
+    date: formatDate(txData.date),
+    amountLabel: `${txData.amount} BTN₵`,
+    status: "Completed",
+    detail: `Redeemed ${txData.amount} BTN₵ to bank account`,
+    tx_hash: txData.transactionHash || "",
+    kind: "redeem",
+  };
+}
+
 function WalletStrip({ walletAddress }: { walletAddress: string }) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
@@ -663,6 +726,65 @@ export default function ActivityPage() {
   const [loading, setLoading] = useState(true);
   const [kindFilter, setKindFilter] = useState<"all" | ActivityKind>("all");
 
+  // Custom hook to handle wallet transactions from localStorage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const walletTransactions = JSON.parse(localStorage.getItem('walletTransactions') || '[]');
+      
+      const walletRows = walletTransactions.map((tx: any) => {
+        const baseData = {
+          id: tx.id,
+          amount: tx.amount,
+          transactionHash: tx.transactionHash,
+          date: tx.date || new Date().toISOString()
+        };
+
+        switch (tx.type) {
+          case 'send':
+            return mapSendToActivityRow({
+              ...baseData,
+              recipient: tx.recipient || ''
+            });
+          case 'buy':
+            return mapBuyToActivityRow(baseData);
+          case 'redeem':
+            return mapRedeemToActivityRow(baseData);
+          default:
+            return null;
+        }
+      }).filter(Boolean);
+
+      return walletRows;
+    };
+
+    // Load initial data from localStorage
+    const walletRows = handleStorageChange();
+    
+    // Set up storage event listener for real-time updates
+    const handleStorage = () => {
+      const newWalletRows = handleStorageChange();
+      setRows(prevRows => {
+        // Filter out existing wallet transactions and add new ones
+        const existingNonWalletRows = prevRows.filter(row => 
+          !row.kind.includes('send') && !row.kind.includes('buy') && !row.kind.includes('redeem')
+        );
+        return [...existingNonWalletRows, ...newWalletRows].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+      });
+    };
+
+    window.addEventListener('storage', handleStorage);
+    
+    // Also check for changes periodically (in case same tab)
+    const interval = setInterval(handleStorage, 2000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      clearInterval(interval);
+    };
+  }, []);
+
   useEffect(() => {
     if (!currentUser?.id) return;
 
@@ -682,7 +804,32 @@ export default function ActivityPage() {
         const allocationRows = allocations.map(mapAllocationToActivityRow);
         const subscriptionRows = pendingSubs.map(mapPendingSubToActivityRow);
 
-        const allRows = [...eventRows, ...peerRows, ...allocationRows, ...subscriptionRows].sort(
+        // Get wallet transactions from localStorage
+        const walletTransactions = JSON.parse(localStorage.getItem('walletTransactions') || '[]');
+        const walletRows = walletTransactions.map((tx: any) => {
+          const baseData = {
+            id: tx.id,
+            amount: tx.amount,
+            transactionHash: tx.transactionHash,
+            date: tx.date || new Date().toISOString()
+          };
+
+          switch (tx.type) {
+            case 'send':
+              return mapSendToActivityRow({
+                ...baseData,
+                recipient: tx.recipient || ''
+              });
+            case 'buy':
+              return mapBuyToActivityRow(baseData);
+            case 'redeem':
+              return mapRedeemToActivityRow(baseData);
+            default:
+              return null;
+          }
+        }).filter(Boolean);
+
+        const allRows = [...eventRows, ...peerRows, ...allocationRows, ...subscriptionRows, ...walletRows].sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
         );
 
@@ -726,7 +873,7 @@ export default function ActivityPage() {
 
         {/* Title + search */}
         <motion.header {...fadeIn} className="mt-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
                 Transaction Ledger
@@ -735,57 +882,68 @@ export default function ActivityPage() {
                 Track all your bond and coin transactions in one place
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-              {/* Filter tabs */}
-              <div className="inline-flex items-center rounded-full bg-gray-100 p-1 text-xs font-medium text-gray-600">
-                {[
-                  { id: "all", label: "All" },
-                  { id: "peer", label: "Peer-to-peer" },
-                  { id: "allocation", label: "Allocations" },
-                  { id: "subscription", label: "Subscriptions" },
-                  { id: "event", label: "Events" },
-                ].map((tab) => {
-                  const active = kindFilter === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setKindFilter(tab.id as any)}
-                      className={`px-3 py-1.5 rounded-full transition-colors ${
-                        active
-                          ? "bg-white text-gray-900 shadow-sm"
-                          : "text-gray-600 hover:text-gray-900"
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  );
-                })}
+            
+            {/* Mobile: Stack filter and search vertically */}
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              {/* Filter tabs - Scrollable on mobile */}
+              <div className="w-full lg:w-auto">
+                <div className="inline-flex items-center rounded-full bg-gray-100 p-1 text-xs font-medium text-gray-600 overflow-x-auto max-w-full">
+                  {[
+                    { id: "all", label: "All" },
+                    { id: "peer", label: "Peer-to-peer" },
+                    { id: "allocation", label: "Allocations" },
+                    { id: "subscription", label: "Subscriptions" },
+                    { id: "event", label: "Events" },
+                    { id: "send", label: "Send" },
+                    { id: "buy", label: "Buy" },
+                    { id: "redeem", label: "Redeem" },
+                  ].map((tab) => {
+                    const active = kindFilter === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setKindFilter(tab.id as any)}
+                        className={`flex-shrink-0 px-3 py-1.5 rounded-full transition-colors whitespace-nowrap ${
+                          active
+                            ? "bg-white text-gray-900 shadow-sm"
+                            : "text-gray-600 hover:text-gray-900"
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="relative">
-                <label htmlFor="search" className="sr-only">
-                  Search activity
-                </label>
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                    <path
-                      d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
-                <input
-                  id="search"
-                  type="search"
-                  enterKeyHint="search"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="h-10 w-full sm:w-64 rounded-xl border border-gray-200 bg-white pl-9 pr-3 text-sm text-gray-800 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#5B50D9]/20 focus:border-[#5B50D9] transition-colors"
-                  placeholder="Search transactions..."
-                />
+              
+              {/* Search - Full width on mobile */}
+              <div className="w-full lg:w-64">
+                <div className="relative">
+                  <label htmlFor="search" className="sr-only">
+                    Search activity
+                  </label>
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                      <path
+                        d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <input
+                    id="search"
+                    type="search"
+                    enterKeyHint="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="h-10 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3 text-sm text-gray-800 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#5B50D9]/20 focus:border-[#5B50D9] transition-colors"
+                    placeholder="Search transactions..."
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -869,9 +1027,14 @@ export default function ActivityPage() {
 
                           {/* Type */}
                           <td className="py-4 px-3">
-                            <span className="text-[14px] font-medium text-gray-900">
-                              {row.type}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              {row.type === "Send" && <Send className="w-4 h-4 text-purple-600" />}
+                              {row.type === "Buy" && <ShoppingCart className="w-4 h-4 text-green-600" />}
+                              {row.type === "Redeem" && <Ticket className="w-4 h-4 text-blue-600" />}
+                              <span className="text-[14px] font-medium text-gray-900">
+                                {row.type}
+                              </span>
+                            </div>
                           </td>
 
                           {/* Date */}
@@ -953,7 +1116,12 @@ export default function ActivityPage() {
                             <p className="text-[15px] font-semibold text-gray-900">
                               {row.asset}
                             </p>
-                            <p className="text-[13px] text-gray-600">{row.type}</p>
+                            <div className="flex items-center gap-2">
+                              {row.type === "Send" && <Send className="w-3.5 h-3.5 text-purple-600" />}
+                              {row.type === "Buy" && <ShoppingCart className="w-3.5 h-3.5 text-green-600" />}
+                              {row.type === "Redeem" && <Ticket className="w-3.5 h-3.5 text-blue-600" />}
+                              <p className="text-[13px] text-gray-600">{row.type}</p>
+                            </div>
                           </div>
                         </div>
                         <StatusBadge value={row.status} />
@@ -1045,6 +1213,24 @@ export default function ActivityPage() {
                 {filtered.filter((r) => r.status === "Pending").length}
               </span>{" "}
               pending
+            </div>
+            <div className="bg-white rounded-xl px-4 py-2 border border-gray-200">
+              <span className="font-medium text-purple-600">
+                {filtered.filter((r) => r.kind === "send").length}
+              </span>{" "}
+              sends
+            </div>
+            <div className="bg-white rounded-xl px-4 py-2 border border-gray-200">
+              <span className="font-medium text-green-600">
+                {filtered.filter((r) => r.kind === "buy").length}
+              </span>{" "}
+              buys
+            </div>
+            <div className="bg-white rounded-xl px-4 py-2 border border-gray-200">
+              <span className="font-medium text-blue-600">
+                {filtered.filter((r) => r.kind === "redeem").length}
+              </span>{" "}
+              redeems
             </div>
           </motion.div>
         )}

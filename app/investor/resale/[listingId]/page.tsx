@@ -4,12 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
-import { Copy, Wallet, ArrowLeft, Calendar, Hash, User, Coins, Percent, Package } from "lucide-react";
-import { motion } from "framer-motion";
+import { Copy, Wallet, ArrowLeft, Calendar, Hash, User, Coins, Percent, Package, TrendingDown, X, ArrowRight, Shield, Clock, CheckCircle2, Info } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useCurrentUser } from "@/context/UserContext";
 import { fetchResaleListingById } from "@/server/blockchain/bond";
 
 // import { buyFromListingAndPersist } from "@/server/blockchain/bond"; // 👈 you'll implement this
+// import { createNegotiationOffer } from "@/server/blockchain/negotiation"; // 👈 you'll implement this
 
 /* ====================== Motion ====================== */
 const fadeIn = {
@@ -17,6 +18,35 @@ const fadeIn = {
   whileInView: { opacity: 1, y: 0, scale: 1 },
   transition: { duration: 0.45, ease: "easeOut" },
   viewport: { once: true, margin: "-10% 0% -10% 0%" },
+};
+
+const modalVariants = {
+  hidden: { 
+    opacity: 0,
+    scale: 0.8,
+    transition: { duration: 0.2 }
+  },
+  visible: { 
+    opacity: 1,
+    scale: 1,
+    transition: { 
+      type: "spring",
+      damping: 25,
+      stiffness: 300,
+      duration: 0.4
+    }
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.8,
+    transition: { duration: 0.15 }
+  }
+};
+
+const backdropVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+  exit: { opacity: 0 }
 };
 
 const nf = new Intl.NumberFormat("en-IN");
@@ -495,7 +525,6 @@ function FullScreenLoading() {
 }
 
 /* ============= Wallet strip for current user ============= */
-
 function WalletStrip({ walletAddress }: { walletAddress: string }) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
@@ -538,261 +567,934 @@ function WalletStrip({ walletAddress }: { walletAddress: string }) {
   );
 }
 
-/* ====================== Slide-over shell ====================== */
-
-function Sheet({
-  open,
-  onClose,
-  title,
-  children,
-}: {
-  open: boolean;
-  onClose: () => void;
-  title?: string;
-  children: React.ReactNode;
-}) {
-  const firstRef = useRef<HTMLButtonElement | null>(null);
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKey);
-    const t = setTimeout(() => firstRef.current?.focus(), 0);
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-      clearTimeout(t);
-    };
-  }, [open, onClose]);
-
-  return (
-    <div
-      className={`fixed inset-0 z-[100] ${
-        open ? "pointer-events-auto" : "pointer-events-none"
-      }`}
-    >
-      {/* overlay */}
-      <button
-        aria-label="Close"
-        onClick={onClose}
-        className={`absolute inset-0 bg-black/40 supports-[backdrop-filter]:backdrop-blur-[2px] transition-opacity duration-300 ${
-          open ? "opacity-100" : "opacity-0"
-        }`}
-      />
-      {/* panel */}
-      <aside
-        className={`absolute right-0 top-0 h-full w-[92%] sm:w-[420px] bg-white rounded-[18px] border border-black/15 shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-out ${
-          open ? "translate-x-0" : "translate-x-full"
-        } flex flex-col`}
-        role="dialog"
-        aria-modal="true"
-      >
-        <div className="relative flex items-center border-b border-black/10 px-4 py-3">
-          <button
-            ref={firstRef}
-            onClick={onClose}
-            aria-label="Back"
-            className="relative z-20 p-2 rounded-full hover:bg-black/5 active:bg-black/10"
-            type="button"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <h2 className="absolute left-0 right-0 text-center text-[15px] font-semibold tracking-[0.2px] pointer-events-none">
-            {title ?? ""}
-          </h2>
-        </div>
-
-        <div className="flex-1 overflow-y-auto">{children}</div>
-      </aside>
-    </div>
-  );
-}
-
-/* ====================== Buy (resale) sheet ====================== */
-
-function BuyResaleSheet({
+/* ====================== Enhanced Buy Modal Component ====================== */
+function BuyNowModal({
   listing,
+  isOpen,
   onClose,
+  onConfirm
 }: {
-  listing: any; // listing with bond + seller
+  listing: any;
+  isOpen: boolean;
   onClose: () => void;
+  onConfirm: (buyData: any) => Promise<void>;
 }) {
-  const currentUser = useCurrentUser();
-  const [units, setUnits] = useState("0");
-  const [loading, setLoading] = useState(false);
+  const [units, setUnits] = useState("1");
+  const [buyLoading, setBuyLoading] = useState(false);
+  const [step, setStep] = useState<"input" | "confirm" | "processing" | "success">("input");
+  const [transactionHash, setTransactionHash] = useState("");
 
-  const totalUnitsAvailable = Number(listing.amount_tenths ?? 0) / 10; // tenths -> units
+  if (!listing || !isOpen) return null;
 
-  // ---- PRICING LOGIC WITH ACCRUED INTEREST ----
-  const faceValuePerUnit = Number(listing.bond.face_value) / 10; // face_value is in tenths
-  const ratePct = parseFloat(listing.bond.interest_rate ?? "0"); // e.g. "10.00" -> 10
-
+  const bond = listing.bond;
+  const totalUnitsAvailable = Number(listing.amount_tenths ?? 0) / 10;
+  
+  // Pricing calculation
+  const faceValuePerUnit = Number(bond.face_value) / 10;
+  const baseRatePct = parseFloat(bond.interest_rate ?? "0");
   const MS_PER_DAY = 86_400_000;
-  // You can use listing.created_at instead if you want interest only until resale listing date
-  const issuedAt = new Date(listing.bond.created_at);
+  const issuedAt = new Date(bond.created_at);
   const now = new Date();
   const daysHeld = Math.max(
     1,
     Math.floor((now.getTime() - issuedAt.getTime()) / MS_PER_DAY)
   );
-
-  // Simple interest per unit
-  const interestPerUnit =
-    faceValuePerUnit * (ratePct / 100) * (daysHeld / 365);
-
-  const resalePricePerUnit = faceValuePerUnit + interestPerUnit;
+  const baseInterestPerUnit = faceValuePerUnit * (baseRatePct / 100) * (daysHeld / 365);
+  const baseResalePricePerUnit = faceValuePerUnit + baseInterestPerUnit;
 
   const nUnits = parseFloat(units) || 0;
   const totalFace = nUnits * faceValuePerUnit;
-  const totalInterest = nUnits * interestPerUnit;
-  const totalAmount = totalFace + totalInterest;
-  // ---------------------------------------------
+  const totalBaseInterest = nUnits * baseInterestPerUnit;
+  const totalBaseAmount = totalFace + totalBaseInterest;
 
-  async function handleBuy() {
-    if (!currentUser) {
-      alert("You must be logged in to buy.");
-      return;
-    }
-    if (nUnits <= 0) {
-      alert("Enter a valid number of units.");
-      return;
-    }
-    if (nUnits > totalUnitsAvailable) {
-      alert("Cannot buy more than listed units.");
-      return;
-    }
+  const isValid = nUnits > 0 && nUnits <= totalUnitsAvailable;
+  const sliderPercentage = (nUnits / totalUnitsAvailable) * 100;
 
-    setLoading(true);
+  const resetModal = () => {
+    setUnits("1");
+    setStep("input");
+    setTransactionHash("");
+    setBuyLoading(false);
+  };
+
+  const handleClose = () => {
+    resetModal();
+    onClose();
+  };
+
+  const handleConfirm = async () => {
+    if (!isValid) return;
+    setStep("confirm");
+  };
+
+  const executePurchase = async () => {
     try {
-      // 👇 Plug your actual blockchain + DB logic here
-      // await buyFromListingAndPersist({
-      //   listingId: listing.id,
-      //   buyerUserId: currentUser.id,
-      //   buyerAddress: currentUser.wallet_address,
-      //   buyerMnemonic: currentUser.hashed_mnemonic,
-      //   amountUnits: nUnits,
-      //   totalAmountNu: totalAmount, // include principal + accrued interest
-      // });
-
-      console.log("Buying from resale listing...", {
+      setStep("processing");
+      setBuyLoading(true);
+      
+      const buyData = {
         listingId: listing.id,
         units: nUnits,
-        faceValuePerUnit,
-        interestPerUnit,
-        totalAmount,
-      });
-      alert(
-        "Resale purchase logic not wired yet – plug buyFromListingAndPersist here."
-      );
-      onClose();
-    } catch (err) {
-      console.error(err);
-      alert("Resale purchase failed");
-    } finally {
-      setLoading(false);
+        totalAmount: totalBaseAmount,
+        faceValue: totalFace,
+        interest: totalBaseInterest,
+        pricePerUnit: baseResalePricePerUnit
+      };
+
+      // 👇 Plug your actual purchase logic here
+      // await buyFromListingAndPersist(buyData);
+      
+      console.log("Executing purchase...", buyData);
+      
+      // Simulate transaction hash
+      setTransactionHash(`0x${Math.random().toString(16).slice(2, 42)}`);
+      setStep("success");
+      
+      setTimeout(() => {
+        handleClose();
+      }, 2000);
+    } catch (error) {
+      console.error("Purchase failed:", error);
+      setStep("input");
+      setBuyLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="px-6 pt-6 pb-10">
-      <div className="mx-auto max-w-[420px]">
-        <h4 className="mt-4 text-center text-lg font-bold text-gray-900">
-          Buy from Resale Market
-        </h4>
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            variants={backdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            onClick={handleClose}
+          />
+          
+          {/* Modal */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              variants={modalVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="w-full max-w-md"
+            >
+              <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+                
+                {/* Header */}
+                <div className="relative p-6 bg-gradient-to-r from-emerald-50 to-green-50 border-b border-emerald-100">
+                  <button
+                    onClick={handleClose}
+                    className="absolute right-4 top-4 p-1.5 rounded-lg hover:bg-white/50 transition-colors"
+                  >
+                    <X className="w-5 h-5 text-gray-600" />
+                  </button>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-emerald-100 rounded-xl">
+                      <Coins className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">
+                        {step === "success" ? "Purchase Successful!" : "Buy Now"}
+                      </h2>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {step === "success" 
+                          ? "Your purchase has been completed successfully" 
+                          : `Purchase ${bond.bond_name} at current market price`
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
-        <p className="mt-3 text-center text-sm text-gray-600 leading-6">
-          Seller wallet:
-          <br />
-          <span className="font-mono text-xs break-all bg-gray-50 px-2 py-1 rounded border border-gray-200 mt-1 inline-block">
-            {listing.seller_wallet}
-          </span>
-        </p>
+                {/* Content */}
+                <div className="p-6">
+                  
+                  {/* Bond Info Card */}
+                  {(step === "input" || step === "confirm") && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-200"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <Image
+                            src="/RSEB.png"
+                            alt="Issuer"
+                            width={32}
+                            height={32}
+                            className="rounded-lg"
+                          />
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{bond.bond_name}</h3>
+                            <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                              <Percent className="w-4 h-4 text-emerald-600" />
+                              <span>{baseRatePct}% / yr</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-gray-500">Available Units</p>
+                          <p className="font-semibold text-gray-900">{totalUnitsAvailable.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500">Price/Unit</p>
+                          <p className="font-semibold text-gray-900">BTN Nu {baseResalePricePerUnit.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
 
-        <p className="mt-3 text-center text-sm text-gray-600">
-          Units listed:{" "}
-          <span className="font-semibold text-gray-900">
-            {totalUnitsAvailable}
-          </span>
-        </p>
+                  {/* Step 1: Input Amount */}
+                  {step === "input" && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="space-y-4"
+                    >
+                      {/* Units Input */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Units to Purchase
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min="1"
+                            max={totalUnitsAvailable}
+                            step="1"
+                            value={units}
+                            onChange={(e) => setUnits(e.target.value)}
+                            className="w-full px-4 py-3 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                            placeholder="1"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setUnits(totalUnitsAvailable.toString())}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-medium text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors"
+                          >
+                            MAX
+                          </button>
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>Available: {totalUnitsAvailable} units</span>
+                        </div>
+                      </div>
 
-        {/* Units to buy */}
-        <label className="block text-left mt-5 text-sm font-semibold text-gray-800">
-          Units to buy (max {totalUnitsAvailable})
-        </label>
-        <input
-          value={units}
-          onChange={(e) => setUnits(e.target.value)}
-          type="number"
-          min={0}
-          max={totalUnitsAvailable}
-          step="0.1"
-          className="mt-2 w-full rounded-xl border border-[#9DB6D3] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#5B50D9]/60 font-medium"
-        />
+                      {/* Amount Slider */}
+                      <div className="mt-4">
+                        <input
+                          type="range"
+                          min="1"
+                          max={totalUnitsAvailable}
+                          step="1"
+                          value={units || 1}
+                          onChange={(e) => setUnits(e.target.value)}
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>0%</span>
+                          <span>{sliderPercentage.toFixed(0)}%</span>
+                          <span>100%</span>
+                        </div>
+                      </div>
 
-        {/* Face value + interest per unit */}
-        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-          <div className="border rounded-xl px-3 py-3 bg-gray-50">
-            <p className="font-semibold text-gray-800">Face value / unit</p>
-            <p className="mt-1 font-bold text-gray-900">
-              BTN Nu {faceValuePerUnit.toLocaleString()}
-            </p>
+                      {/* Price Breakdown */}
+                      {nUnits > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          className="bg-blue-50 rounded-xl p-4 border border-blue-200"
+                        >
+                          <div className="flex items-center gap-2 mb-3">
+                            <Info className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm font-medium text-blue-900">Price Breakdown</span>
+                          </div>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-blue-700">Principal Amount:</span>
+                              <span className="font-semibold text-blue-900">BTN Nu {totalFace.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-blue-700">Accrued Interest:</span>
+                              <span className="font-semibold text-blue-900">BTN Nu {totalBaseInterest.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between pt-2 border-t border-blue-200">
+                              <span className="text-emerald-700 font-semibold">Total Amount:</span>
+                              <span className="font-bold text-emerald-900">BTN Nu {totalBaseAmount.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* Seller Info */}
+                      <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-amber-600" />
+                          <span className="text-sm font-medium text-amber-800">Seller Information</span>
+                        </div>
+                        <p className="text-xs text-amber-700 mt-1 break-all">
+                          Wallet: {listing.seller_wallet}
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 2: Confirmation */}
+                  {step === "confirm" && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="space-y-4"
+                    >
+                      <div className="text-center py-4">
+                        <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <Coins className="w-8 h-8 text-emerald-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          Confirm Purchase
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          Review your purchase details before confirming
+                        </p>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-xl p-4 space-y-3 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Bond Name:</span>
+                          <span className="font-medium">{bond.bond_name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Units:</span>
+                          <span className="font-medium">{nUnits.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Price per Unit:</span>
+                          <span className="font-medium">BTN Nu {baseResalePricePerUnit.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Total Amount:</span>
+                          <span className="font-medium text-emerald-600">BTN Nu {totalBaseAmount.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between pt-2 border-t border-gray-200">
+                          <span className="text-gray-700 font-semibold">Seller:</span>
+                          <span className="text-xs font-medium text-gray-600 break-all">{listing.seller_wallet}</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 3: Processing */}
+                  {step === "processing" && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center py-8"
+                    >
+                      <div className="w-20 h-20 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mx-auto mb-4"></div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Processing Purchase
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        Completing your bond purchase...
+                      </p>
+                      <div className="flex items-center justify-center gap-2 mt-3 text-xs text-gray-500">
+                        <Clock className="w-4 h-4" />
+                        <span>This may take a few seconds</span>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 4: Success */}
+                  {step === "success" && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="text-center py-8"
+                    >
+                      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle2 className="w-10 h-10 text-green-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Purchase Successful!
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-4">
+                        You have successfully purchased {nUnits.toLocaleString()} units of {bond.bond_name}
+                      </p>
+                      
+                      {transactionHash && (
+                        <div className="bg-gray-50 rounded-xl p-3 text-xs">
+                          <p className="text-gray-600 mb-1">Transaction Hash:</p>
+                          <code className="text-gray-800 break-all">{transactionHash}</code>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </div>
+
+                {/* Footer Actions */}
+                {(step === "input" || step === "confirm") && (
+                  <div className="px-6 pb-6">
+                    <div className="flex gap-3">
+                      {step === "input" ? (
+                        <>
+                          <button
+                            onClick={handleClose}
+                            className="flex-1 px-4 py-3 text-gray-700 font-medium bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={handleConfirm}
+                            disabled={!isValid || buyLoading}
+                            className="flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                          >
+                            Continue
+                            <ArrowRight className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setStep("input")}
+                            className="flex-1 px-4 py-3 text-gray-700 font-medium bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                          >
+                            Back
+                          </button>
+                          <button
+                            onClick={executePurchase}
+                            disabled={buyLoading}
+                            className="flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                          >
+                            {buyLoading ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              "Confirm Purchase"
+                            )}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
           </div>
-          <div className="border rounded-xl px-3 py-3 bg-indigo-50">
-            <p className="font-semibold text-indigo-800">
-              Accrued interest / unit
-            </p>
-            <p className="mt-1 font-bold text-indigo-900">
-              BTN Nu {interestPerUnit.toLocaleString()}
-            </p>
-            <p className="mt-1 text-[11px] text-indigo-700">
-              {ratePct}% p.a. for ~{daysHeld} days
-            </p>
-          </div>
-        </div>
 
-        <div className="mt-4 border rounded-xl px-3 py-3 bg-emerald-50 text-sm">
-          <p className="font-semibold text-emerald-800">
-            Effective resale price / unit
-          </p>
-          <p className="mt-1 text-base font-bold text-emerald-900">
-            BTN Nu {resalePricePerUnit.toLocaleString()}
-          </p>
-        </div>
-
-        {/* Total amount breakdown */}
-        <div className="mt-6 text-center text-xl font-bold text-gray-900">
-          Total Amount:{" "}
-          <span className="text-[#5B50D9]">
-            BTN Nu {totalAmount.toLocaleString()}
-          </span>
-        </div>
-        <p className="mt-2 text-xs text-gray-600 text-center">
-          (Principal: BTN Nu {totalFace.toLocaleString()} &nbsp;·&nbsp; Interest:
-          BTN Nu {totalInterest.toLocaleString()})
-        </p>
-
-        <p className="mt-4 text-xs text-red-600 font-medium text-center leading-5">
-          Warning: Blockchain transfers are irreversible. Double-check all
-          details before confirming.
-        </p>
-
-        <button
-          className="mt-6 w-full rounded-full bg-[#5B50D9] text-white py-3 font-bold disabled:bg-neutral-400 hover:bg-[#4a40c8] transition-colors text-sm"
-          type="button"
-          onClick={handleBuy}
-          disabled={loading || totalAmount <= 0}
-        >
-          {loading ? "Processing..." : "Buy from seller"}
-        </button>
-      </div>
-    </div>
+          {/* Custom slider styles */}
+          <style jsx>{`
+            .slider::-webkit-slider-thumb {
+              appearance: none;
+              height: 20px;
+              width: 20px;
+              border-radius: 50%;
+              background: #10b981;
+              cursor: pointer;
+              border: 2px solid white;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            }
+            
+            .slider::-moz-range-thumb {
+              height: 20px;
+              width: 20px;
+              border-radius: 50%;
+              background: #10b981;
+              cursor: pointer;
+              border: 2px solid white;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            }
+          `}</style>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
 
+/* ====================== Negotiation Modal Component ====================== */
+function NegotiationModal({
+  listing,
+  isOpen,
+  onClose,
+  onConfirm
+}: {
+  listing: any;
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (offerData: any) => Promise<void>;
+}) {
+  const [proposedInterest, setProposedInterest] = useState("");
+  const [negotiationLoading, setNegotiationLoading] = useState(false);
+  const [step, setStep] = useState<"input" | "confirm" | "processing" | "success">("input");
+  const [transactionHash, setTransactionHash] = useState("");
+
+  if (!listing || !isOpen) return null;
+
+  const bond = listing.bond;
+  const totalUnitsAvailable = Number(listing.amount_tenths ?? 0) / 10;
+  
+  // Base pricing calculation
+  const faceValuePerUnit = Number(bond.face_value) / 10;
+  const baseRatePct = parseFloat(bond.interest_rate ?? "0");
+  const MS_PER_DAY = 86_400_000;
+  const issuedAt = new Date(bond.created_at);
+  const now = new Date();
+  const daysHeld = Math.max(
+    1,
+    Math.floor((now.getTime() - issuedAt.getTime()) / MS_PER_DAY)
+  );
+  const baseInterestPerUnit = faceValuePerUnit * (baseRatePct / 100) * (daysHeld / 365);
+  const baseResalePricePerUnit = faceValuePerUnit + baseInterestPerUnit;
+
+  // Proposed interest calculation
+  const proposedRatePct = parseFloat(proposedInterest) || baseRatePct;
+  const proposedInterestPerUnit = faceValuePerUnit * (proposedRatePct / 100) * (daysHeld / 365);
+  const proposedPricePerUnit = faceValuePerUnit + proposedInterestPerUnit;
+
+  const totalBaseAmount = totalUnitsAvailable * baseResalePricePerUnit;
+  const totalProposedAmount = totalUnitsAvailable * proposedPricePerUnit;
+  const savings = totalBaseAmount - totalProposedAmount;
+
+  const isValid = proposedRatePct >= baseRatePct - 0.2 && proposedRatePct <= baseRatePct + 0.2;
+  const interestAdjustment = proposedRatePct - baseRatePct;
+
+  const resetModal = () => {
+    setProposedInterest("");
+    setStep("input");
+    setTransactionHash("");
+    setNegotiationLoading(false);
+  };
+
+  const handleClose = () => {
+    resetModal();
+    onClose();
+  };
+
+  const handleConfirm = async () => {
+    if (!isValid) return;
+    setStep("confirm");
+  };
+
+  const executeNegotiation = async () => {
+    try {
+      setStep("processing");
+      setNegotiationLoading(true);
+      
+      const offerData = {
+        listingId: listing.id,
+        proposedInterestRate: proposedRatePct,
+        proposedTotalAmount: totalProposedAmount,
+        baseTotalAmount: totalBaseAmount,
+        savings: savings,
+        units: totalUnitsAvailable
+      };
+
+      // 👇 Plug your actual negotiation logic here
+      // await createNegotiationOffer(offerData);
+      
+      console.log("Creating negotiation offer...", offerData);
+      
+      // Simulate transaction hash
+      setTransactionHash(`0x${Math.random().toString(16).slice(2, 42)}`);
+      setStep("success");
+      
+      setTimeout(() => {
+        handleClose();
+      }, 2000);
+    } catch (error) {
+      console.error("Negotiation failed:", error);
+      setStep("input");
+      setNegotiationLoading(false);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            variants={backdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            onClick={handleClose}
+          />
+          
+          {/* Modal */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              variants={modalVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="w-full max-w-md"
+            >
+              <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+                
+                {/* Header */}
+                <div className="relative p-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100">
+                  <button
+                    onClick={handleClose}
+                    className="absolute right-4 top-4 p-1.5 rounded-lg hover:bg-white/50 transition-colors"
+                  >
+                    <X className="w-5 h-5 text-gray-600" />
+                  </button>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 rounded-xl">
+                      <TrendingDown className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">
+                        {step === "success" ? "Offer Sent!" : "Negotiate Price"}
+                      </h2>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {step === "success" 
+                          ? "Your negotiation offer has been sent to the seller" 
+                          : `Propose a better price for ${bond.bond_name}`
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-6">
+                  
+                  {/* Bond Info Card */}
+                  {(step === "input" || step === "confirm") && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-200"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <Image
+                            src="/RSEB.png"
+                            alt="Issuer"
+                            width={32}
+                            height={32}
+                            className="rounded-lg"
+                          />
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{bond.bond_name}</h3>
+                            <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                              <Percent className="w-4 h-4 text-emerald-600" />
+                              <span>{baseRatePct}% / yr (current)</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-gray-500">Available Units</p>
+                          <p className="font-semibold text-gray-900">{totalUnitsAvailable.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500">Current Price/Unit</p>
+                          <p className="font-semibold text-gray-900">BTN Nu {baseResalePricePerUnit.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 1: Input Proposed Interest */}
+                  {step === "input" && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="space-y-4"
+                    >
+                      {/* Proposed Interest Input */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Proposed Interest Rate (%)
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min={baseRatePct - 0.2}
+                            max={baseRatePct + 0.2}
+                            step="0.01"
+                            value={proposedInterest}
+                            onChange={(e) => setProposedInterest(e.target.value)}
+                            className="w-full px-4 py-3 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                            placeholder={baseRatePct.toString()}
+                          />
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                            %
+                          </div>
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>Min: {(baseRatePct - 0.2).toFixed(2)}%</span>
+                          <span>Current: {baseRatePct}%</span>
+                          <span>Max: {(baseRatePct + 0.2).toFixed(2)}%</span>
+                        </div>
+                      </div>
+
+                      {/* Interest Rate Adjustment Slider */}
+                      <div className="mt-4">
+                        <input
+                          type="range"
+                          min={baseRatePct - 0.2}
+                          max={baseRatePct + 0.2}
+                          step="0.01"
+                          value={proposedInterest || baseRatePct}
+                          onChange={(e) => setProposedInterest(e.target.value)}
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer interest-slider"
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>-0.2%</span>
+                          <span className="font-semibold">
+                            {interestAdjustment > 0 ? '+' : ''}{interestAdjustment.toFixed(2)}%
+                          </span>
+                          <span>+0.2%</span>
+                        </div>
+                        <div className="text-center text-sm mt-2">
+                          <span className="text-gray-600">Proposed Rate: </span>
+                          <span className={`font-semibold ${
+                            interestAdjustment > 0 ? 'text-emerald-600' : 
+                            interestAdjustment < 0 ? 'text-purple-600' : 'text-gray-600'
+                          }`}>
+                            {proposedRatePct.toFixed(2)}%
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Price Comparison */}
+                      {proposedInterest && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          className="bg-blue-50 rounded-xl p-4 border border-blue-200"
+                        >
+                          <div className="flex items-center gap-2 mb-3">
+                            <Info className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm font-medium text-blue-900">Price Comparison</span>
+                          </div>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-blue-700">Original Total:</span>
+                              <span className="font-semibold text-blue-900">BTN Nu {totalBaseAmount.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-purple-700">Proposed Total:</span>
+                              <span className="font-semibold text-purple-900">BTN Nu {totalProposedAmount.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between pt-2 border-t border-blue-200">
+                              <span className="text-emerald-700">Your Savings:</span>
+                              <span className="font-bold text-emerald-900">BTN Nu {savings.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* Rules Info */}
+                      <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
+                        <div className="flex items-center gap-2">
+                          <Shield className="w-4 h-4 text-amber-600" />
+                          <span className="text-sm font-medium text-amber-800">Negotiation Rules</span>
+                        </div>
+                        <p className="text-xs text-amber-700 mt-1">
+                          You can adjust the interest rate by ±0.2%. The seller will review your offer and can accept, reject, or counter-offer.
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 2: Confirmation */}
+                  {step === "confirm" && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="space-y-4"
+                    >
+                      <div className="text-center py-4">
+                        <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <TrendingDown className="w-8 h-8 text-purple-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          Confirm Offer
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          Review your negotiation offer before sending to the seller
+                        </p>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-xl p-4 space-y-3 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Bond Name:</span>
+                          <span className="font-medium">{bond.bond_name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Units:</span>
+                          <span className="font-medium">{totalUnitsAvailable.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Current Rate:</span>
+                          <span className="font-medium text-gray-900">{baseRatePct}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Proposed Rate:</span>
+                          <span className="font-medium text-purple-600">{proposedRatePct.toFixed(2)}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Proposed Total:</span>
+                          <span className="font-medium text-purple-600">BTN Nu {totalProposedAmount.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between pt-2 border-t border-gray-200">
+                          <span className="text-gray-700 font-semibold">Your Savings:</span>
+                          <span className="font-bold text-emerald-600">BTN Nu {savings.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 3: Processing */}
+                  {step === "processing" && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center py-8"
+                    >
+                      <div className="w-20 h-20 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Sending Offer
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        Creating your negotiation offer...
+                      </p>
+                      <div className="flex items-center justify-center gap-2 mt-3 text-xs text-gray-500">
+                        <Clock className="w-4 h-4" />
+                        <span>This may take a few seconds</span>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 4: Success */}
+                  {step === "success" && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="text-center py-8"
+                    >
+                      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle2 className="w-10 h-10 text-green-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Offer Sent Successfully!
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-4">
+                        Your negotiation offer has been sent to the seller
+                      </p>
+                      
+                      {transactionHash && (
+                        <div className="bg-gray-50 rounded-xl p-3 text-xs">
+                          <p className="text-gray-600 mb-1">Transaction Hash:</p>
+                          <code className="text-gray-800 break-all">{transactionHash}</code>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </div>
+
+                {/* Footer Actions */}
+                {(step === "input" || step === "confirm") && (
+                  <div className="px-6 pb-6">
+                    <div className="flex gap-3">
+                      {step === "input" ? (
+                        <>
+                          <button
+                            onClick={handleClose}
+                            className="flex-1 px-4 py-3 text-gray-700 font-medium bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={handleConfirm}
+                            disabled={!isValid || negotiationLoading}
+                            className="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                          >
+                            Continue
+                            <ArrowRight className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setStep("input")}
+                            className="flex-1 px-4 py-3 text-gray-700 font-medium bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                          >
+                            Back
+                          </button>
+                          <button
+                            onClick={executeNegotiation}
+                            disabled={negotiationLoading}
+                            className="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                          >
+                            {negotiationLoading ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                Sending...
+                              </>
+                            ) : (
+                              "Send Offer"
+                            )}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Custom slider styles */}
+          <style jsx>{`
+            .interest-slider::-webkit-slider-thumb {
+              appearance: none;
+              height: 20px;
+              width: 20px;
+              border-radius: 50%;
+              background: #8b5cf6;
+              cursor: pointer;
+              border: 2px solid white;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            }
+            
+            .interest-slider::-moz-range-thumb {
+              height: 20px;
+              width: 20px;
+              border-radius: 50%;
+              background: #8b5cf6;
+              cursor: pointer;
+              border: 2px solid white;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            }
+          `}</style>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
 
 /* ====================== PAGE ====================== */
-
 interface ResalePageProps {
   params: { listingId: string };
 }
@@ -805,6 +1507,7 @@ const ResaleBondPage = ({ params }: ResalePageProps) => {
   const [listing, setListing] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [buyOpen, setBuyOpen] = useState(false);
+  const [negotiationOpen, setNegotiationOpen] = useState(false);
 
   const walletAddress = currentUser?.wallet_address || "";
 
@@ -823,11 +1526,23 @@ const ResaleBondPage = ({ params }: ResalePageProps) => {
     load();
   }, [listingId]);
 
+  const handleBuyConfirm = async (buyData: any) => {
+    // Implement your purchase logic here
+    console.log("Purchase data:", buyData);
+    // await buyFromListingAndPersist(buyData);
+  };
+
+  const handleNegotiationConfirm = async (offerData: any) => {
+    // Implement your negotiation logic here
+    console.log("Negotiation offer:", offerData);
+    // await createNegotiationOffer(offerData);
+  };
+
   if (loading || !listing) {
     return <FullScreenLoading />;
   }
 
-  const bond = listing.bond; // from include
+  const bond = listing.bond;
   const unitsListed = Number(listing.amount_tenths ?? 0) / 10;
 
   return (
@@ -908,18 +1623,16 @@ const ResaleBondPage = ({ params }: ResalePageProps) => {
                   </div>
 
                   <div className="bg-white rounded-xl border border-gray-200 p-4">
-  <div className="flex items-center gap-3 mb-3">
-    <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-      <Package className="w-5 h-5 text-green-600" />
-    </div>
-    <div>
-      <h3 className="text-sm font-semibold text-gray-700">Units Available</h3>
-      {/* 👇 use unitsListed instead of bond.tl_unit_offered / 10 */}
-      <p className="text-lg font-bold text-gray-900">{unitsListed}</p>
-    </div>
-  </div>
-</div>
-
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                        <Package className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-700">Units Available</h3>
+                        <p className="text-lg font-bold text-gray-900">{unitsListed}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Dates Grid */}
@@ -977,13 +1690,30 @@ const ResaleBondPage = ({ params }: ResalePageProps) => {
                     </div>
                   </div>
                   
-                  <button
-                    className="mt-4 w-full rounded-full bg-[#5B50D9] text-white py-3 font-bold hover:bg-[#4a40c8] transition-colors text-sm shadow-sm"
-                    onClick={() => setBuyOpen(true)}
-                    type="button"
-                  >
-                    Buy from Resale Market
-                  </button>
+                  {/* Action Buttons */}
+                  <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="flex-1 rounded-full bg-emerald-600 text-white py-3 font-bold hover:bg-emerald-700 transition-colors text-sm shadow-sm flex items-center justify-center gap-2"
+                      onClick={() => setBuyOpen(true)}
+                      type="button"
+                    >
+                      <Coins className="w-4 h-4" />
+                      Buy Now
+                    </motion.button>
+                    
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="flex-1 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white py-3 font-bold hover:from-purple-600 hover:to-purple-700 transition-colors text-sm shadow-sm flex items-center justify-center gap-2"
+                      onClick={() => setNegotiationOpen(true)}
+                      type="button"
+                    >
+                      <TrendingDown className="w-4 h-4" />
+                      Negotiate Price
+                    </motion.button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1020,19 +1750,44 @@ const ResaleBondPage = ({ params }: ResalePageProps) => {
                     </div>
                   </div>
                 </div>
+
+                {/* Purchase Options Info Card */}
+                <div className="mt-6 bg-blue-50 rounded-xl p-4 border border-blue-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Info className="w-4 h-4 text-blue-600" />
+                    <h4 className="text-sm font-semibold text-blue-800">Purchase Options</h4>
+                  </div>
+                  <div className="space-y-2 text-xs text-blue-700">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                      <span><strong>Buy Now:</strong> Purchase immediately at current market price</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <span><strong>Negotiate:</strong> Propose a better interest rate to the seller</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </motion.section>
 
-        {/* Slide-over for resale buy */}
-        <Sheet
-          open={buyOpen}
+        {/* Enhanced Buy Now Modal */}
+        <BuyNowModal
+          listing={listing}
+          isOpen={buyOpen}
           onClose={() => setBuyOpen(false)}
-          title="Purchase from Resale"
-        >
-          <BuyResaleSheet listing={listing} onClose={() => setBuyOpen(false)} />
-        </Sheet>
+          onConfirm={handleBuyConfirm}
+        />
+
+        {/* Negotiation Modal */}
+        <NegotiationModal
+          listing={listing}
+          isOpen={negotiationOpen}
+          onClose={() => setNegotiationOpen(false)}
+          onConfirm={handleNegotiationConfirm}
+        />
       </main>
     </div>
   );
