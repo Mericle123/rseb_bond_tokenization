@@ -173,50 +173,6 @@ export async function fetchBondById(bondId: string) {
 }
 
 
-// export async function subscribeToBond(
-//   bondId: string,
-//   seriesObjectId: string,
-//   {
-//     userId,
-//     walletAddress,
-//     mnemonics,
-//     subscription_amt,
-//   }: {
-//     userId: string;
-//     walletAddress: string;
-//     mnemonics: string;
-//     subscription_amt: string | number;
-//   }
-// ) {
-//   const amountTenths = toTenths(subscription_amt);
-
-//   const coinType = btncCoinType();
-//   const coins = await getAllCoins(walletAddress, coinType);
-//   if (!coins.length) {
-//     throw new Error("No BTNC balance available for subscription");
-//   }
-//   const paymentCoinIds = coins.map((c: any) => c.coinObjectId);
-
-//   const res = await subscribePrimary({
-//     buyerMnemonic: mnemonics,
-//     buyerKeypair: undefined,
-//     buyerAddress: walletAddress,
-//     seriesObjectId,
-//     amountTenths,
-//     paymentCoinIds,
-//     bondId,
-//     userId,
-//   });
-
-//   return {
-//     ...res,
-//     subscribedTenths: amountTenths,
-//     subscribedHuman: formatBtnFromTenths(amountTenths),
-//   };
-// }
-
-
-
 // ---------- Human-friendly BTN/BTNC formatting (tenths -> string) ----------
 
 function tenthsToNumber(tenths: number | string | bigint): number {
