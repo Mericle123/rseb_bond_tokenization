@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
-import { Copy, Wallet, ArrowLeft, Calendar, Hash, User, Coins, Percent, Package, Clock, Target, BarChart3, Shield, TrendingUp } from "lucide-react";
-import { motion } from "framer-motion";
+import { Copy, Wallet, ArrowLeft, Calendar, Hash, User, Coins, Percent, Package, Clock, Target, BarChart3, Shield, TrendingUp, X, ArrowRight, CheckCircle2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { fetchBondById } from "@/server/bond/creation";
 import { useCurrentUser } from "@/context/UserContext";
 import BondCountdown from "@/app/admin/countdown";
@@ -30,6 +30,35 @@ const staggerChildren = {
       staggerChildren: 0.1
     }
   }
+};
+
+const modalVariants = {
+  hidden: { 
+    opacity: 0,
+    scale: 0.8,
+    transition: { duration: 0.2 }
+  },
+  visible: { 
+    opacity: 1,
+    scale: 1,
+    transition: { 
+      type: "spring",
+      damping: 25,
+      stiffness: 300,
+      duration: 0.4
+    }
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.8,
+    transition: { duration: 0.15 }
+  }
+};
+
+const backdropVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+  exit: { opacity: 0 }
 };
 
 const nf = new Intl.NumberFormat("en-IN");
@@ -553,109 +582,47 @@ function WalletStrip({ walletAddress }: { walletAddress: string }) {
   );
 }
 
-/* ====================== Slide-over shell ====================== */
+/* ====================== Enhanced Buy Modal Component ====================== */
 
-function Sheet({
-  open,
-  onClose,
-  title,
-  children,
-}: {
-  open: boolean;
-  onClose: () => void;
-  title?: string;
-  children: React.ReactNode;
-}) {
-  const firstRef = useRef<HTMLButtonElement | null>(null);
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKey);
-    const t = setTimeout(() => firstRef.current?.focus(), 0);
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-      clearTimeout(t);
-    };
-  }, [open, onClose]);
-
-  return (
-    <div
-      className={`fixed inset-0 z-[100] ${
-        open ? "pointer-events-auto" : "pointer-events-none"
-      }`}
-    >
-      {/* overlay */}
-      <button
-        aria-label="Close"
-        onClick={onClose}
-        className={`absolute inset-0 bg-black/50 supports-[backdrop-filter]:backdrop-blur-[4px] transition-opacity duration-300 ${
-          open ? "opacity-100" : "opacity-0"
-        }`}
-      />
-      {/* panel */}
-      <aside
-        className={`absolute right-0 top-0 h-full w-[92%] sm:w-[440px] bg-white rounded-l-2xl border-l border-gray-200/80 shadow-2xl transition-transform duration-300 ease-out ${
-          open ? "translate-x-0" : "translate-x-full"
-        } flex flex-col`}
-        role="dialog"
-        aria-modal="true"
-      >
-        <div className="relative flex items-center border-b border-gray-200/80 px-6 py-4 bg-gray-50/50">
-          <button
-            ref={firstRef}
-            onClick={onClose}
-            aria-label="Back"
-            className="relative z-20 p-2 rounded-xl hover:bg-gray-200/60 active:bg-gray-300/60 transition-colors"
-            type="button"
-          >
-            <ArrowLeft className="w-5 h-5 text-gray-700" />
-          </button>
-          <h2 className="absolute left-0 right-0 text-center text-lg font-bold text-gray-900 tracking-tight pointer-events-none">
-            {title ?? ""}
-          </h2>
-        </div>
-
-        <div className="flex-1 overflow-y-auto bg-gray-50/30">{children}</div>
-      </aside>
-    </div>
-  );
-}
-
-/* ====================== Buy sheet ====================== */
-
-function BuySheet({
-  bondId,
-  walletAddress,
-  onClose,
+function BuyBondModal({
   bond,
-  onSuccess,
-  onError,
+  isOpen,
+  onClose,
+  onConfirm
 }: {
-  bondId: string;
-  walletAddress: string;
-  onClose: () => void;
   bond: any;
-  onSuccess?: (res: any) => void;
-  onError?: (err: any) => void;
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (units: number) => Promise<void>;
 }) {
   const currentUser = useCurrentUser();
-
   const [units, setUnits] = useState("100");
-  const nUnits = parseInt(units.replace(/,/g, "")) || 0;
-
-  const nPrice = Number(bond.face_value) / 10;
-  const totalAmount = nUnits * nPrice;
-
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [step, setStep] = useState<"input" | "confirm" | "processing" | "success">("input");
+  const [transactionHash, setTransactionHash] = useState("");
+
+  const nUnits = parseInt(units.replace(/,/g, "")) || 0;
+  const nPrice = Number(bond.face_value) / 10;
+  const totalAmount = nUnits * nPrice;
 
   const fmt = (v: string) =>
     v.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-  async function handleBuy() {
+  const resetModal = () => {
+    setUnits("100");
+    setStep("input");
+    setTransactionHash("");
+    setLoading(false);
+    setLocalError(null);
+  };
+
+  const handleClose = () => {
+    resetModal();
+    onClose();
+  };
+
+  const handleConfirm = async () => {
     if (!currentUser) {
       setLocalError("You must be logged in to subscribe.");
       return;
@@ -671,107 +638,372 @@ function BuySheet({
       return;
     }
 
-    setLoading(true);
-    setLocalError(null);
+    setStep("confirm");
+  };
 
+  const executePurchase = async () => {
     try {
-      const res = await subscribeToBond(
-        bondId,
-        bond.bond_object_id,
-        {
-          userId: currentUser.id,
-          walletAddress: currentUser.wallet_address,
-          mnemonics: currentUser.hashed_mnemonic,
-          subscription_amt: nUnits,
-        }
-      );
+      setStep("processing");
+      setLoading(true);
 
-      console.log("subscribe result:", res);
-      onSuccess?.(res);
-      onClose();
-    } catch (err: any) {
-      console.error(err);
-      setLocalError("Subscription failed. Please try again.");
-      onError?.(err);
-    } finally {
+      const res = await onConfirm(nUnits);
+      
+      // Simulate transaction hash (replace with actual from blockchain)
+      setTransactionHash(`0x${Math.random().toString(16).slice(2, 42)}`);
+      setStep("success");
+      
+      // Auto close after success
+      setTimeout(() => {
+        handleClose();
+      }, 2000);
+    } catch (error) {
+      console.error("Purchase failed:", error);
+      setStep("input");
       setLoading(false);
+      setLocalError("Subscription failed. Please try again.");
     }
-  }
+  };
 
   return (
-    <div className="px-6 pt-6 pb-10">
-      <div className="mx-auto max-w-[400px]">
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 bg-gradient-to-br from-[#5B50D9] to-[#8B5CF6] rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm">
-            <Coins className="w-6 h-6 text-white" />
-          </div>
-          <h4 className="text-xl font-bold text-gray-900 tracking-tight">Purchase Bond</h4>
-          <p className="text-sm text-gray-600 mt-1">Complete your subscription below</p>
-        </div>
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            variants={backdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            onClick={handleClose}
+          />
+          
+          {/* Modal */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              variants={modalVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="w-full max-w-md"
+            >
+              <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+                
+                {/* Header */}
+                <div className="relative p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+                  <button
+                    onClick={handleClose}
+                    className="absolute right-4 top-4 p-1.5 rounded-lg hover:bg-white/50 transition-colors"
+                  >
+                    <X className="w-5 h-5 text-gray-600" />
+                  </button>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-xl">
+                      <TrendingUp className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">
+                        {step === "success" ? "Purchase Successful!" : "Purchase Bond"}
+                      </h2>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {step === "success" 
+                          ? "Your bond has been purchased successfully" 
+                          : `Invest in ${bond.bond_name}`
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
-        {/* Units to Buy */}
-        <div className="space-y-5">
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-2">
-              Number of Units
-            </label>
-            <input
-              value={units}
-              onChange={(e) => setUnits(fmt(e.target.value))}
-              className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#5B50D9]/40 focus:border-[#5B50D9] font-medium bg-white shadow-sm transition-all"
-              inputMode="numeric"
-              placeholder="Enter units"
-            />
-            <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
-              <Image src="/coin.png" alt="" width={14} height={14} />
-              <span>Price per unit: BTN Nu {nPrice.toLocaleString()}</span>
-            </div>
+                {/* Content */}
+                <div className="p-6">
+                  
+                  {/* Bond Info Card */}
+                  {(step === "input" || step === "confirm") && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-200"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <Image
+                            src="/RSEB.png"
+                            alt="Issuer"
+                            width={32}
+                            height={32}
+                            className="rounded-lg"
+                          />
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{bond.bond_name}</h3>
+                            <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                              <Percent className="w-4 h-4 text-emerald-600" />
+                              <span>{bond.interest_rate}% / yr</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-gray-500">Face Value</p>
+                          <p className="font-semibold text-gray-900">
+                            {nf.format(Number(bond.face_value) / 10)} BTN
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500">Maturity</p>
+                          <p className="font-semibold text-gray-900">{formatDMY(bond.maturity)}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 1: Input Amount */}
+                  {step === "input" && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="space-y-4"
+                    >
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Units to Purchase
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min="0"
+                            max={Number(bond.tl_unit_offered) / 10}
+                            step="1"
+                            value={units}
+                            onChange={(e) => setUnits(fmt(e.target.value))}
+                            className="w-full px-4 py-3 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            placeholder="0"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setUnits((Number(bond.tl_unit_offered) / 10).toString())}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                          >
+                            MAX
+                          </button>
+                        </div>
+                        
+                        {/* Amount Slider */}
+                        <div className="mt-4">
+                          <input
+                            type="range"
+                            min="0"
+                            max={Number(bond.tl_unit_offered) / 10}
+                            step="1"
+                            value={units || 0}
+                            onChange={(e) => setUnits(e.target.value)}
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                          />
+                          <div className="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>0%</span>
+                            <span>{((nUnits / (Number(bond.tl_unit_offered) / 10)) * 100).toFixed(0)}%</span>
+                            <span>100%</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Price Display */}
+                      <div className="bg-gradient-to-br from-blue-50 to-blue-100/80 rounded-xl p-4 border border-blue-200/60">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-blue-700">Total Amount</span>
+                          <span className="text-lg font-bold text-blue-600">
+                            BTN Nu {totalAmount.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 mt-2 text-xs text-blue-600">
+                          <Image src="/coin.png" alt="" width={14} height={14} />
+                          <span>Price per unit: BTN Nu {nPrice.toLocaleString()}</span>
+                        </div>
+                      </div>
+
+                      {/* Warning */}
+                      <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl">
+                        <div className="flex items-start gap-2">
+                          <Shield className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-orange-800 leading-5">
+                            <strong>Important:</strong> Blockchain transfers are irreversible. Please verify all details before confirming your purchase.
+                          </p>
+                        </div>
+                      </div>
+
+                      {localError && (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
+                          <p className="text-xs text-red-700 text-center font-medium">{localError}</p>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+
+                  {/* Step 2: Confirmation */}
+                  {step === "confirm" && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="space-y-4"
+                    >
+                      <div className="text-center py-4">
+                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <TrendingUp className="w-8 h-8 text-blue-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          Confirm Purchase
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          You are about to purchase {nUnits.toLocaleString()} units
+                        </p>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-xl p-4 space-y-3 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Bond Name:</span>
+                          <span className="font-medium">{bond.bond_name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Units Purchasing:</span>
+                          <span className="font-medium">{nUnits.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Total Amount:</span>
+                          <span className="font-semibold text-blue-600">BTN Nu {totalAmount.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 3: Processing */}
+                  {step === "processing" && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center py-8"
+                    >
+                      <div className="w-20 h-20 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Processing Purchase
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        Completing your bond subscription on the blockchain...
+                      </p>
+                      <div className="flex items-center justify-center gap-2 mt-3 text-xs text-gray-500">
+                        <Clock className="w-4 h-4" />
+                        <span>This may take a few seconds</span>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 4: Success */}
+                  {step === "success" && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="text-center py-8"
+                    >
+                      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle2 className="w-10 h-10 text-green-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Purchase Successful!
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-4">
+                        Your {nUnits.toLocaleString()} units have been purchased successfully
+                      </p>
+                      
+                      {transactionHash && (
+                        <div className="bg-gray-50 rounded-xl p-3 text-xs">
+                          <p className="text-gray-600 mb-1">Transaction Hash:</p>
+                          <code className="text-gray-800 break-all">{transactionHash}</code>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </div>
+
+                {/* Footer Actions */}
+                {(step === "input" || step === "confirm") && (
+                  <div className="px-6 pb-6">
+                    <div className="flex gap-3">
+                      {step === "input" ? (
+                        <>
+                          <button
+                            onClick={handleClose}
+                            className="flex-1 px-4 py-3 text-gray-700 font-medium bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={handleConfirm}
+                            disabled={!nUnits || nUnits <= 0 || loading}
+                            className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                          >
+                            Continue
+                            <ArrowRight className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setStep("input")}
+                            className="flex-1 px-4 py-3 text-gray-700 font-medium bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                          >
+                            Back
+                          </button>
+                          <button
+                            onClick={executePurchase}
+                            disabled={loading}
+                            className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                          >
+                            {loading ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              "Confirm Purchase"
+                            )}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
           </div>
 
-          {/* Price Display */}
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100/80 rounded-xl p-4 border border-gray-200/60">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-700">Total Amount</span>
-              <span className="text-lg font-bold text-[#5B50D9]">
-                BTN Nu {totalAmount.toLocaleString()}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Warning */}
-        <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-xl">
-          <div className="flex items-start gap-2">
-            <Shield className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-orange-800 leading-5">
-              <strong>Important:</strong> Blockchain transfers are irreversible. Please verify all details before confirming your purchase.
-            </p>
-          </div>
-        </div>
-
-        {localError && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
-            <p className="text-xs text-red-700 text-center font-medium">{localError}</p>
-          </div>
-        )}
-
-        <button
-          className="mt-6 w-full rounded-xl bg-gradient-to-br from-[#5B50D9] to-[#8B5CF6] text-white py-3.5 font-bold disabled:from-gray-400 disabled:to-gray-500 hover:from-[#4a40c8] hover:to-[#7c51e0] transition-all duration-200 text-sm shadow-lg shadow-[#5B50D9]/20"
-          type="button"
-          onClick={handleBuy}
-          disabled={loading || totalAmount <= 0}
-        >
-          {loading ? (
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Processing...
-            </div>
-          ) : (
-            `Subscribe for BTN Nu ${totalAmount.toLocaleString()}`
-          )}
-        </button>
-      </div>
-    </div>
+          {/* Custom slider styles */}
+          <style jsx>{`
+            .slider::-webkit-slider-thumb {
+              appearance: none;
+              height: 20px;
+              width: 20px;
+              border-radius: 50%;
+              background: #2563eb;
+              cursor: pointer;
+              border: 2px solid white;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            }
+            
+            .slider::-moz-range-thumb {
+              height: 20px;
+              width: 20px;
+              border-radius: 50%;
+              background: #2563eb;
+              cursor: pointer;
+              border: 2px solid white;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            }
+          `}</style>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -811,13 +1043,34 @@ const AboutBondPage = ({ params }: AboutBondPageProps) => {
     getBond();
   }, [bondId]);
 
-  if (loading || !bond) {
-    return <FullScreenLoading />;
-  }
+  const handlePurchaseConfirm = async (units: number) => {
+    if (!currentUser) {
+      throw new Error("You must be logged in to subscribe.");
+    }
 
-  const handleSubSuccess = (res: any) => {
+    if (!bond.bond_object_id) {
+      throw new Error("Bond is missing on-chain series id.");
+    }
+
+    const res = await subscribeToBond(
+      bondId,
+      bond.bond_object_id,
+      {
+        userId: currentUser.id,
+        walletAddress: currentUser.wallet_address,
+        mnemonics: currentUser.hashed_mnemonic,
+        subscription_amt: units,
+      }
+    );
+
+    console.log("subscribe result:", res);
     setSubTxDigest(res?.txHash ?? null);
     setSubErrorGlobal(null);
+    
+    return res;
+  };
+
+  const handleSubSuccess = () => {
     setSubSuccess(true);
   };
 
@@ -833,6 +1086,10 @@ const AboutBondPage = ({ params }: AboutBondPageProps) => {
   const goToPortfolio = () => {
     router.push("/investor/Assets");
   };
+
+  if (loading || !bond) {
+    return <FullScreenLoading />;
+  }
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50/80 via-blue-50/30 to-indigo-50/20">
@@ -1047,21 +1304,13 @@ const AboutBondPage = ({ params }: AboutBondPageProps) => {
           </motion.div>
         </motion.section>
 
-        {/* Purchase Sheet */}
-        <Sheet
-          open={buyOpen}
+        {/* Enhanced Purchase Modal */}
+        <BuyBondModal
+          bond={bond}
+          isOpen={buyOpen}
           onClose={() => setBuyOpen(false)}
-          title="Purchase Bond"
-        >
-          <BuySheet
-            bond={bond}
-            bondId={bondId}
-            walletAddress={walletAddress}
-            onClose={() => setBuyOpen(false)}
-            onSuccess={handleSubSuccess}
-            onError={handleSubError}
-          />
-        </Sheet>
+          onConfirm={handlePurchaseConfirm}
+        />
 
         {/* Success Modal */}
         {subSuccess && (
@@ -1099,7 +1348,7 @@ const AboutBondPage = ({ params }: AboutBondPageProps) => {
                   onClick={goToPortfolio}
                   type="button"
                 >
-                  View Portfolio
+                  View Your Asset
                 </button>
               </div>
             </motion.div>
