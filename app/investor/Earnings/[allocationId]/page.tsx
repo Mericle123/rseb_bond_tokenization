@@ -18,7 +18,7 @@ import { useCurrentUser } from "@/context/UserContext";
 import {
   fetchEarningDetail,
   type EarningDetail,
-} from "@/server/blockchain/bond";
+} from "@/server/db_actions/action";
 
 /* ========================= Animation Variants ========================= */
 const fadeIn = {

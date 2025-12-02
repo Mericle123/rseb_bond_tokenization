@@ -7,7 +7,7 @@ import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
 import { Copy, Wallet, ArrowLeft, Calendar, Hash, User, Coins, Percent, Package, TrendingDown, X, ArrowRight, Shield, Clock, CheckCircle2, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCurrentUser } from "@/context/UserContext";
-import { fetchResaleListingById } from "@/server/blockchain/bond";
+import { fetchResaleListingById } from "@/server/db_actions/action";
 
 // import { buyFromListingAndPersist } from "@/server/blockchain/bond"; // 👈 you'll implement this
 // import { createNegotiationOffer } from "@/server/blockchain/negotiation"; // 👈 you'll implement this

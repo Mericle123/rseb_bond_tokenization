@@ -27,9 +27,9 @@ import {
 import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
 import WalletSection from "@/Components/Coin";
 import { fetchBonds } from "@/server/bond/creation";
-import { Market } from "@/generated/prisma";
+import { Market } from "@prisma/client";
 import { useCurrentUser } from "@/context/UserContext";
-import { fetchResaleBonds } from "@/server/blockchain/bond";
+import { fetchResaleBonds } from "@/server/db_actions/action";
 
 // ========================= Types =========================
 

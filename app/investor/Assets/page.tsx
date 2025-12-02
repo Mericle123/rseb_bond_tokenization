@@ -6,7 +6,7 @@ import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
 import { Copy, Wallet, TrendingUp, TrendingDown, Minus, Info, X, ArrowRight, Shield, Clock, CheckCircle2, Search, Filter, Package, Percent } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCurrentUser } from "@/context/UserContext";
-import { fetchInvestorAllocations } from "@/server/blockchain/bond";
+import { fetchInvestorAllocations } from "@/server/db_actions/action";
 import { listForSaleAndPersist } from "@/server/blockchain/bond";
 
 // ========================= Types =========================

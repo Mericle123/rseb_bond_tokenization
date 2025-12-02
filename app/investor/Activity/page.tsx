@@ -11,7 +11,7 @@ import {
   fetchPeerToPeerTxForCurrentUser,
   fetchAllocationHistoryForCurrentUser,
   fetchPendingSubscriptionsForUser,
-} from "@/server/blockchain/bond";
+} from "@/server/db_actions/action";
 
 /* ========================= Types ========================= */
 type ActivityKind = "event" | "peer" | "allocation" | "subscription" | "buy_sell" | "send" | "redeem" | "buy";

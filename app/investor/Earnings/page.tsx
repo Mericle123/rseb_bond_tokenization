@@ -7,7 +7,7 @@ import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
 import { Copy, Wallet, FileText, TrendingUp, TrendingDown, Minus, MoreVertical, Download, Share2, Eye, Calendar, BarChart3, Filter, SortAsc } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCurrentUser } from "@/context/UserContext";
-import { fetchInvestorEarnings } from "@/server/blockchain/bond"
+import { fetchInvestorEarnings } from "@/server/db_actions/action"
 /* ========================= Types ========================= */
 
 type Status = "up" | "down" | "flat";

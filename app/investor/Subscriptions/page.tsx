@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useCurrentUser } from "@/context/UserContext";
 import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
-import { fetchPendingSubscriptionsForUser } from "@/server/blockchain/bond";
+import { fetchPendingSubscriptionsForUser } from "@/server/db_actions/action";
 import { motion } from "framer-motion";
 import { Copy, Wallet, Calendar, FileText } from "lucide-react";
 import Image from "next/image";
