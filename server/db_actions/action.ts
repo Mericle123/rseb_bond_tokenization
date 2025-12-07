@@ -410,3 +410,90 @@ export async function fetchBondBuySellHistoryForCurrentUser(userId: string) {
     },
     source: "resale" as const,
   }))}
+
+  export type CreateNegotiationOfferInput = {
+  listingId: string;
+  buyerUserId: string;
+  buyerWallet: string;
+
+  // how many units the buyer wants (integer units for now)
+  units: number;
+
+  // negotiation economics
+  proposedInterestRate: number;  // e.g. 8.5 (%)
+  proposedTotalAmountNu: number; // Nu, human value (e.g. 950.0)
+
+  note?: string;
+};
+
+export async function createNegotiationOffer(input: CreateNegotiationOfferInput) {
+  const {
+    listingId,
+    buyerUserId,
+    buyerWallet,
+    units,
+    proposedInterestRate,
+    proposedTotalAmountNu,
+    note,
+  } = input;
+
+  if (!listingId) throw new Error("listingId is required");
+  if (units <= 0) throw new Error("units must be > 0");
+
+  // 1) Load listing + bond + seller
+  const listing = await db.listings.findUnique({
+    where: { id: listingId },
+    include: {
+      bond: true,
+      seller: true,
+    },
+  });
+
+  if (!listing) throw new Error(`Listing not found for id=${listingId}`);
+  if (listing.status !== "open") throw new Error("Listing is not open");
+
+  const bond = listing.bond;
+
+  // 2) Check units <= listing amount (simple constraint)
+  const listingUnits = Number(listing.amount_tenths) / 10;
+  if (units > listingUnits) {
+    throw new Error(
+      `Requested units (${units}) exceed listing units (${listingUnits})`
+    );
+  }
+
+  // 3) Convert to tenths & amount in tenths
+  const unitsTenths = BigInt(units * 10); // integer units * 10
+  const proposedTotalAmountTenths = BigInt(toTenths(proposedTotalAmountNu));
+
+  const originalRate = parseFloat(bond.interest_rate || "0");
+
+  // 4) Store offer
+  const offer = await db.negotiationOffers.create({
+    data: {
+      bond_id: bond.id,
+      listing_id: listing.id,
+      buyer_user_id: buyerUserId,
+      seller_user_id: listing.seller_user_id,
+
+      buyer_wallet: buyerWallet,
+      seller_wallet: listing.seller_wallet,
+
+      units,
+      units_tenths: unitsTenths,
+
+      original_interest_rate: originalRate,
+      proposed_interest_rate: proposedInterestRate,
+      proposed_total_amount: proposedTotalAmountTenths,
+
+      status: "pending",
+      note,
+    },
+    include: {
+      bond: true,
+      listing: true,
+    },
+  });
+
+  return offer;
+}

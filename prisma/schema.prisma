@@ -47,13 +47,56 @@ enum KYCStatus {
   error
 }
 
-
 enum ListingStatus {
   open
   filled
   cancelled
 }
 
+enum NegotiationStatus {
+  pending
+  accepted
+  rejected
+  cancelled
+}
+
+model NegotiationOffers {
+  id String @id @default(cuid())
+
+  // Relations to core entities
+  bond_id        String
+  listing_id     String
+  buyer_user_id  String
+  seller_user_id String
+
+  // Wallets (denormalised for convenience)
+  buyer_wallet  String
+  seller_wallet String
+
+  // How many bond units / tenths are being requested
+  units        Int // e.g. 5 units
+  units_tenths BigInt // e.g. 50 if each unit = 10 tenths
+
+  // Negotiated economics
+  original_interest_rate Float // from listing / bond, e.g. 7.5
+  proposed_interest_rate Float // buyer’s proposed rate (if you want to allow it)
+  proposed_total_amount  BigInt // BTNC smallest units for full purchase
+
+  status NegotiationStatus @default(pending)
+
+  // Optional metadata
+  note       String? // free-text message with the offer
+  tx_hash    String? // filled later if you execute on-chain
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  bond    Bonds    @relation(fields: [bond_id], references: [id], onDelete: Cascade)
+  listing Listings @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+
+  buyer  Users @relation("BuyerNegotiationOffers", fields: [buyer_user_id], references: [id], onDelete: Cascade)
+  seller Users @relation("SellerNegotiationOffers", fields: [seller_user_id], references: [id], onDelete: Cascade)
+}
 
 model Users {
   id              String    @id @default(cuid())
@@ -77,6 +120,10 @@ model Users {
   transactionsTo   Transactions[]      @relation("TransactionsTo")
   allocations      Allocations[]
   listings         Listings[]          @relation("UserListings")
+
+  // NEW: negotiation offers
+  negotiationBuyerOffers  NegotiationOffers[] @relation("BuyerNegotiationOffers")
+  negotiationSellerOffers NegotiationOffers[] @relation("SellerNegotiationOffers")
 }
 
 model EKYCVerifications {
@@ -118,10 +165,11 @@ model Bonds {
   allocated             Boolean?
 
   // Relations
-  subscriptions Subscriptions[]
-  events        Events[]
-  allocations   Allocations[]
-  listings      Listings[]   @relation("BondListings")
+  subscriptions     Subscriptions[]
+  events            Events[]
+  allocations       Allocations[]
+  listings          Listings[]          @relation("BondListings")
+  negotiationOffers NegotiationOffers[]
 }
 
 model Events {
@@ -179,18 +227,19 @@ model Allocations {
 }
 
 model Listings {
-  id               String        @id @default(cuid())
-  bond_id          String        // required
-  seller_user_id   String        // required
-  seller_wallet    String
-  listing_onchain  Int           // u64 listing_id from Move
-  amount_tenths    BigInt        // quantity listed
-  status           ListingStatus @default(open)
-  tx_hash          String
-  created_at       DateTime      @default(now())
-  updated_at       DateTime      @updatedAt
+  id              String        @id @default(cuid())
+  bond_id         String // required
+  seller_user_id  String // required
+  seller_wallet   String
+  listing_onchain Int // u64 listing_id from Move
+  amount_tenths   BigInt // quantity listed
+  status          ListingStatus @default(open)
+  tx_hash         String
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
 
   // Relations
-  bond   Bonds @relation("BondListings", fields: [bond_id], references: [id], onDelete: Cascade)
-  seller Users @relation("UserListings", fields: [seller_user_id], references: [id], onDelete: Cascade)
+  bond              Bonds               @relation("BondListings", fields: [bond_id], references: [id], onDelete: Cascade)
+  seller            Users               @relation("UserListings", fields: [seller_user_id], references: [id], onDelete: Cascade)
+  negotiationOffers NegotiationOffers[]
 }

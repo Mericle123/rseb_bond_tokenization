@@ -506,18 +506,168 @@ export async function buyFromListing({
 
 
 type BuyFromListInput = {
-  buyerMnemonic : string;
-  buyerKeypair : string;
-  buyerAddress: string; 
-  seriesObjectId : string;
-  listingId : string;
-  paymentCoinIds : string;
-  nowMs : number
+  // signer / wallet
+  buyerMnemonic?: string;
+  buyerKeypair?: Ed25519Keypair;
+  buyerAddress: string;
+
+  // on-chain series + listing
+  seriesObjectId: string;
+  listingOnchainId: number; // Sui listing_id (u64)
+  nowMs: number;
+
+  // DB linking
+  listingDbId: string;      // Listings.id
+  buyerUserId: string;      // Users.id
+};
+
+export async function buyAndPersist(input: BuyFromListInput) {
+  const {
+    buyerMnemonic,
+    buyerKeypair,
+    buyerAddress,
+    seriesObjectId,
+    listingOnchainId,
+    nowMs,
+    listingDbId,
+    buyerUserId,
+  } = input;
+
+  // 1) Load listing + bond + seller from DB
+  const listing = await db.listings.findUnique({
+    where: { id: listingDbId },
+    include: {
+      bond: true,
+      seller: true,
+    },
+  });
+
+  if (!listing) {
+    throw new Error(`Listing not found for id=${listingDbId}`);
+  }
+
+  if (listing.status !== "open") {
+    throw new Error(`Listing ${listingDbId} is not open`);
+  }
+
+  const bond = listing.bond;
+  const sellerUser = listing.seller;
+
+  // 2) Collect BTNC coins from buyer wallet
+  const coinType = BTNCCoinType();
+  const coins = await getAllCoins(buyerAddress, coinType);
+  if (!coins.length) {
+    throw new Error("No BTNC balance available to buy from listing");
+  }
+  const paymentCoinIds = coins.map((c: any) => c.coinObjectId);
+
+  // 3) Call on-chain buy_listing
+  const res = await buyFromListing({
+    buyerMnemonic,
+    buyerKeypair,
+    buyerAddress,
+    seriesObjectId,
+    listingId: listingOnchainId,
+    paymentCoinIds,
+    nowMs,
+  });
+
+  const digest = res.digest;
+
+  // 4) Persist DB changes in a transaction:
+  //    - mark listing as FILLED
+  //    - create allocation for buyer
+  //    - create peer-to-peer transaction record
+  //    - optional: create event logs
+  const listedAmountTenths = listing.amount_tenths; // BigInt
+
+  const [updatedListing, buyerAlloc, p2pTx] = await db.$transaction([
+    // 4a) Mark listing as filled
+    db.listings.update({
+      where: { id: listingDbId },
+      data: {
+        status: "filled",
+        tx_hash: digest,
+      },
+    }),
+
+    // 4b) Create / increment buyer allocation
+    (async () => {
+      // Check if buyer already has an allocation row for this bond + wallet
+      const existingAlloc = await db.allocations.findFirst({
+        where: {
+          bond_id: bond.id,
+          user_id: buyerUserId,
+          wallet_address: buyerAddress,
+        },
+      });
+
+      if (existingAlloc) {
+        return db.allocations.update({
+          where: { id: existingAlloc.id },
+          data: {
+            allocated_tenths: {
+              increment: listedAmountTenths,
+            },
+            tx_hash: digest,
+          },
+        });
+      }
+
+      // No existing allocation – create new
+      return db.allocations.create({
+        data: {
+          bond_id: bond.id,
+          user_id: buyerUserId,
+          wallet_address: buyerAddress,
+          allocated_tenths: listedAmountTenths,
+          tx_hash: digest,
+        },
+      });
+    })() as any,
+
+    // 4c) Peer-to-peer transaction record
+    db.transactions.create({
+      data: {
+        user_from: sellerUser.id,
+        user_to: buyerUserId,
+        tx_hash: digest,
+      },
+    }),
+  ]);
+
+  // 5) Optional events (buy/sell)
+  await Promise.all([
+    db.events.create({
+      data: {
+        type: EventType.transfer,
+        bond_id: bond.id,
+        user_id: buyerUserId,
+        details: `Bought ${Number(listedAmountTenths) / 10} units from ${sellerUser.wallet_address}`,
+        tx_hash: digest,
+      },
+    }).catch(() => {}),
+
+    db.events.create({
+      data: {
+        type: EventType.transfer,
+        bond_id: bond.id,
+        user_id: sellerUser.id,
+        details: `Sold ${Number(listedAmountTenths) / 10} units to ${buyerAddress}`,
+        tx_hash: digest,
+      },
+    }).catch(() => {}),
+  ]);
+
+  return {
+    ok: true,
+    digest,
+    listing: updatedListing,
+    allocation: buyerAlloc,
+    transaction: p2pTx,
+  };
 }
 
-export  async  function buyAndPersist(input : BuyFromListInput){
-
-}
 // -----------------------------
 // Read helpers
 // -----------------------------
@@ -854,3 +1004,104 @@ export async function listForSaleAndPersist(input: ListForSaleInput) {
 }
 
 
+
+
+export async function acceptNegotiationOfferAndBuy(params: {
+  offerId: string;
+  buyerUserId: string;
+  buyerAddress: string;
+  buyerMnemonic?: string;
+}) {
+  const { offerId, buyerUserId, buyerAddress, buyerMnemonic } = params;
+
+  // 1) Load offer + listing + bond + seller + buyer
+  const offer = await db.negotiationOffers.findUnique({
+    where: { id: offerId },
+    include: {
+      bond: true,
+      listing: {
+        include: {
+          bond: true,
+          seller: true,
+        },
+      },
+      buyer: true,
+      seller: true,
+    },
+  });
+
+  if (!offer) throw new Error(`Negotiation offer not found: ${offerId}`);
+  if (offer.status !== "pending") {
+    throw new Error(`Offer ${offerId} is not pending`);
+  }
+
+  const listing = offer.listing;
+  if (!listing) throw new Error("Offer has no listing relation");
+  if (listing.status !== "open") {
+    throw new Error("Listing is not open");
+  }
+
+  const bond = listing.bond;
+  if (!bond.bond_object_id) {
+    throw new Error("Bond has no bond_object_id (series object id)");
+  }
+
+  // For now, assume buyer is taking the FULL listing amount (simple plan).
+  // If you want partial fills (units < listing units), you must adjust
+  // the requested amount and (in future) on-chain logic / DB updates.
+  // Here, we enforce full listing purchase for safety:
+  const listingUnits = Number(listing.amount_tenths) / 10;
+  if (offer.units !== listingUnits) {
+    // You can relax this later, but for now keep it strict:
+    throw new Error(
+      `Offer units (${offer.units}) must match listing units (${listingUnits}) for acceptance in plan 2`
+    );
+  }
+
+  const seriesObjectId = bond.bond_object_id;
+  const nowMs = Date.now();
+
+  // 2) Run buy + persist (generic resale pipeline)
+  const result = await buyAndPersist({
+    buyerMnemonic,
+    buyerKeypair: undefined,
+    buyerAddress,
+    seriesObjectId,
+    listingOnchainId: listing.listing_onchain,
+    nowMs,
+    listingDbId: listing.id,
+    buyerUserId,
+  });
+
+  const digest = result.digest;
+
+  // 3) Update offer status + optionally cancel other offers on same listing
+  await db.$transaction([
+    db.negotiationOffers.update({
+      where: { id: offerId },
+      data: {
+        status: "accepted",
+        tx_hash: digest,
+      },
+    }),
+
+    db.negotiationOffers.updateMany({
+      where: {
+        listing_id: listing.id,
+        id: { not: offerId },
+        status: "pending",
+      },
+      data: {
+        status: "cancelled",
+      },
+    }),
+  ]);
+
+  return {
+    ok: true,
+    digest,
+    listing: result.listing,
+    allocation: result.allocation,
+    transaction: result.transaction,
+  };
+}
