@@ -15,9 +15,9 @@ import {
     IoStatsChart,
     IoCopyOutline,
     IoWalletOutline,
-    IoImageOutline,
-    IoCloudUploadOutline,
-    IoClose
+    // IoImageOutline,
+    // IoCloudUploadOutline,
+    // IoClose
 } from 'react-icons/io5';
 import { FiEdit2, FiArrowRight, FiCheck } from 'react-icons/fi';
 import { bondCreation } from '@/server/bond/creation';
@@ -95,8 +95,9 @@ const FinalizeBondContent = () => {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [copiedField, setCopiedField] = useState<string | null>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [isDragging, setIsDragging] = useState(false);
+
+    // const [imagePreview, setImagePreview] = useState<string | null>(null);
+    // const [isDragging, setIsDragging] = useState(false);
 
     useEffect(() => {
         // First try to get data from localStorage (for image data)
@@ -108,9 +109,9 @@ const FinalizeBondContent = () => {
                 setDetails(parsedDetails);
                 
                 // Set image preview if bondImage exists
-                if (parsedDetails.bondImage) {
-                    setImagePreview(parsedDetails.bondImage);
-                }
+                // if (parsedDetails.bondImage) {
+                //     setImagePreview(parsedDetails.bondImage);
+                // }
                 
                 // Clean up localStorage after use
                 localStorage.removeItem('bondDetails');
@@ -142,7 +143,8 @@ const FinalizeBondContent = () => {
         }
     }, [fieldErrors]);
 
-    // Handle image upload
+    // --------- IMAGE HANDLERS COMMENTED OUT ----------
+    /*
     const handleImageUpload = (file: File) => {
         const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
         if (!validTypes.includes(file.type)) {
@@ -197,6 +199,8 @@ const FinalizeBondContent = () => {
         setDetails(prev => ({ ...prev, bondImage: '' }));
         setFieldErrors(prev => ({ ...prev, bondImage: 'Bond image is required' }));
     };
+    */
+    // ------------------------------------------------
 
     const validateField = useCallback((name: string, value: string): string => {
         switch (name) {
@@ -254,9 +258,9 @@ const FinalizeBondContent = () => {
                 if (maturityDate <= today) return 'Must be a future date';
                 return '';
             
-            case 'bondImage':
-                if (!value.trim()) return 'Bond image is required';
-                return '';
+            // case 'bondImage':
+            //     if (!value.trim()) return 'Bond image is required';
+            //     return '';
             
             default:
                 return '';
@@ -455,7 +459,8 @@ const FinalizeBondContent = () => {
                                 </div>
                             </div>
 
-                            {/* Bond Image Section */}
+                            {/* Bond Image Section (commented out) */}
+                            {/*
                             <div className="bg-gradient-to-br from-indigo-50/50 to-indigo-100/30 rounded-xl p-4 border border-indigo-200/60 mb-6">
                                 <h3 className="font-semibold text-indigo-900 mb-4 flex items-center gap-2">
                                     <IoImageOutline className="w-4 h-4" />
@@ -526,6 +531,7 @@ const FinalizeBondContent = () => {
                                     )}
                                 </div>
                             </div>
+                            */}
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                                 {renderField('bondName', 'Bond Name', fieldIcons.bondName)}
@@ -692,7 +698,8 @@ const FinalizeBondContent = () => {
                             </div>
 
                             <div className="space-y-4">
-                                {/* Bond Image Preview */}
+                                {/* Bond Image Preview (commented out) */}
+                                {/*
                                 {imagePreview && (
                                     <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 rounded-xl p-4 border border-indigo-200/60">
                                         <h3 className="font-semibold text-indigo-900 mb-3">Bond Image</h3>
@@ -705,6 +712,7 @@ const FinalizeBondContent = () => {
                                         </div>
                                     </div>
                                 )}
+                                */}
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-4 border border-blue-200/60">

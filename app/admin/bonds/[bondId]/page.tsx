@@ -557,6 +557,8 @@ const AboutBondPage = ({ params }: { params: Promise<{ bondId: string }> }) => {
 
   const isSubscriptionEnded = bond ? new Date() > new Date(bond.subscription_end_date) : false;
 
+  const isAllocated = !!bond?.allocated
+
   async function handleAllocate(alg: 'prorata' | 'equal') {
     setSelectedAlgorithm(alg);
     setAllocError(null);
@@ -820,7 +822,7 @@ const AboutBondPage = ({ params }: { params: Promise<{ bondId: string }> }) => {
               className="space-y-4"
             >
               {/* Allocation Card */}
-              <div className="bg-gradient-to-br from-emerald-50 to-green-100/50 rounded-2xl border border-emerald-200/60 p-6 shadow-sm">
+              {/* <div className="bg-gradient-to-br from-emerald-50 to-green-100/50 rounded-2xl border border-emerald-200/60 p-6 shadow-sm">
                 <h4 className="font-semibold text-emerald-900 mb-3">Bond Allocation</h4>
                 <p className="text-sm text-emerald-700 mb-4">
                   {isSubscriptionEnded 
@@ -852,8 +854,43 @@ const AboutBondPage = ({ params }: { params: Promise<{ bondId: string }> }) => {
                     'Allocate Bond'
                   )}
                 </button>
-              </div>
-
+              </div> */}
+              <div className="bg-gradient-to-br from-emerald-50 to-green-100/50 rounded-2xl border border-emerald-200/60 p-6 shadow-sm">
+  <h4 className="font-semibold text-emerald-900 mb-3">Bond Allocation</h4>
+  <p className="text-sm text-emerald-700 mb-4">
+    {!isSubscriptionEnded
+      ? 'Allocation will be available after subscription ends.'
+      : isAllocated
+      ? 'This bond has already been allocated on-chain. No further allocation is required.'
+      : 'Subscription period has ended. You can now allocate the bond.'}
+  </p>
+  <button
+    onClick={() => setShowAllocModal(true)}
+    disabled={!isSubscriptionEnded || allocLoading || isAllocated}
+    className={`w-full py-3.5 px-4 rounded-xl font-semibold shadow-sm transition-all flex items-center justify-center gap-2
+      ${(!isSubscriptionEnded || allocLoading || isAllocated)
+        ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none' 
+        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200 active:scale-[0.98]'
+      }
+    `}
+  >
+    {allocLoading ? (
+      <>
+        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+        Allocating...
+      </>
+    ) : !isSubscriptionEnded ? (
+      <>
+        <IoTimeOutline className="w-5 h-5" />
+        Allocation Locked
+      </>
+    ) : isAllocated ? (
+      'Already Allocated'
+    ) : (
+      'Allocate Bond'
+    )}
+  </button>
+</div>
               {/* Management Actions */}
               <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-sm space-y-4">
                 <Link 

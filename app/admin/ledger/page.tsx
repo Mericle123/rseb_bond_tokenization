@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Search, Filter, Download, Eye, X, User, Calendar, FileText, DollarSign, CheckCircle, AlertCircle, Info, ChevronDown, ChevronUp, Copy, Wallet, Send, ShoppingCart, Ticket, Coins, Hash, Package, TrendingUp, TrendingDown, Minus, Percent } from "lucide-react";
 import Image from "next/image";
+import { useCurrentUser } from "@/context/UserContext";
+import { getCurrentUser } from "@/server/action/currentUser";
 
 // ========================= Types =========================
 type ActivityKind = "event" | "peer" | "allocation" | "subscription" | "buy_sell" | "send" | "redeem" | "buy";
@@ -12,7 +14,8 @@ type Status = "Completed" | "Complete" | "Pending" | "In progress" | "Failed";
 
 type ActivityRow = {
   id: string;
-  asset: "RICB Bond" | "BTN coin";
+  asset: string; // we will put the bond name here
+  bondName?: string; // optional helper if your API sends this
   type: "Purchased" | "Transfer In" | "Transfer Out" | "Owner transfer" | "Airdrop" | "Redeem" | "Subscription" | "Send" | "Buy";
   date: string;
   amountLabel: string;
@@ -35,6 +38,7 @@ const fadeIn = {
   transition: { duration: 0.45, ease: "easeOut" },
   viewport: { once: true, margin: "-10% 0% -10% 0%" },
 };
+
 
 // ========================= Components =========================
 function StatusBadge({ value }: { value: Status }) {
@@ -190,6 +194,7 @@ function FilterDropdown({ label, value, options, onChange, className = "" }) {
 
 // ========================= Main Component =========================
 export default function LedgerPage() {
+  const currentUser = useCurrentUser();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
@@ -232,127 +237,9 @@ export default function LedgerPage() {
   ];
 
   // Mock data matching the reference structure
-  const [ledgerData, setLedgerData] = useState<ActivityRow[]>([
-    {
-      id: "1",
-      asset: "RICB Bond",
-      type: "Purchased",
-      date: "2024-01-15",
-      amountLabel: "RICB 5,000 units",
-      status: "Completed",
-      detail: "Bond Purchase - BIL Bond I",
-      tx_hash: "TXN-2024-001",
-      kind: "allocation",
-      amount: 5000,
-      balance: 15000,
-      investor: "Karma Wangchuk",
-      investorId: "ID-001",
-      transactionId: "TXN-2024-001",
-      notes: "Initial bond purchase transaction"
-    },
-    {
-      id: "2",
-      asset: "BTN coin",
-      type: "Transfer In",
-      date: "2024-01-14",
-      amountLabel: "BTN₵ 250",
-      status: "Completed",
-      detail: "Interest Payment",
-      tx_hash: "TXN-2024-002",
-      kind: "event",
-      amount: 250,
-      balance: 20000,
-      investor: "Tashi Dorji",
-      investorId: "ID-002",
-      transactionId: "TXN-2024-002",
-      notes: "Monthly interest payment"
-    },
-    {
-      id: "3",
-      asset: "RICB Bond",
-      type: "Redeem",
-      date: "2024-01-13",
-      amountLabel: "RICB 10,000 units",
-      status: "Pending",
-      detail: "Bond Redemption",
-      tx_hash: "TXN-2024-003",
-      kind: "redeem",
-      amount: 10000,
-      balance: 19750,
-      investor: "Pema Choden",
-      investorId: "ID-003",
-      transactionId: "TXN-2024-003",
-      notes: "Bond redemption request"
-    },
-    {
-      id: "4",
-      asset: "BTN coin",
-      type: "Transfer Out",
-      date: "2024-01-12",
-      amountLabel: "BTN₵ 50",
-      status: "Completed",
-      detail: "Transaction Fee",
-      tx_hash: "TXN-2024-004",
-      kind: "send",
-      amount: 50,
-      balance: 9750,
-      investor: "Sonam Lhamo",
-      investorId: "ID-004",
-      transactionId: "TXN-2024-004",
-      notes: "Processing fee for transaction"
-    },
-    {
-      id: "5",
-      asset: "RICB Bond",
-      type: "Purchased",
-      date: "2024-01-11",
-      amountLabel: "RICB 3,000 units",
-      status: "Completed",
-      detail: "Bond Purchase - BIL Bond II",
-      tx_hash: "TXN-2024-005",
-      kind: "allocation",
-      amount: 3000,
-      balance: 9800,
-      investor: "Karma Wangchuk",
-      investorId: "ID-001",
-      transactionId: "TXN-2024-005",
-      notes: "Additional bond purchase"
-    },
-    {
-      id: "6",
-      asset: "BTN coin",
-      type: "Send",
-      date: "2024-01-10",
-      amountLabel: "BTN₵ 1,000",
-      status: "Completed",
-      detail: "Sent to merchant payment",
-      tx_hash: "TXN-2024-006",
-      kind: "send",
-      amount: 1000,
-      balance: 8800,
-      investor: "Karma Wangchuk",
-      investorId: "ID-001",
-      transactionId: "TXN-2024-006",
-      notes: "Merchant payment processing"
-    },
-    {
-      id: "7",
-      asset: "BTN coin",
-      type: "Buy",
-      date: "2024-01-09",
-      amountLabel: "BTN₵ 5,000",
-      status: "Completed",
-      detail: "Coin purchase from bank",
-      tx_hash: "TXN-2024-007",
-      kind: "buy",
-      amount: 5000,
-      balance: 13800,
-      investor: "Tashi Dorji",
-      investorId: "ID-002",
-      transactionId: "TXN-2024-007",
-      notes: "Bank transfer purchase"
-    }
-  ]);
+  const [ledgerData, setLedgerData] = useState<ActivityRow[]>([])
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Filter and sort data
   const filteredData = useMemo(() => {
@@ -449,11 +336,79 @@ export default function LedgerPage() {
     setCurrentPage(1);
   }, [searchTerm, selectedType, selectedStatus, selectedKind]);
 
+useEffect(() => {
+  async function loadLedger() {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const res = await fetch("/api/admin/ledger", {
+        method: "GET",
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to load ledger (${res.status})`);
+      }
+
+      // Whatever your API returns (just assume it includes bond_name or bondName)
+      const raw = await res.json();
+
+      const data: ActivityRow[] = raw.map((row: any) => ({
+        ...row,
+        // prioritize explicit bond name from API, fallback to existing asset
+        asset: row.bondName ?? row.bond_name ?? row.asset ?? "Unknown bond",
+      }));
+
+      setLedgerData(data);
+    } catch (err: any) {
+      console.error("Error loading ledger:", err);
+      setError(err?.message || "Failed to load ledger");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  loadLedger();
+}, []);
+
+if (loading && ledgerData.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#F7F8FB] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#5B50D9]/30 border-t-[#5B50D9] rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-700 font-medium">Loading transaction ledger...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && ledgerData.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#F7F8FB] flex items-center justify-center">
+        <div className="text-center max-w-sm mx-auto">
+          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-6 h-6 text-red-500" />
+          </div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            Failed to load ledger
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => location.reload()}
+            className="px-4 py-2 bg-[#5B50D9] text-white rounded-lg text-sm font-medium hover:bg-[#4a40b9] transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="min-h-screen bg-[#F7F8FB] p-3 sm:p-4 lg:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Wallet Strip */}
-        <WalletStrip walletAddress="0x742d35Cc6634C0532925a3b8D4B" />
+        {/* <WalletStrip walletAddress/> */}
 
         {/* Header */}
         <motion.header {...fadeIn} className="mt-4 sm:mt-6 mb-4 sm:mb-6">
@@ -629,13 +584,14 @@ export default function LedgerPage() {
             </div>
           </div>
         </motion.div>
-
+              
         {/* Ledger Table */}
         <motion.section
           {...fadeIn}
           className="rounded-lg sm:rounded-xl lg:rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden"
           aria-labelledby="ledger-title"
         >
+          
           {filteredData.length > 0 ? (
             <>
               {/* Desktop table */}
@@ -679,7 +635,7 @@ export default function LedgerPage() {
                         <td className="py-3 sm:py-4 pl-4 sm:pl-6 pr-3">
                           <div className="flex items-center gap-3">
                             <div className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full border border-gray-200 bg-white grid place-items-center shadow-sm group-hover:shadow transition-shadow">
-                              {row.asset === "RICB Bond" ? (
+                              {row.asset ? (
                                 <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center overflow-hidden">
                                   <Image 
                                     src="/RSEB.png" 

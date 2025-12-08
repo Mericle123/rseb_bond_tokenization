@@ -1953,8 +1953,8 @@ export default function AdminHomePage() {
               <div className="truncate">Created Date</div>
               <div className="truncate">Interest Rate</div>
               <div className="truncate">Units Offered</div>
-              <div className="truncate">Transaction Type</div>
-              <div className="truncate">Transaction Hash</div>
+              {/* <div className="truncate">Transaction Type</div>
+              <div className="truncate">Transaction Hash</div> */}
               <div className="truncate">Status</div>
               <div className="text-center">Action</div>
             </div>
@@ -2038,13 +2038,13 @@ export default function AdminHomePage() {
                             {bond.tl_unit_offered / 10}
                           </div>
 
-                          {/* Transaction Type */}
+                          {/* Transaction Type
                           <div className="text-gray-700 font-medium text-sm">
                             {bond.transaction_type || "Bond Creation"}
-                          </div>
+                          </div> */}
 
                           {/* Transaction Hash */}
-                          <div className="min-w-0">
+                          {/* <div className="min-w-0">
                             <div className="flex items-center gap-2">
                               <code className="text-xs font-mono text-gray-600 truncate bg-gray-50 px-2 py-1 rounded border border-gray-200">
                                 {bond.transaction_hash ? `${bond.transaction_hash.slice(0, 8)}...` : "N/A"}
@@ -2059,7 +2059,7 @@ export default function AdminHomePage() {
                                 </button>
                               )}
                             </div>
-                          </div>
+                          </div> */}
 
                           {/* Status */}
                           <div>

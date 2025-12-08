@@ -1039,6 +1039,8 @@ function NegotiationModal({
   const [step, setStep] = useState<"input" | "confirm" | "processing" | "success">("input");
   const [transactionHash, setTransactionHash] = useState("");
 
+ 
+
   if (!listing || !isOpen) return null;
 
   const bond = listing.bond;
@@ -1086,38 +1088,33 @@ function NegotiationModal({
     setStep("confirm");
   };
 
-  const executeNegotiation = async () => {
-    try {
-      setStep("processing");
-      setNegotiationLoading(true);
-      
-      const offerData = {
-        listingId: listing.id,
-        proposedInterestRate: proposedRatePct,
-        proposedTotalAmount: totalProposedAmount,
-        baseTotalAmount: totalBaseAmount,
-        savings: savings,
-        units: totalUnitsAvailable
-      };
+   const executeNegotiation = async () => {
+  try {
+    setStep("processing");
+    setNegotiationLoading(true);
 
-      // 👇 Plug your actual negotiation logic here
-      // await createNegotiationOffer(offerData);
-      
-      console.log("Creating negotiation offer...", offerData);
-      
-      // Simulate transaction hash
-      setTransactionHash(`0x${Math.random().toString(16).slice(2, 42)}`);
-      setStep("success");
-      
-      setTimeout(() => {
-        handleClose();
-      }, 2000);
-    } catch (error) {
-      console.error("Negotiation failed:", error);
-      setStep("input");
-      setNegotiationLoading(false);
-    }
-  };
+    const offerData = {
+      // only data the modal itself knows
+      units: totalUnitsAvailable,
+      proposedInterestRate: proposedRatePct,
+      totalProposedAmount,
+      totalBaseAmount,
+      savings,
+    };
+
+    // 🔗 call parent (page-level) handler
+    await onConfirm(offerData);
+
+    // if success → show success screen
+    setStep("success");
+  } catch (error) {
+    console.error("Negotiation failed:", error);
+    // send user back to input on error
+    setStep("input");
+  } finally {
+    setNegotiationLoading(false);
+  }
+};
 
   return (
     <AnimatePresence>
@@ -1533,10 +1530,49 @@ const ResaleBondPage = ({ params }: ResalePageProps) => {
   };
 
   const handleNegotiationConfirm = async (offerData: any) => {
-    // Implement your negotiation logic here
-    console.log("Negotiation offer:", offerData);
-    // await createNegotiationOffer(offerData);
-  };
+  if (!currentUser) {
+    // optionally: redirect to login or show toast
+    router.push("/login");
+    return;
+  }
+
+  const bond = listing.bond;
+
+  // NOTE: adjust this if your listing model uses different field name
+  const sellerUserId = listing.seller_user_id; // or listing.sellerUserId
+
+  const res = await fetch("/api/investor/negotiations/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      bondId: bond.id,
+      listingId: listing.id,
+
+      buyerUserId: currentUser.id,
+      buyerWallet: currentUser.wallet_address,
+
+      sellerUserId,
+      sellerWallet: listing.seller_wallet,
+
+      units: offerData.units, // from modal
+      originalInterestRate: Number(bond.interest_rate),
+      proposedInterestRate: offerData.proposedInterestRate,
+      proposedTotalAmountNu: Math.round(offerData.totalProposedAmount),
+
+      // optional – if you want to save savings or note later
+      savings: offerData.savings,
+    }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error?.error || "Failed to create negotiation offer");
+  }
+
+  const { offer } = await res.json();
+  console.log("Negotiation offer persisted:", offer);
+};
+
 
   if (loading || !listing) {
     return <FullScreenLoading />;

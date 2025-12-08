@@ -242,7 +242,7 @@ export default function AssetsPage() {
                 Allocated Assets
               </h1>
               <p className="text-gray-600 mt-2 text-sm sm:text-base">
-                Manage your bond portfolio and track your investments
+                Keep track of past bonds
               </p>
             </div>
           </div>
@@ -306,10 +306,10 @@ export default function AssetsPage() {
                   id="assets-title"
                   className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-gray-900"
                 >
-                  My Bond Portfolio
+                  Bond Series
                 </h2>
                 <p className="text-gray-600 mt-2 text-xs sm:text-sm lg:text-base max-w-3xl">
-                  View your purchased units, track performance, and manage your bond investments.
+                 
                 </p>
                 
                 {/* Active Filter Badge */}
@@ -500,7 +500,7 @@ export default function AssetsPage() {
 
                     <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm mb-3 sm:mb-4">
                       <div>
-                        <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Units Held</p>
+                        <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Units Allocated</p>
                         <p className={`text-base sm:text-lg font-bold ${dim}`}>
                           {(bond.tl_unit_subscribed / 10).toLocaleString()}
                         </p>

@@ -1046,46 +1046,96 @@ export async function acceptNegotiationOfferAndBuy(params: {
     throw new Error("Bond has no bond_object_id (series object id)");
   }
 
-  // For now, assume buyer is taking the FULL listing amount (simple plan).
-  // If you want partial fills (units < listing units), you must adjust
-  // the requested amount and (in future) on-chain logic / DB updates.
-  // Here, we enforce full listing purchase for safety:
+  // For now: enforce full listing purchase (no partial fills)
   const listingUnits = Number(listing.amount_tenths) / 10;
   if (offer.units !== listingUnits) {
-    // You can relax this later, but for now keep it strict:
     throw new Error(
-      `Offer units (${offer.units}) must match listing units (${listingUnits}) for acceptance in plan 2`
+      `Offer units (${offer.units}) must match listing units (${listingUnits}) for acceptance`
     );
   }
 
   const seriesObjectId = bond.bond_object_id;
-  const nowMs = Date.now();
 
-  // 2) Run buy + persist (generic resale pipeline)
-  const result = await buyAndPersist({
+  // ✅ proposed_total_amount is BigInt in BTNC smallest units (tenths)
+  const agreedPriceTenths: bigint = offer.proposed_total_amount;
+
+  // 2) On-chain: custom-price purchase
+  const chainRes = await settleNegotiationOnChain({
     buyerMnemonic,
     buyerKeypair: undefined,
     buyerAddress,
     seriesObjectId,
-    listingOnchainId: listing.listing_onchain,
-    nowMs,
-    listingDbId: listing.id,
-    buyerUserId,
+    listingId: listing.listing_onchain,
+    agreedPriceTenths,
   });
 
-  const digest = result.digest;
+  const digest = chainRes.digest;
+  const listedAmountTenths = listing.amount_tenths; // BigInt
 
-  // 3) Update offer status + optionally cancel other offers on same listing
-  await db.$transaction([
-    db.negotiationOffers.update({
+  const sellerUser = listing.seller;
+
+  // 3) DB: settle listing, allocate to buyer, record tx + update offers + events
+  const result = await db.$transaction(async (tx) => {
+    // 3a) Mark listing as filled
+    const updatedListing = await tx.listings.update({
+      where: { id: listing.id },
+      data: {
+        status: "filled",
+        tx_hash: digest,
+      },
+    });
+
+    // 3b) Upsert allocation for buyer
+    const existingAlloc = await tx.allocations.findFirst({
+      where: {
+        bond_id: bond.id,
+        user_id: buyerUserId,
+        wallet_address: buyerAddress,
+      },
+    });
+
+    let buyerAlloc;
+    if (existingAlloc) {
+      buyerAlloc = await tx.allocations.update({
+        where: { id: existingAlloc.id },
+        data: {
+          allocated_tenths: {
+            increment: listedAmountTenths,
+          },
+          tx_hash: digest,
+        },
+      });
+    } else {
+      buyerAlloc = await tx.allocations.create({
+        data: {
+          bond_id: bond.id,
+          user_id: buyerUserId,
+          wallet_address: buyerAddress,
+          allocated_tenths: listedAmountTenths,
+          tx_hash: digest,
+        },
+      });
+    }
+
+    // 3c) Peer-to-peer transaction record
+    const p2pTx = await tx.transactions.create({
+      data: {
+        user_from: sellerUser.id,
+        user_to: buyerUserId,
+        tx_hash: digest,
+      },
+    });
+
+    // 3d) Negotiation offers: accept this, cancel others on same listing
+    await tx.negotiationOffers.update({
       where: { id: offerId },
       data: {
         status: "accepted",
         tx_hash: digest,
       },
-    }),
+    });
 
-    db.negotiationOffers.updateMany({
+    await tx.negotiationOffers.updateMany({
       where: {
         listing_id: listing.id,
         id: { not: offerId },
@@ -1094,14 +1144,116 @@ export async function acceptNegotiationOfferAndBuy(params: {
       data: {
         status: "cancelled",
       },
-    }),
-  ]);
+    });
+
+    // 3e) Optional events
+    await tx.events.create({
+      data: {
+        type: EventType.transfer,
+        bond_id: bond.id,
+        user_id: buyerUserId,
+        details: `Bought ${Number(listedAmountTenths) / 10} units from ${sellerUser.wallet_address}`,
+        tx_hash: digest,
+      },
+    });
+
+    await tx.events.create({
+      data: {
+        type: EventType.transfer,
+        bond_id: bond.id,
+        user_id: sellerUser.id,
+        details: `Sold ${Number(listedAmountTenths) / 10} units to ${buyerAddress}`,
+        tx_hash: digest,
+      },
+    });
+
+    return { updatedListing, buyerAlloc, p2pTx };
+  });
 
   return {
     ok: true,
     digest,
-    listing: result.listing,
-    allocation: result.allocation,
-    transaction: result.transaction,
+    listing: result.updatedListing,
+    allocation: result.buyerAlloc,
+    transaction: result.p2pTx,
+  };
+}
+
+
+
+export async function settleNegotiationOnChain({
+  buyerMnemonic,
+  buyerKeypair,
+  buyerAddress,
+  seriesObjectId,
+  listingId,
+  agreedPriceTenths, // already BTNC smallest units
+}: {
+  buyerMnemonic?: string;
+  buyerKeypair?: Ed25519Keypair;
+  buyerAddress: string;
+  seriesObjectId: string;
+  listingId: number;
+  agreedPriceTenths: bigint; // from Prisma BigInt
+}) {
+  if (!REGISTRY_ID) throw new Error("Registry id missing");
+
+  // --- 1) Resolve signer (same pattern as subscribe / buyFromListing) ---
+  let signer: Ed25519Keypair;
+  if (buyerKeypair) signer = buyerKeypair;
+  else if (buyerMnemonic)
+    signer = await restoreKeypairFromEncryptedMnemonic(buyerMnemonic);
+  else throw new Error("buyer signer missing (mnemonic or keypair)");
+
+  // --- 2) Ensure gas for buyer ---
+  await fundSuiIfNeeded(buyerAddress);
+
+  // --- 3) Collect BTNC coins from buyer ---
+  const coinType = BTNCCoinType();
+  const coins = await getAllCoins(buyerAddress, coinType);
+  if (!coins.length) {
+    throw new Error("No BTNC balance available for negotiation settlement");
+  }
+
+  const totalBalanceTenths = coins.reduce(
+    (acc: bigint, c: any) => acc + BigInt(c.balance),
+    0n
+  );
+  if (totalBalanceTenths < agreedPriceTenths) {
+    throw new Error("Buyer has insufficient BTNC balance for this negotiation");
+  }
+
+  const tx = new Transaction();
+
+  // Merge all BTNC coins into one payment coin
+  const primary = tx.object(coins[0].coinObjectId);
+  if (coins.length > 1) {
+    tx.mergeCoins(
+      primary,
+      coins.slice(1).map((c: any) => tx.object(c.coinObjectId))
+    );
+  }
+
+  // --- 4) Call Move: buy_listing_custom_price ---
+  tx.moveCall({
+    target: bondTarget("buy_listing_custom_price"),
+    arguments: [
+      tx.object(REGISTRY_ID),                          // &ndi_kyc::Registry
+      tx.object(seriesObjectId),                       // &mut Series
+      tx.pure.u64(BigInt(listingId)),                  // listing_id: u64
+      tx.pure.u64(agreedPriceTenths.toString()),       // agreed_price_tenths: u64
+      primary,                                         // Coin<BTNC>
+    ],
+  });
+
+  const res = await client.signAndExecuteTransaction({
+    transaction: tx,
+    signer,
+    options: { showEffects: true },
+  });
+
+  return {
+    digest: res.digest,
+    effects: res.effects,
   };
 }

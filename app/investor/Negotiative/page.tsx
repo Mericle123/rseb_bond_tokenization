@@ -37,34 +37,127 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
 import { useCurrentUser } from "@/context/UserContext";
+import { getNegotiationDashboardData } from "@/server/db_actions/action";
+import { updateNegotiationStatusForUser } from "@/server/lib/negotiations";
+
+// Backend DTO shape returned by /api/investor/negotiations/dashboard
+type NegotiationOfferDTO = {
+  id: string;
+
+  bondId: string;
+  bondName: string;
+  bondSymbol: string | null;
+
+  buyerWallet: string;
+  sellerWallet: string;
+
+  units: number;
+  unitsTenths: number;
+
+  originalInterestRate: number;
+  proposedInterestRate: number;
+
+  proposedTotalAmountNu: number;
+
+  status: "pending" | "accepted" | "rejected" | "cancelled";
+
+  direction: "sent" | "received";
+
+  createdAt: string;
+  updatedAt: string;
+};
+
+// Map backend DTO → UI Offer type
+function mapDtoToOffer(dto: NegotiationOfferDTO, walletAddress: string): Offer {
+  let status: Offer["status"];
+  switch (dto.status) {
+    case "pending":
+    case "accepted":
+    case "rejected":
+      status = dto.status;
+      break;
+    case "cancelled":
+    default:
+      status = "rejected";
+  }
+
+  const type: Offer["type"] =
+    dto.direction === "sent" ? "buyer_offer" : "seller_offer";
+
+  const createdAt = new Date(dto.createdAt);
+  const expiration = new Date(createdAt.getTime() + 7 * 86_400_000);
+
+  return {
+    id: dto.id,
+    bondId: dto.bondId,
+    bondName: dto.bondName,
+    bondSymbol: dto.bondSymbol || "",
+    sellerWallet: dto.sellerWallet,
+    buyerWallet: dto.buyerWallet,
+    units: dto.units,
+    proposedInterestRate: dto.proposedInterestRate,
+    originalInterestRate: dto.originalInterestRate,
+    proposedTotalAmount: dto.proposedTotalAmountNu,
+    originalTotalAmount: dto.proposedTotalAmountNu,
+    savings: 0,
+
+    status,
+    type,
+    direction: dto.direction,        // ✅ ADD THIS
+
+    timestamp: createdAt,
+    expiration,
+    messages: [],
+    bondDetails: undefined,
+  };
+}
+
 
 interface Offer {
   id: string;
   bondId: string;
   bondName: string;
   bondSymbol: string;
+
   sellerWallet: string;
   buyerWallet: string;
+
   units: number;
   proposedInterestRate: number;
   originalInterestRate: number;
-  proposedTotalAmount: number;
-  originalTotalAmount: number;
-  savings: number;
-  status: "pending" | "accepted" | "rejected" | "counter" | "expired";
+
+  proposedTotalAmount: number;  // BTN (human)
+  originalTotalAmount: number;  // BTN (human)
+  savings: number;              // BTN (human)
+
+  // DB status + extra UI states
+  status:
+    | "pending"
+    | "accepted"
+    | "rejected"
+    | "counter"
+    | "expired"
+    | "cancelled";
+
+  // Derived from who is the current user
   type: "buyer_offer" | "seller_offer" | "counter_offer";
+  direction: "sent" | "received"; // sent = you are buyer, received = you are seller
+
   timestamp: Date;
-  expiration: Date;
+  expiration: Date | null;
+
   messages: Message[];
+
   bondDetails?: {
-    faceValue: number;
-    maturityDate: string;
-    issuer: string;
-    purpose: string;
-    totalUnits: number;
-    market: string;
+    faceValue?: number;
+    maturityDate?: string;
+    issuer?: string;
+    purpose?: string;
+    totalUnits?: number;
+    market?: string;
   };
 }
+
 
 interface Message {
   id: string;
@@ -665,392 +758,111 @@ export default function NegotiationsPage() {
   const [activeDropdown, setActiveDropdown] = useState<"status" | "bond" | "type" | null>(null);
 
   // Enhanced mock data for all tabs
+// Load offers from backend for current user
+  // Load offers from backend
   useEffect(() => {
+    if (!currentUser?.id || !walletAddress) return;
+    const userId = currentUser.id
+    const controller = new AbortController();
+
     const loadOffers = async () => {
-      setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        const mockOffers: Offer[] = [
-          // My Resale Offers (User is selling)
-          {
-            id: "offer-1",
-            bondId: "bond-1",
-            bondName: "Government Treasury Bond 2024",
-            bondSymbol: "GTB2024",
-            sellerWallet: walletAddress,
-            buyerWallet: "0x742d35Cc6634C0532925a3b8D4a2g6e7f8h9i0j1",
-            units: 150,
-            proposedInterestRate: 5.8,
-            originalInterestRate: 6.0,
-            proposedTotalAmount: 150000,
-            originalTotalAmount: 155000,
-            savings: 5000,
-            status: "pending",
-            type: "seller_offer",
-            timestamp: new Date(Date.now() - 86400000),
-            expiration: new Date(Date.now() + 7 * 86400000),
-            messages: [
-              {
-                id: "msg-1",
-                text: "I'm offering 150 units at a reduced interest rate of 5.8%",
-                sender: "seller",
-                senderWallet: walletAddress,
-                timestamp: new Date(Date.now() - 86400000),
-                type: "message"
-              },
-              {
-                id: "msg-2",
-                text: "I'm interested in your offer. Can we discuss the terms?",
-                sender: "buyer",
-                senderWallet: "0x742d35Cc6634C0532925a3b8D4a2g6e7f8h9i0j1",
-                timestamp: new Date(Date.now() - 43200000),
-                type: "message"
-              }
-            ],
-            bondDetails: {
-              faceValue: 1000,
-              maturityDate: "2026-12-31",
-              issuer: "Royal Monetary Authority",
-              purpose: "Government infrastructure development",
-              totalUnits: 10000,
-              market: "primary"
-            }
-          },
-          {
-            id: "offer-2",
-            bondId: "bond-2",
-            bondName: "Corporate Development Bond",
-            bondSymbol: "CDB2024",
-            sellerWallet: walletAddress,
-            buyerWallet: "0x1234567890abcdef1234567890abcdef12345678",
-            units: 200,
-            proposedInterestRate: 5.5,
-            originalInterestRate: 5.7,
-            proposedTotalAmount: 200000,
-            originalTotalAmount: 205000,
-            savings: 5000,
-            status: "accepted",
-            type: "seller_offer",
-            timestamp: new Date(Date.now() - 172800000),
-            expiration: new Date(Date.now() - 86400000),
-            messages: [
-              {
-                id: "msg-1",
-                text: "I'm offering 200 units at 5.5% interest rate",
-                sender: "seller",
-                senderWallet: walletAddress,
-                timestamp: new Date(Date.now() - 172800000),
-                type: "message"
-              },
-              {
-                id: "msg-2",
-                text: "I accept your offer. The terms are favorable.",
-                sender: "buyer",
-                senderWallet: "0x1234567890abcdef1234567890abcdef12345678",
-                timestamp: new Date(Date.now() - 129600000),
-                type: "message"
-              }
-            ],
-            bondDetails: {
-              faceValue: 1000,
-              maturityDate: "2025-06-30",
-              issuer: "Bhutan Development Bank",
-              purpose: "Corporate expansion and development",
-              totalUnits: 5000,
-              market: "secondary"
-            }
-          },
+      try {
+        setLoading(true);
 
-          // Offers (User is buying)
-          {
-            id: "offer-3",
-            bondId: "bond-3",
-            bondName: "Infrastructure Green Bond",
-            bondSymbol: "IGB2024",
-            sellerWallet: "0xabcdef1234567890abcdef1234567890abcdef12",
-            buyerWallet: walletAddress,
-            units: 100,
-            proposedInterestRate: 4.8,
-            originalInterestRate: 5.0,
-            proposedTotalAmount: 98000,
-            originalTotalAmount: 100000,
-            savings: 2000,
-            status: "pending",
-            type: "buyer_offer",
-            timestamp: new Date(Date.now() - 259200000),
-            expiration: new Date(Date.now() + 5 * 86400000),
-            messages: [
-              {
-                id: "msg-1",
-                text: "I'd like to purchase 100 units at 4.8% interest",
-                sender: "buyer",
-                senderWallet: walletAddress,
-                timestamp: new Date(Date.now() - 259200000),
-                type: "message"
-              },
-              {
-                id: "msg-2",
-                text: "I've received your offer. Let me review the terms.",
-                sender: "seller",
-                senderWallet: "0xabcdef1234567890abcdef1234567890abcdef12",
-                timestamp: new Date(Date.now() - 258000000),
-                type: "message"
-              },
-              {
-                id: "msg-3",
-                text: "The current market conditions are favorable for this adjustment. What do you think?",
-                sender: "buyer",
-                senderWallet: walletAddress,
-                timestamp: new Date(Date.now() - 216000000),
-                type: "message"
-              }
-            ],
-            bondDetails: {
-              faceValue: 1000,
-              maturityDate: "2027-03-15",
-              issuer: "Green Energy Corporation",
-              purpose: "Renewable energy infrastructure",
-              totalUnits: 8000,
-              market: "primary"
-            }
-          },
-          {
-            id: "offer-4",
-            bondId: "bond-4",
-            bondName: "Municipal Development Bond",
-            bondSymbol: "MDB2024",
-            sellerWallet: "0x9876543210fedcba9876543210fedcba98765432",
-            buyerWallet: walletAddress,
-            units: 75,
-            proposedInterestRate: 5.2,
-            originalInterestRate: 5.5,
-            proposedTotalAmount: 75000,
-            originalTotalAmount: 78000,
-            savings: 3000,
-            status: "counter",
-            type: "counter_offer",
-            timestamp: new Date(Date.now() - 432000000),
-            expiration: new Date(Date.now() + 3 * 86400000),
-            messages: [
-              {
-                id: "msg-1",
-                text: "I propose 5.2% interest for 75 units",
-                sender: "seller",
-                senderWallet: "0x9876543210fedcba9876543210fedcba98765432",
-                timestamp: new Date(Date.now() - 432000000),
-                type: "message"
-              },
-              {
-                id: "msg-2",
-                text: "I can offer 5.0% for these units",
-                sender: "buyer",
-                senderWallet: walletAddress,
-                timestamp: new Date(Date.now() - 430000000),
-                type: "message"
-              },
-              {
-                id: "msg-3",
-                text: "Let's meet at 5.1% - that seems fair for both parties",
-                sender: "seller",
-                senderWallet: "0x9876543210fedcba9876543210fedcba98765432",
-                timestamp: new Date(Date.now() - 428000000),
-                type: "message"
-              }
-            ],
-            bondDetails: {
-              faceValue: 1000,
-              maturityDate: "2026-09-30",
-              issuer: "Thimphu City Corporation",
-              purpose: "Urban infrastructure development",
-              totalUnits: 6000,
-              market: "secondary"
-            }
-          },
+        const res = await fetch("/api/investor/negotiations/dashboard", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+          signal: controller.signal,
+        });
 
-          // History (Completed negotiations)
-          {
-            id: "offer-5",
-            bondId: "bond-5",
-            bondName: "Education Development Bond",
-            bondSymbol: "EDB2024",
-            sellerWallet: "0x5555555555555555555555555555555555555555",
-            buyerWallet: walletAddress,
-            units: 120,
-            proposedInterestRate: 4.9,
-            originalInterestRate: 5.2,
-            proposedTotalAmount: 118000,
-            originalTotalAmount: 122000,
-            savings: 4000,
-            status: "accepted",
-            type: "buyer_offer",
-            timestamp: new Date(Date.now() - 604800000),
-            expiration: new Date(Date.now() - 86400000),
-            messages: [
-              {
-                id: "msg-1",
-                text: "I'd like to purchase 120 units at 4.9% interest",
-                sender: "buyer",
-                senderWallet: walletAddress,
-                timestamp: new Date(Date.now() - 604800000),
-                type: "message"
-              },
-              {
-                id: "msg-2",
-                text: "Offer accepted. Transaction completed successfully.",
-                sender: "seller",
-                senderWallet: "0x5555555555555555555555555555555555555555",
-                timestamp: new Date(Date.now() - 600000000),
-                type: "offer_update"
-              }
-            ],
-            bondDetails: {
-              faceValue: 1000,
-              maturityDate: "2028-12-31",
-              issuer: "Ministry of Education",
-              purpose: "School infrastructure development",
-              totalUnits: 12000,
-              market: "primary"
-            }
-          },
-          {
-            id: "offer-6",
-            bondId: "bond-6",
-            bondName: "Healthcare Infrastructure Bond",
-            bondSymbol: "HIB2024",
-            sellerWallet: walletAddress,
-            buyerWallet: "0x6666666666666666666666666666666666666666",
-            units: 80,
-            proposedInterestRate: 5.3,
-            originalInterestRate: 5.6,
-            proposedTotalAmount: 81000,
-            originalTotalAmount: 84000,
-            savings: 3000,
-            status: "rejected",
-            type: "seller_offer",
-            timestamp: new Date(Date.now() - 864000000),
-            expiration: new Date(Date.now() - 172800000),
-            messages: [
-              {
-                id: "msg-1",
-                text: "I'm offering 80 units at 5.3% interest rate",
-                sender: "seller",
-                senderWallet: walletAddress,
-                timestamp: new Date(Date.now() - 864000000),
-                type: "message"
-              },
-              {
-                id: "msg-2",
-                text: "Sorry, I cannot accept this offer at the moment.",
-                sender: "buyer",
-                senderWallet: "0x6666666666666666666666666666666666666666",
-                timestamp: new Date(Date.now() - 860000000),
-                type: "message"
-              }
-            ],
-            bondDetails: {
-              faceValue: 1000,
-              maturityDate: "2027-06-30",
-              issuer: "Ministry of Health",
-              purpose: "Hospital infrastructure development",
-              totalUnits: 9000,
-              market: "primary"
-            }
-          },
-          {
-            id: "offer-7",
-            bondId: "bond-7",
-            bondName: "Technology Innovation Bond",
-            bondSymbol: "TIB2024",
-            sellerWallet: "0x7777777777777777777777777777777777777777",
-            buyerWallet: walletAddress,
-            units: 200,
-            proposedInterestRate: 4.7,
-            originalInterestRate: 5.0,
-            proposedTotalAmount: 194000,
-            originalTotalAmount: 200000,
-            savings: 6000,
-            status: "expired",
-            type: "buyer_offer",
-            timestamp: new Date(Date.now() - 1209600000),
-            expiration: new Date(Date.now() - 864000000),
-            messages: [
-              {
-                id: "msg-1",
-                text: "I'm interested in purchasing 200 units at 4.7%",
-                sender: "buyer",
-                senderWallet: walletAddress,
-                timestamp: new Date(Date.now() - 1209600000),
-                type: "message"
-              }
-            ],
-            bondDetails: {
-              faceValue: 1000,
-              maturityDate: "2029-03-31",
-              issuer: "Tech Innovation Council",
-              purpose: "Technology research and development",
-              totalUnits: 15000,
-              market: "secondary"
-            }
-          }
-        ];
-        setOffers(mockOffers);
-        setFilteredOffers(mockOffers);
+        if (!res.ok) {
+          console.error("Failed to fetch negotiation dashboard");
+          setOffers([]);
+          setFilteredOffers([]);
+          return;
+        }
+
+        const data = (await res.json()) as {
+          sent: NegotiationOfferDTO[];
+          received: NegotiationOfferDTO[];
+        };
+
+        const allDtos = [...data.sent, ...data.received];
+        const mappedOffers = allDtos.map((dto) =>
+          mapDtoToOffer(dto, walletAddress)
+        );
+
+        setOffers(mappedOffers);
+        setFilteredOffers(mappedOffers);
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          console.error("Error loading negotiations:", err);
+        }
+      } finally {
         setLoading(false);
-      }, 2000);
+      }
     };
 
     loadOffers();
-  }, [walletAddress]);
+
+    return () => controller.abort();
+  }, [currentUser?.id, walletAddress]);
 
   // Filter offers based on active tab, search, and filters
-  useEffect(() => {
-    let filtered = offers;
+// Filter offers based on active tab, search, and filters
+useEffect(() => {
+  let filtered = offers;
 
-    // Tab filtering
-    if (activeTab === "my_resale") {
-      filtered = filtered.filter(offer => 
-        offer.sellerWallet === walletAddress
-      );
-    } else if (activeTab === "offers") {
-      filtered = filtered.filter(offer => 
-        offer.buyerWallet === walletAddress && (offer.status === "pending" || offer.status === "counter")
-      );
-    } else if (activeTab === "history") {
-      filtered = filtered.filter(offer => 
-        (offer.sellerWallet === walletAddress || offer.buyerWallet === walletAddress) && 
-        (offer.status === "accepted" || offer.status === "rejected" || offer.status === "expired")
-      );
-    }
+  // Tab filtering
+  if (activeTab === "my_resale") {
+    // You are the seller -> offers you RECEIVED
+    filtered = filtered.filter((offer) => offer.direction === "received");
+  } else if (activeTab === "offers") {
+    // You are the buyer -> offers you SENT that are still active
+    filtered = filtered.filter(
+      (offer) =>
+        offer.direction === "sent" &&
+        (offer.status === "pending" || offer.status === "counter")
+    );
+  } else if (activeTab === "history") {
+    filtered = filtered.filter((offer) =>
+      ["accepted", "rejected", "expired"].includes(offer.status)
+    );
+  }
 
-    // Bond filter
-    if (bondFilter !== "all") {
-      filtered = filtered.filter(offer => 
-        offer.bondDetails?.market === bondFilter
-      );
-    }
+  // Bond filter
+  if (bondFilter !== "all") {
+    filtered = filtered.filter(
+      (offer) => offer.bondDetails?.market === bondFilter
+    );
+  }
 
-    // Status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(offer => offer.status === statusFilter);
-    }
+  // Status filter
+  if (statusFilter !== "all") {
+    filtered = filtered.filter((offer) => offer.status === statusFilter);
+  }
 
-    // Type filter
-    if (typeFilter !== "all") {
-      filtered = filtered.filter(offer => offer.type === typeFilter);
-    }
+  // Type filter
+  if (typeFilter !== "all") {
+    filtered = filtered.filter((offer) => offer.type === typeFilter);
+  }
 
-    // Search filter
-    if (searchQuery) {
-      filtered = filtered.filter(offer => 
+  // Search filter (kept as you had it)
+  if (searchQuery) {
+    filtered = filtered.filter(
+      (offer) =>
         offer.bondName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         offer.bondSymbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (offer.sellerWallet.toLowerCase().includes(searchQuery.toLowerCase()) && offer.sellerWallet !== walletAddress) ||
-        (offer.buyerWallet.toLowerCase().includes(searchQuery.toLowerCase()) && offer.buyerWallet !== walletAddress)
-      );
-    }
+        offer.sellerWallet
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        offer.buyerWallet.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
 
-    setFilteredOffers(filtered);
-  }, [offers, activeTab, bondFilter, statusFilter, typeFilter, searchQuery, walletAddress]);
+  setFilteredOffers(filtered);
+}, [offers, activeTab, bondFilter, statusFilter, typeFilter, searchQuery, walletAddress]);
 
   const stats: NegotiationStats = {
     total: offers.length,
@@ -1088,33 +900,93 @@ export default function NegotiationsPage() {
     setShowConfirmModal(true);
   };
 
-  const confirmAction = () => {
-    if (!selectedOffer) return;
+  const confirmAction = async () => {
+    if (!selectedOffer || !currentUser?.id) return;
 
-    setOffers(prev => prev.map(offer => 
-      offer.id === selectedOffer.id 
-        ? { 
-            ...offer, 
-            status: actionType === "accept" ? "accepted" : 
-                    actionType === "reject" ? "rejected" : "counter",
-            messages: [
-              ...offer.messages,
-              {
-                id: `msg-${Date.now()}`,
-                text: actionType === "accept" ? "Offer accepted" : 
-                      actionType === "reject" ? "Offer rejected" : "Counter offer sent",
-                sender: selectedOffer.sellerWallet === walletAddress ? "seller" : "buyer",
-                senderWallet: walletAddress,
-                timestamp: new Date(),
-                type: "offer_update"
+    try {
+      // For now: "counter" only updates local UI (no backend call yet)
+      if (actionType === "counter") {
+        setOffers((prev) =>
+          prev.map((offer) =>
+            offer.id === selectedOffer.id
+              ? {
+                  ...offer,
+                  status: "counter",
+                  messages: [
+                    ...offer.messages,
+                    {
+                      id: `msg-${Date.now()}`,
+                      text: "Counter offer sent",
+                      sender:
+                        selectedOffer.sellerWallet === walletAddress
+                          ? "seller"
+                          : "buyer",
+                      senderWallet: walletAddress,
+                      timestamp: new Date(),
+                      type: "offer_update",
+                    },
+                  ],
+                }
+              : offer
+          )
+        );
+        return;
+      }
+
+      // Backend call for accept / reject
+      const res = await fetch("/api/investor/negotiations/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          offerId: selectedOffer.id,
+          userId: currentUser.id,
+          action: actionType, // "accept" | "reject"
+        }),
+      });
+
+      if (!res.ok) {
+        console.error("Failed to update negotiation status");
+        return;
+      }
+
+      const updated = (await res.json()) as NegotiationOfferDTO;
+
+      setOffers((prev) =>
+        prev.map((offer) =>
+          offer.id === updated.id
+            ? {
+                ...offer,
+                status: (updated.status === "cancelled"
+                  ? "rejected"
+                  : updated.status) as Offer["status"],
+                messages: [
+                  ...offer.messages,
+                  {
+                    id: `msg-${Date.now()}`,
+                    text:
+                      actionType === "accept"
+                        ? "Offer accepted"
+                        : "Offer rejected",
+                    sender:
+                      selectedOffer.sellerWallet === walletAddress
+                        ? "seller"
+                        : "buyer",
+                    senderWallet: walletAddress,
+                    timestamp: new Date(),
+                    type: "offer_update",
+                  },
+                ],
               }
-            ]
-          }
-        : offer
-    ));
-
-    setShowConfirmModal(false);
+            : offer
+        )
+      );
+    } catch (err) {
+      console.error("Error confirming action:", err);
+    } finally {
+      setShowConfirmModal(false);
+    }
   };
+
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -1122,16 +994,24 @@ export default function NegotiationsPage() {
     setTimeout(() => setCopiedAddress(null), 2000);
   };
 
-  const getStatusColor = (status: Offer["status"]) => {
-    switch (status) {
-      case "pending": return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "accepted": return "bg-green-100 text-green-800 border-green-200";
-      case "rejected": return "bg-red-100 text-red-800 border-red-200";
-      case "counter": return "bg-blue-100 text-blue-800 border-blue-200";
-      case "expired": return "bg-gray-100 text-gray-800 border-gray-200";
-      default: return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
+const getStatusColor = (status: Offer["status"]) => {
+  switch (status) {
+    case "pending":
+      return "bg-yellow-100 text-yellow-800 border-yellow-200";
+    case "accepted":
+      return "bg-green-100 text-green-800 border-green-200";
+    case "rejected":
+    case "cancelled":
+      return "bg-red-100 text-red-800 border-red-200";
+    case "counter":
+      return "bg-blue-100 text-blue-800 border-blue-200";
+    case "expired":
+      return "bg-gray-100 text-gray-800 border-gray-200";
+    default:
+      return "bg-gray-100 text-gray-800 border-gray-200";
+  }
+};
+
 
   const getTypeColor = (type: Offer["type"]) => {
     switch (type) {

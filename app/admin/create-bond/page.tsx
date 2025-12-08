@@ -13,9 +13,6 @@ import {
     IoTimeOutline,
     IoAlertCircleOutline,
     IoCheckmarkCircleOutline,
-    IoImageOutline,
-    IoCloudUploadOutline,
-    IoClose
 } from 'react-icons/io5';
 import { MdArrowDropDown } from 'react-icons/md';
 
@@ -52,7 +49,6 @@ interface ValidationErrors {
     subscription_period?: string;
     bondSymbol2?: string;
     purpose?: string;
-    bondImage?: string;
 }
 
 interface ValidationState {
@@ -71,17 +67,14 @@ const TokenizationBondPage = () => {
         face_value: '',
         bondSymbol2: '',
         subscription_period: '',
-        bondImage: ''
     });
 
     const [errors, setErrors] = useState<ValidationErrors>({});
     const [touched, setTouched] = useState<Record<string, boolean>>({});
     const [validFields, setValidFields] = useState<ValidationState>({});
     const [isLoading, setIsLoading] = useState(false);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [isDragging, setIsDragging] = useState(false);
 
-    // Define the actual fields we have (11 fields total with image)
+    // Define the actual fields we have
     const formFields = [
         'bondName',
         'org_name', 
@@ -93,7 +86,6 @@ const TokenizationBondPage = () => {
         'subscription_period',
         'maturity',
         'purpose',
-        'bondImage'
     ];
 
     // Validation rules
@@ -153,74 +145,9 @@ const TokenizationBondPage = () => {
                 if (maturityDate <= today) return 'Must be a future date';
                 return '';
             
-            case 'bondImage':
-                if (!value.trim()) return 'Bond image is required';
-                return '';
-            
             default:
                 return '';
         }
-    };
-
-    // Handle image upload
-    const handleImageUpload = (file: File) => {
-        // Validate file type
-        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-        if (!validTypes.includes(file.type)) {
-            setErrors(prev => ({ ...prev, bondImage: 'Please upload a valid image (JPEG, PNG, WebP)' }));
-            return;
-        }
-
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            setErrors(prev => ({ ...prev, bondImage: 'Image size must be less than 5MB' }));
-            return;
-        }
-
-        // Create preview
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const imageUrl = e.target?.result as string;
-            setImagePreview(imageUrl);
-            setBondDetails(prev => ({ ...prev, bondImage: imageUrl }));
-            setErrors(prev => ({ ...prev, bondImage: '' }));
-            setValidFields(prev => ({ ...prev, bondImage: true }));
-        };
-        reader.readAsDataURL(file);
-    };
-
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            handleImageUpload(file);
-        }
-    };
-
-    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        setIsDragging(true);
-    };
-
-    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        setIsDragging(false);
-    };
-
-    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        setIsDragging(false);
-        
-        const file = e.dataTransfer.files?.[0];
-        if (file) {
-            handleImageUpload(file);
-        }
-    };
-
-    const removeImage = () => {
-        setImagePreview(null);
-        setBondDetails(prev => ({ ...prev, bondImage: '' }));
-        setValidFields(prev => ({ ...prev, bondImage: false }));
-        setErrors(prev => ({ ...prev, bondImage: 'Bond image is required' }));
     };
 
     // Handle number-only input
@@ -426,86 +353,6 @@ const TokenizationBondPage = () => {
                         </div>
 
                         <div className="space-y-6">
-                            {/* Bond Image Section */}
-                            <div className="bg-gradient-to-br from-indigo-50/50 to-indigo-100/30 rounded-xl p-4 border border-indigo-200/60">
-                                <h3 className="font-semibold text-indigo-900 mb-4 flex items-center gap-2">
-                                    <IoImageOutline className="w-4 h-4" />
-                                    Bond Image
-                                </h3>
-                                <div className="space-y-4">
-                                    {!imagePreview ? (
-                                        <div
-                                            className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer ${
-                                                isDragging 
-                                                    ? 'border-[#5B50D9] bg-indigo-50/50' 
-                                                    : errors.bondImage && touched.bondImage 
-                                                        ? 'border-red-300 bg-red-50/50' 
-                                                        : validFields.bondImage 
-                                                            ? 'border-green-300 bg-green-50/50'
-                                                            : 'border-gray-300 hover:border-gray-400'
-                                            }`}
-                                            onDragOver={handleDragOver}
-                                            onDragLeave={handleDragLeave}
-                                            onDrop={handleDrop}
-                                            onClick={() => document.getElementById('bondImage')?.click()}
-                                        >
-                                            <IoCloudUploadOutline className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                            <p className="text-lg font-medium text-gray-700 mb-2">
-                                                Upload Bond Image
-                                            </p>
-                                            <p className="text-sm text-gray-500 mb-4">
-                                                Drag & drop your image here or click to browse
-                                            </p>
-                                            <p className="text-xs text-gray-400">
-                                                Supports JPG, PNG, WebP • Max 5MB
-                                            </p>
-                                            <input
-                                                id="bondImage"
-                                                type="file"
-                                                accept="image/jpeg,image/jpg,image/png,image/webp"
-                                                onChange={handleImageChange}
-                                                className="hidden"
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div className="relative">
-                                            <div className="border-2 border-green-300 rounded-xl p-4 bg-green-50/50">
-                                                <div className="flex items-center gap-4">
-                                                    <img 
-                                                        src={imagePreview} 
-                                                        alt="Bond preview" 
-                                                        className="w-20 h-20 rounded-lg object-cover"
-                                                    />
-                                                    <div className="flex-1">
-                                                        <p className="font-medium text-green-800">Image uploaded successfully</p>
-                                                        <p className="text-sm text-green-600">Your bond image is ready</p>
-                                                    </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={removeImage}
-                                                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                                    >
-                                                        <IoClose className="w-5 h-5" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {errors.bondImage && touched.bondImage && (
-                                        <p className="text-red-600 text-xs flex items-center gap-1">
-                                            <IoAlertCircleOutline className="w-3 h-3" />
-                                            {errors.bondImage}
-                                        </p>
-                                    )}
-                                    {validFields.bondImage && (
-                                        <p className="text-green-600 text-xs flex items-center gap-1">
-                                            <IoCheckmarkCircleOutline className="w-3 h-3" />
-                                            Bond image uploaded successfully
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-
                             {/* Basic Information Section */}
                             <div className="bg-gradient-to-br from-blue-50/50 to-blue-100/30 rounded-xl p-4 border border-blue-200/60">
                                 <h3 className="font-semibold text-blue-900 mb-4 flex items-center gap-2">
@@ -931,20 +778,6 @@ const TokenizationBondPage = () => {
                             </div>
 
                             <div className="space-y-4">
-                                {/* Bond Image Preview */}
-                                {imagePreview && (
-                                    <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 rounded-xl p-4 border border-indigo-200/60">
-                                        <h3 className="font-semibold text-indigo-900 mb-3">Bond Image</h3>
-                                        <div className="flex justify-center">
-                                            <img 
-                                                src={imagePreview} 
-                                                alt="Bond preview" 
-                                                className="w-32 h-32 rounded-lg object-cover shadow-sm"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-
                                 {/* Progress Summary */}
                                 <div className="bg-gradient-to-br from-blue-50 to-indigo-100/50 rounded-xl p-4 border border-blue-200/60">
                                     <h3 className="font-semibold text-blue-900 mb-2">Validation Progress</h3>

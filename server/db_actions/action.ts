@@ -2,7 +2,9 @@
 
 import { db } from "@/server/db"
 import { BondType, Market, Status } from "@prisma/client";
-import { formatBtnFromTenths, formatDMY, nfUnits, tenthsToUnits } from "../lib/helpers";
+import { formatBtnFromTenths, formatDMY, nfUnits, tenthsToUnits, toTenths } from "../lib/helpers";
+import { acceptNegotiationOfferAndBuy } from "../blockchain/bond";
+import { fetchNegotiationOffersForUser, NegotiationOfferDTO } from "../lib/negotiations";
 
 
 export async function fetchInvestorAllocations(userId: string): Promise<Row[]> {
@@ -496,4 +498,105 @@ export async function createNegotiationOffer(input: CreateNegotiationOfferInput)
   });
 
   return offer;
+}
+
+export async function createOfferAction(form: {
+  listingId: string;
+  buyerUserId: string;
+  buyerWallet: string;
+  units: number;
+  proposedInterestRate: number;
+  proposedTotalAmountNu: number;
+  note?: string;
+}) {
+  return await createNegotiationOffer(form);
+}
+
+
+export async function acceptOfferAction({
+  offerId,
+  buyerUserId,
+  buyerAddress,
+  buyerMnemonic,
+}: {
+  offerId: string;
+  buyerUserId: string;
+  buyerAddress: string;
+  buyerMnemonic: string;
+}) {
+  return await acceptNegotiationOfferAndBuy({
+    offerId,
+    buyerUserId,
+    buyerAddress,
+    buyerMnemonic,
+  });
+}
+
+
+export async function fetchOffersForListing(
+  listingId: string,
+  currentUserId?: string
+): Promise<NegotiationOfferDTO[]> {
+  if (!listingId) throw new Error("listingId is required");
+
+  const offers = await db.negotiationOffers.findMany({
+    where: { listing_id: listingId },
+    include: {
+      bond: true,
+      listing: true,
+      buyer: true,
+      seller: true,
+    },
+    orderBy: { created_at: "desc" },
+  });
+
+  return offers.map((o) => {
+    const bond = o.bond;
+    const listing = o.listing;
+
+    const proposedTotalAmountNu = Number(o.proposed_total_amount) / 10; // if toTenths() used BTN tenths
+
+    const direction: "sent" | "received" =
+      currentUserId && o.buyer_user_id === currentUserId
+        ? "sent"
+        : "received";
+
+    return {
+      id: o.id,
+
+      bondId: o.bond_id,
+      bondName: bond.bond_name,
+      bondSymbol: bond.bond_symbol,
+
+      listingId: o.listing_id,
+      listingStatus: listing.status,
+
+      buyerUserId: o.buyer_user_id,
+      sellerUserId: o.seller_user_id,
+
+      buyerWallet: o.buyer_wallet,
+      sellerWallet: o.seller_wallet,
+
+      units: o.units,
+      unitsTenths: Number(o.units_tenths),
+
+      originalInterestRate: o.original_interest_rate,
+      proposedInterestRate: o.proposed_interest_rate,
+      proposedTotalAmountNu,
+
+      status: o.status,
+      note: o.note ?? null,
+
+      createdAt: o.created_at.toISOString(),
+      updatedAt: o.updated_at.toISOString(),
+
+      direction,
+    };
+  });
+}
+
+
+export async function getNegotiationDashboardData(userId: string) {
+  const offers = await fetchNegotiationOffersForUser(userId);
+  return offers;
 }
