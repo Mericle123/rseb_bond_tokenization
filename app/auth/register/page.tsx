@@ -168,7 +168,7 @@ export default function RegisterPage() {
   }
 
   const fieldClass = (hasError?: string) =>
-    `w-full p-2.5 sm:p-3 border rounded-xl bg-white transition-all text-xs sm:text-sm
+    `w-full px-10 py-2.5 sm:py-3 border rounded-xl bg-white transition-all text-xs sm:text-sm
     ${
       hasError
         ? "border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
@@ -233,12 +233,12 @@ export default function RegisterPage() {
               National ID
             </label>
             <div className="relative">
-              <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="number"
                 name="national_id"
                 placeholder="Enter your national ID"
-                className={`${fieldClass(errors.national_id)} pl-9`}
+                className={`${fieldClass(errors.national_id)}`}
                 required
               />
             </div>
@@ -255,12 +255,12 @@ export default function RegisterPage() {
               Full Name
             </label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
                 name="name"
                 placeholder="Enter your full name"
-                className={`${fieldClass(errors.name)} pl-9`}
+                className={`${fieldClass(errors.name)}`}
                 required
               />
             </div>
@@ -271,19 +271,28 @@ export default function RegisterPage() {
             )}
           </div>
 
-          {/* Date of Birth */}
+          {/* Date of Birth - FIXED */}
           <div className="space-y-1">
             <label className="block text-[11px] sm:text-xs font-medium text-gray-700">
               Date of Birth
             </label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
               <input
                 type="date"
                 name="dob"
-                className={`${fieldClass(errors.dob)} pl-9 text-gray-600`}
+                className={`${fieldClass(errors.dob)} text-gray-600 appearance-none`}
                 required
               />
+              {/* Remove default calendar icon in some browsers */}
+              <style jsx>{`
+                input[type="date"]::-webkit-calendar-picker-indicator {
+                  position: absolute;
+                  right: 10px;
+                  opacity: 1;
+                  cursor: pointer;
+                }
+              `}</style>
             </div>
             {errors.dob && (
               <p className="text-[10px] sm:text-[11px] text-red-600 mt-1">
@@ -298,12 +307,12 @@ export default function RegisterPage() {
               Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="email"
                 name="email"
                 placeholder="you@example.com"
-                className={`${fieldClass(errors.email)} pl-9`}
+                className={`${fieldClass(errors.email)}`}
                 required
               />
             </div>
@@ -320,17 +329,17 @@ export default function RegisterPage() {
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="Create a strong password"
-                className={`${fieldClass(errors.password)} pl-9 pr-10`}
+                className={`${fieldClass(errors.password)} pr-10`}
                 required
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
@@ -356,17 +365,15 @@ export default function RegisterPage() {
               Role
             </label>
             <div className="relative">
-              <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <ShieldCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 z-10" />
               <select
                 name="role"
-                className={`${fieldClass(
-                  errors.role
-                )} pl-9 pr-8 text-gray-600 appearance-none`}
+                className={`${fieldClass(errors.role)} text-gray-600 appearance-none`}
               >
                 <option value="user">User</option>
                 <option value="admin">Admin</option>
               </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none z-10">
                 <svg
                   className="w-4 h-4 text-gray-400"
                   fill="none"

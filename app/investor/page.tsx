@@ -1553,7 +1553,7 @@ const BondRow = forwardRef<
       {/* Face value */}
       <td className="py-5 px-4">
         <div className={`text-base font-bold ${dim}`}>
-          {formatBigIntCurrency(bond.face_value)}
+          {Number(bond.face_value) / 10}
         </div>
         <div className="text-xs text-gray-500 mt-0.5">per unit</div>
       </td>

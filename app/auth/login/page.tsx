@@ -82,10 +82,10 @@ export default function AdminLoginPage() {
 
         {/* Title & Subtitle */}
         <h1 className="text-2xl sm:text-3xl font-bold mb-1 text-center text-gray-800">
-          Login as Admin
+          Login
         </h1>
         <p className="text-xs sm:text-sm text-gray-600 text-center mb-6 sm:mb-7">
-          Use your admin credentials to access the dashboard.
+          Use your credentials to access the dashboard.
         </p>
 
         {/* Form */}
