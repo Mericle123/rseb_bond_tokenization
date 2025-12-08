@@ -1728,7 +1728,7 @@ const ResaleBondPage = ({ params }: ResalePageProps) => {
                   
                   {/* Action Buttons */}
                   <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                    <motion.button
+                    {/* <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="flex-1 rounded-full bg-emerald-600 text-white py-3 font-bold hover:bg-emerald-700 transition-colors text-sm shadow-sm flex items-center justify-center gap-2"
@@ -1737,7 +1737,7 @@ const ResaleBondPage = ({ params }: ResalePageProps) => {
                     >
                       <Coins className="w-4 h-4" />
                       Buy Now
-                    </motion.button>
+                    </motion.button> */}
                     
                     <motion.button
                       whileHover={{ scale: 1.02 }}
