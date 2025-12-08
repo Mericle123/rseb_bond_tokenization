@@ -12,7 +12,6 @@ import {
   DollarSign, 
   Activity,
   Menu,
-  SubscriptIcon,
   MessageSquare,
   ChevronLeft,
   ChevronRight
@@ -48,7 +47,6 @@ export default function InvestorSideNavbar() {
     { label: "Assets", href: "/investor/Assets", icon: PieChart },
     { label: "Earnings", href: "/investor/Earnings", icon: DollarSign },
     { label: "Activity", href: "/investor/Activity", icon: Activity },
-    { label: "Subscriptions", href: "/investor/Subscriptions", icon: SubscriptIcon },
     { label: "Negotiative Channel", href: "/investor/Negotiative", icon: MessageSquare }
   ];
 
