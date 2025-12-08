@@ -471,8 +471,6 @@ function NegotiationModal({
   );
 }
 
-// ... Rest of the code remains exactly the same (LoadingAnimation, FilterSortBar, main component, etc.) ...
-
 // ========================= Original Loading Animation =========================
 
 function LoadingAnimation() {
@@ -1326,7 +1324,6 @@ export default function InvestorPage() {
                               bond={bond}
                               variant={activeTab === "current" ? "primary" : "resale"}
                               ref={isLast ? lastRowRef : undefined}
-                              onNegotiate={openNegotiationModal}
                             />
                           );
                         })}
@@ -1355,7 +1352,6 @@ export default function InvestorPage() {
                           bond={bond}
                           variant={activeTab === "current" ? "primary" : "resale"}
                           ref={isLast ? lastRowRef : undefined}
-                          onNegotiate={openNegotiationModal}
                         />
                       );
                     })}
@@ -1441,9 +1437,8 @@ const BondRow = forwardRef<
   { 
     bond: Bond; 
     variant: "primary" | "resale";
-    onNegotiate?: (bond: Bond) => void;
   }
->(({ bond, variant, onNegotiate }, ref) => {
+>(({ bond, variant }, ref) => {
   const dim = bond.disabled ? "text-gray-300" : "text-gray-900";
   const rateCol = bond.disabled
     ? "text-gray-300"
@@ -1565,34 +1560,16 @@ const BondRow = forwardRef<
 
       {/* Action */}
       <td className="py-5 pl-4 pr-6">
-        {variant === "primary" ? (
-          <Link 
-            href={`/investor/AboutBond/${bond.id}`}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#5B50D9] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#4a45b5] transition-colors shadow-sm hover:shadow-md"
-          >
-            <IoDocumentTextOutline className="w-4 h-4" />
-            View Details
-          </Link>
-        ) : (
-          <div className="flex flex-col gap-2">
-            <Link 
-              href={`/investor/resale/${bond.id}`}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#5B50D9] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#4a45b5] transition-colors shadow-sm hover:shadow-md"
-            >
-              <IoDocumentTextOutline className="w-4 h-4" />
-              View Listing
-            </Link>
-            {onNegotiate && (
-              <button
-                onClick={() => onNegotiate(bond)}
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 px-4 py-2.5 text-sm font-semibold text-white hover:from-purple-600 hover:to-purple-700 transition-colors shadow-sm hover:shadow-md"
-              >
-                <IoTrendingUp className="w-4 h-4" />
-                Negotiate
-              </button>
-            )}
-          </div>
-        )}
+        <Link 
+          href={variant === "primary" 
+            ? `/investor/AboutBond/${bond.id}`
+            : `/investor/resale/${bond.id}`
+          }
+          className="inline-flex items-center gap-2 rounded-lg bg-[#5B50D9] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#4a45b5] transition-colors shadow-sm hover:shadow-md"
+        >
+          <IoDocumentTextOutline className="w-4 h-4" />
+          {variant === "primary" ? "View Details" : "View Listing"}
+        </Link>
       </td>
     </tr>
   );
@@ -1605,9 +1582,8 @@ const MobileBondCard = forwardRef<
   { 
     bond: Bond; 
     variant: "primary" | "resale";
-    onNegotiate?: (bond: Bond) => void;
   }
->(({ bond, variant, onNegotiate }, ref) => {
+>(({ bond, variant }, ref) => {
   const dim = bond.disabled ? "text-gray-300" : "text-gray-900";
   const rateCol = bond.disabled ? "text-gray-300" : "text-emerald-600";
 
@@ -1719,34 +1695,16 @@ const MobileBondCard = forwardRef<
 
       {/* Action Button */}
       <div className="pt-3 border-t border-gray-100">
-        {variant === "primary" ? (
-          <Link 
-            href={`/investor/AboutBond/${bond.id}`}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#5B50D9] px-4 py-3 text-sm font-semibold text-white hover:bg-[#4a45b5] transition-colors shadow-sm"
-          >
-            <IoDocumentTextOutline className="w-4 h-4" />
-            View Bond Details
-          </Link>
-        ) : (
-          <div className="flex flex-col gap-2">
-            <Link 
-              href={`/investor/resale/${bond.id}`}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#5B50D9] px-4 py-3 text-sm font-semibold text-white hover:bg-[#4a45b5] transition-colors shadow-sm"
-            >
-              <IoDocumentTextOutline className="w-4 h-4" />
-              View Resale Listing
-            </Link>
-            {onNegotiate && (
-              <button
-                onClick={() => onNegotiate(bond)}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 px-4 py-3 text-sm font-semibold text-white hover:from-purple-600 hover:to-purple-700 transition-colors shadow-sm"
-              >
-                <IoTrendingUp className="w-4 h-4" />
-                Negotiate
-              </button>
-            )}
-          </div>
-        )}
+        <Link 
+          href={variant === "primary" 
+            ? `/investor/AboutBond/${bond.id}`
+            : `/investor/resale/${bond.id}`
+          }
+          className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#5B50D9] px-4 py-3 text-sm font-semibold text-white hover:bg-[#4a45b5] transition-colors shadow-sm"
+        >
+          <IoDocumentTextOutline className="w-4 h-4" />
+          {variant === "primary" ? "View Bond Details" : "View Resale Listing"}
+        </Link>
       </div>
     </div>
   );

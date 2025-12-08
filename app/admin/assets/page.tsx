@@ -5,10 +5,11 @@ import Image from 'next/image';
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 // Icons
-import { IoSearch, IoDocumentTextOutline, IoFilter, IoClose } from 'react-icons/io5';
+import { IoSearch, IoDocumentTextOutline, IoFilter, IoClose, IoCalendarOutline } from 'react-icons/io5';
 import { CgSpinner } from "react-icons/cg";
 import { BsBoxSeam } from "react-icons/bs";
 import { TrendingUp, TrendingDown, Minus, Percent, Package, X } from "lucide-react";
+
 // Logic
 import { fetchBonds } from '@/server/bond/creation';
 
@@ -34,8 +35,8 @@ const fadeIn = {
   viewport: { once: true, margin: "-10% 0% -10% 0%" },
 };
 
-// ========================= Filter & Sort Component =========================
-function FilterSortBar({ 
+// ========================= Filter Component =========================
+function FilterDropdown({ 
   onFilterChange, 
   activeFilter,
   onClose
@@ -86,6 +87,74 @@ function FilterSortBar({
   );
 }
 
+// ========================= Sort Component =========================
+function SortDropdown({ 
+  onSortChange, 
+  activeSort,
+  onClose 
+}: {
+  onSortChange: (sort: string) => void;
+  activeSort: string;
+  onClose: () => void;
+}) {
+  const sortOptions = [
+    { key: "latest", label: "Latest Added" },
+    { key: "oldest", label: "Oldest Added" },
+    { key: "a-z", label: "Name (A-Z)" },
+    { key: "z-a", label: "Name (Z-A)" },
+    { key: "interest-high", label: "Interest (High-Low)" },
+    { key: "interest-low", label: "Interest (Low-High)" }
+  ];
+
+  const getSortIcon = (key: string) => {
+    switch (key) {
+      case "latest":
+      case "oldest":
+        return <IoCalendarOutline className="w-4 h-4" />;
+      case "a-z":
+      case "z-a":
+        return <IoDocumentTextOutline className="w-4 h-4" />;
+      case "interest-high":
+      case "interest-low":
+        return <TrendingUp className="w-4 h-4" />;
+      default:
+        return <IoCalendarOutline className="w-4 h-4" />;
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50"
+    >
+      <div className="px-4 py-2 border-b border-gray-100">
+        <span className="text-sm font-medium text-gray-700">Sort by</span>
+      </div>
+      {sortOptions.map((option) => (
+        <button
+          key={option.key}
+          onClick={() => {
+            onSortChange(option.key);
+            onClose();
+          }}
+          className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors duration-150 ${
+            activeSort === option.key
+              ? "bg-blue-50 text-blue-600"
+              : "text-gray-700"
+          }`}
+        >
+          <div className="text-gray-500">
+            {getSortIcon(option.key)}
+          </div>
+          <span>{option.label}</span>
+        </button>
+      ))}
+    </motion.div>
+  );
+}
+
 export default function AssetsPage() {
   const [bonds, setBonds] = useState<Bond[]>([]); 
 
@@ -94,6 +163,7 @@ export default function AssetsPage() {
   const [sortBy, setSortBy] = useState("latest");
   const [activeFilter, setActiveFilter] = useState("all");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
 
   // --- LOADING STATES ---
   const [bondsLoading, setBondsLoading] = useState(true); 
@@ -202,12 +272,15 @@ export default function AssetsPage() {
     return result;
   }, [bonds, filterText, sortBy, activeFilter]);
 
-  // Close filter dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       if (!target.closest('.filter-dropdown-container')) {
         setShowFilterDropdown(false);
+      }
+      if (!target.closest('.sort-dropdown-container')) {
+        setShowSortDropdown(false);
       }
     };
 
@@ -234,7 +307,7 @@ export default function AssetsPage() {
     <div className="min-h-screen bg-[#F7F8FB] pt-4 px-4 pb-10 md:px-8 font-sans">
       <div className="max-w-7xl mx-auto w-full space-y-6">
 
-        {/* --- HEADER SECTION - Updated to match reference --- */}
+        {/* --- HEADER SECTION --- */}
         <motion.header {...fadeIn} className="mb-6">
           <div className="flex items-center justify-between">
             <div>
@@ -309,7 +382,7 @@ export default function AssetsPage() {
                   Bond Series
                 </h2>
                 <p className="text-gray-600 mt-2 text-xs sm:text-sm lg:text-base max-w-3xl">
-                 
+                  Manage and monitor all bond offerings in your portfolio
                 </p>
                 
                 {/* Active Filter Badge */}
@@ -323,7 +396,7 @@ export default function AssetsPage() {
                       </span>
                       <button
                         onClick={() => setActiveFilter("all")}
-                        className="hover:text-blue-900"
+                        className="hover:text-blue-900 transition-colors"
                         aria-label="Clear filter"
                       >
                         <X className="w-3 h-3" />
@@ -353,42 +426,58 @@ export default function AssetsPage() {
                   </div>
                 </div>
                 
-                {/* Sorting */}
-                <div className="relative flex-1 sm:flex-none">
-                  <select 
-                    className="w-full sm:w-auto h-10 sm:h-11 pl-3 pr-10 rounded-lg sm:rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer appearance-none shadow-sm font-medium text-gray-700"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
+                {/* Sort Dropdown - Same UI as Filter */}
+                <div className="sort-dropdown-container relative flex-1 sm:flex-none">
+                  <button 
+                    className="w-full sm:w-auto h-10 sm:h-11 px-3 sm:px-4 rounded-lg sm:rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer shadow-sm font-medium text-gray-700 flex items-center gap-2 justify-center"
+                    onClick={() => setShowSortDropdown(!showSortDropdown)}
                   >
-                    <option value="latest">Latest Added</option>
-                    <option value="oldest">Oldest Added</option>
-                    <option value="a-z">Name (A-Z)</option>
-                    <option value="z-a">Name (Z-A)</option>
-                    <option value="interest-high">Interest (High-Low)</option>
-                    <option value="interest-low">Interest (Low-High)</option>
-                  </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+                    <IoCalendarOutline className="w-4 h-4" />
+                    Sort
+                    <svg 
+                      width="10" 
+                      height="6" 
+                      viewBox="0 0 10 6" 
+                      fill="none"
+                      className={`transition-transform ${showSortDropdown ? 'rotate-180' : ''}`}
+                    >
                       <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                  </div>
+                  </button>
+                  
+                  <AnimatePresence>
+                    {showSortDropdown && (
+                      <SortDropdown
+                        onSortChange={setSortBy}
+                        activeSort={sortBy}
+                        onClose={() => setShowSortDropdown(false)}
+                      />
+                    )}
+                  </AnimatePresence>
                 </div>
 
-                {/* Filter Button with Dropdown */}
-                <div className="filter-dropdown-container relative">
+                {/* Filter Dropdown */}
+                <div className="filter-dropdown-container relative flex-1 sm:flex-none">
                   <button 
-                    className="h-10 sm:h-11 px-3 sm:px-4 rounded-lg sm:rounded-xl border border-gray-300 bg-white hover:bg-gray-50 transition-colors flex items-center gap-2 justify-center sm:justify-start"
+                    className="w-full sm:w-auto h-10 sm:h-11 px-3 sm:px-4 rounded-lg sm:rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer shadow-sm font-medium text-gray-700 flex items-center gap-2 justify-center"
                     onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                    aria-expanded={showFilterDropdown}
-                    aria-haspopup="true"
                   >
-                    <IoFilter className="w-4 h-4 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Filter</span>
+                    <IoFilter className="w-4 h-4" />
+                    Filter
+                    <svg 
+                      width="10" 
+                      height="6" 
+                      viewBox="0 0 10 6" 
+                      fill="none"
+                      className={`transition-transform ${showFilterDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
                   </button>
                   
                   <AnimatePresence>
                     {showFilterDropdown && (
-                      <FilterSortBar
+                      <FilterDropdown
                         onFilterChange={setActiveFilter}
                         activeFilter={activeFilter}
                         onClose={() => setShowFilterDropdown(false)}

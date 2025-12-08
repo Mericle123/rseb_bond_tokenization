@@ -38,7 +38,7 @@ export default function AdminSidebar() {
     const pathname = usePathname();
     const [accountOpen, setAccountOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [networksOpen, setNetworksOpen] = useState(false);
+    // const [networksOpen, setNetworksOpen] = useState(false); // Commented out
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const currentUser = useCurrentUser(); 
 
@@ -46,7 +46,7 @@ export default function AdminSidebar() {
         { label: "Home", href: "/admin", icon: LayoutDashboard },
         { label: "Assets", href: "/admin/assets", icon: Package },
         { label: "Ledger", href: "/admin/ledger", icon: BookOpen },
-        { label: "Networks", href: "#", icon: Server, action: () => setNetworksOpen(true) },
+        // { label: "Networks", href: "#", icon: Server, action: () => setNetworksOpen(true) }, // Commented out
     ];
 
     const isActive = (href: string) => {
@@ -294,10 +294,10 @@ export default function AdminSidebar() {
                     setMobileMenuOpen(false);
                     setAccountOpen(true);
                 }}
-                onNetworksOpen={() => {
-                    setMobileMenuOpen(false);
-                    setNetworksOpen(true);
-                }}
+                // onNetworksOpen={() => { // Commented out
+                //     setMobileMenuOpen(false);
+                //     setNetworksOpen(true);
+                // }}
                 user={user}
             />
 
@@ -310,7 +310,7 @@ export default function AdminSidebar() {
             />
 
             {/* ==================== Networks Panel ==================== */}
-            <NetworksPanel open={networksOpen} onClose={() => setNetworksOpen(false)} />
+            {/* <NetworksPanel open={networksOpen} onClose={() => setNetworksOpen(false)} /> */} {/* Commented out */}
         </>
     );
 }
@@ -323,7 +323,7 @@ type MobileMenuProps = {
     navItems: { label: string; href: string; icon: any; action?: () => void }[];
     isActive: (href: string) => boolean;
     onAccountOpen: () => void;
-    onNetworksOpen: () => void;
+    // onNetworksOpen: () => void; // Commented out
     user: { name: string; email: string; id: string };
 };
 
@@ -333,7 +333,7 @@ function MobileMenu({
     navItems,
     isActive,
     onAccountOpen,
-    onNetworksOpen,
+    // onNetworksOpen, // Commented out
     user,
 }: MobileMenuProps) {
     const mounted = useMounted();
@@ -383,11 +383,12 @@ function MobileMenu({
                                     <button
                                         key={item.label}
                                         onClick={() => {
-                                            if (item.label === "Networks") {
-                                                onNetworksOpen();
-                                            } else {
-                                                item.action?.();
-                                            }
+                                            // if (item.label === "Networks") { // Commented out
+                                            //     onNetworksOpen();
+                                            // } else {
+                                            //     item.action?.();
+                                            // }
+                                            item.action?.(); // Modified
                                             onClose();
                                         }}
                                         className={`
@@ -454,6 +455,7 @@ function MobileMenu({
 
 /* --------------------------- Networks Panel --------------------------- */
 
+/*
 type NetworksPanelProps = {
     open: boolean;
     onClose: () => void;
@@ -509,7 +511,6 @@ function NetworksPanel({ open, onClose }: NetworksPanelProps) {
                 
                 <div className="flex-1 overflow-y-auto p-6">
                     <div className="max-w-[360px] mx-auto space-y-6">
-                        {/* Mainnet Section */}
                         <div className="space-y-3">
                             <h3 className="text-[16px] font-bold text-gray-900">Mainnet</h3>
                             <div className="bg-blue-50 rounded-xl border border-blue-200 p-4">
@@ -528,7 +529,6 @@ function NetworksPanel({ open, onClose }: NetworksPanelProps) {
                             </div>
                         </div>
 
-                        {/* Testnet Section */}
                         <div className="space-y-3">
                             <h3 className="text-[16px] font-bold text-gray-900">Testnet</h3>
                             <div className="bg-purple-50 rounded-xl border border-purple-200 p-4">
@@ -539,7 +539,6 @@ function NetworksPanel({ open, onClose }: NetworksPanelProps) {
                             </div>
                         </div>
 
-                        {/* Custom Nodes Section */}
                         <div className="space-y-3">
                             <h3 className="text-[16px] font-bold text-gray-900">Custom Nodes</h3>
                             <div className="space-y-3">
@@ -561,7 +560,6 @@ function NetworksPanel({ open, onClose }: NetworksPanelProps) {
 
                         <div className="h-px bg-gray-200 my-4"></div>
 
-                        {/* Public Nodes Section */}
                         <div className="space-y-3">
                             <h3 className="text-[16px] font-bold text-gray-900">Public Nodes</h3>
                             <div className="space-y-2">
@@ -583,7 +581,6 @@ function NetworksPanel({ open, onClose }: NetworksPanelProps) {
                             </div>
                         </div>
 
-                        {/* Action Buttons */}
                         <div className="flex gap-3 pt-4">
                             <button
                                 onClick={onClose}
@@ -609,6 +606,7 @@ function NetworksPanel({ open, onClose }: NetworksPanelProps) {
         document.body
     );
 }
+*/
 
 /* --------------------------- Account Panel --------------------------- */
 
