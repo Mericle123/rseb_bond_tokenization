@@ -70,7 +70,7 @@ const LoadingSpinner = () => (
 );
 
 // Chart options (static; data is dynamic)
-export const options = {
+const options = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: { 
