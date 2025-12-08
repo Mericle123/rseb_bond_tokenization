@@ -1,12 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
-import { Copy, Wallet, FileText } from "lucide-react";
+import { Copy, Wallet, FileText, Calendar, Hash, Coins, Send, ShoppingCart, Ticket } from "lucide-react";
 import { motion } from "framer-motion";
+import { useCurrentUser } from "@/context/UserContext";
+import {
+  fetchEventLogsforCurrentUser,
+  fetchPeerToPeerTxForCurrentUser,
+  fetchAllocationHistoryForCurrentUser,
+  fetchPendingSubscriptionsForUser,
+} from "@/server/db_actions/action";
 
 /* ========================= Types ========================= */
+type ActivityKind = "event" | "peer" | "allocation" | "subscription" | "buy_sell" | "send" | "redeem" | "buy";
 
 type Status = "Completed" | "Complete" | "Pending" | "In progress";
 
@@ -19,10 +27,16 @@ type ActivityRow = {
     | "Transfer Out"
     | "Owner transfer"
     | "Airdrop"
-    | "Redeem";
-  date: string;           // YYYY-MM-DD
-  amountLabel: string;    // e.g. "BTN coin 100"
+    | "Redeem"
+    | "Subscription"
+    | "Send"
+    | "Buy";
+  date: string;
+  amountLabel: string;
   status: Status;
+  detail: string;
+  tx_hash: string;
+  kind: ActivityKind;
 };
 
 /* ========================= Motion ========================= */
@@ -34,19 +48,468 @@ const fadeIn = {
   viewport: { once: true, margin: "-10% 0% -10% 0%" },
 };
 
-/* ========================= Mock Data ========================= */
+/* ========================= Loading Animation ========================= */
 
-const INITIAL_ROWS: ActivityRow[] = [
-  { id: "1", asset: "RICB Bond", type: "Purchased",    date: "2025-11-01", amountLabel: "BTN coin 100", status: "Completed" },
-  { id: "2", asset: "BTN coin",  type: "Transfer Out", date: "2025-11-01", amountLabel: "BTN coin 100", status: "Pending" },
-  { id: "3", asset: "BTN coin",  type: "Transfer In",  date: "2025-11-01", amountLabel: "BTN coin 100", status: "In progress" },
-  { id: "4", asset: "RICB Bond", type: "Owner transfer", date: "2025-11-01", amountLabel: "BTN coin 100", status: "Complete" },
-  { id: "5", asset: "RICB Bond", type: "Purchased",    date: "2025-11-01", amountLabel: "BTN coin 100", status: "Completed" },
-  { id: "6", asset: "BTN coin",  type: "Transfer Out", date: "2025-11-01", amountLabel: "BTN coin 100", status: "Pending" },
-  { id: "7", asset: "BTN coin",  type: "Transfer In",  date: "2025-11-01", amountLabel: "BTN coin 100", status: "In progress" },
-  { id: "8", asset: "RICB Bond", type: "Owner transfer", date: "2025-11-01", amountLabel: "BTN coin 100", status: "Complete" },
-  { id: "9", asset: "BTN coin",  type: "Transfer In",  date: "2025-11-01", amountLabel: "BTN coin 100", status: "In progress" },
-];
+function FullScreenLoading() {
+  return (
+    <div className="fixed inset-0 bg-[#F7F8FB] z-50 flex flex-col items-center justify-center">
+      <div className="relative">
+        <svg
+          id="svg-global"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 94 136"
+          height="200"
+          width="140"
+          className="mx-auto"
+        >
+          <path
+            stroke="#4B22B5"
+            d="M87.3629 108.433L49.1073 85.3765C47.846 84.6163 45.8009 84.6163 44.5395 85.3765L6.28392 108.433C5.02255 109.194 5.02255 110.426 6.28392 111.187L44.5395 134.243C45.8009 135.004 47.846 135.004 49.1073 134.243L87.3629 111.187C88.6243 110.426 88.6243 109.194 87.3629 108.433Z"
+            id="line-v1"
+          ></path>
+          <path
+            stroke="#5728CC"
+            d="M91.0928 95.699L49.2899 70.5042C47.9116 69.6734 45.6769 69.6734 44.2986 70.5042L2.49568 95.699C1.11735 96.5298 1.11735 97.8767 2.49568 98.7074L44.2986 123.902C45.6769 124.733 47.9116 124.733 49.2899 123.902L91.0928 98.7074C92.4712 97.8767 92.4712 96.5298 91.0928 95.699Z"
+            id="line-v2"
+          ></path>
+          <g id="node-server">
+            <path
+              fill="url(#paint0_linear_204_217)"
+              d="M2.48637 72.0059L43.8699 96.9428C45.742 98.0709 48.281 97.8084 50.9284 96.2133L91.4607 71.7833C92.1444 71.2621 92.4197 70.9139 92.5421 70.1257V86.1368C92.5421 87.9686 92.0025 87.9681 91.3123 88.3825C84.502 92.4724 51.6503 112.204 50.0363 113.215C48.2352 114.343 45.3534 114.343 43.5523 113.215C41.9261 112.197 8.55699 91.8662 2.08967 87.926C1.39197 87.5011 1.00946 86.5986 1.00946 85.4058V70.1257C1.11219 70.9289 1.49685 71.3298 2.48637 72.0059Z"
+            ></path>
+            <path
+              stroke="url(#paint2_linear_204_217)"
+              fill="url(#paint1_linear_204_217)"
+              d="M91.0928 68.7324L49.2899 43.5375C47.9116 42.7068 45.6769 42.7068 44.2986 43.5375L2.49568 68.7324C1.11735 69.5631 1.11735 70.91 2.49568 71.7407L44.2986 96.9356C45.6769 97.7663 47.9116 97.7663 49.2899 96.9356L91.0928 71.7407C92.4712 70.91 92.4712 69.5631 91.0928 68.7324Z"
+            ></path>
+            <mask
+              height="41"
+              width="67"
+              y="50"
+              x="13"
+              maskUnits="userSpaceOnUse"
+              style={{ maskType: "luminance" }}
+              id="mask0_204_217"
+            >
+              <path
+                fill="white"
+                d="M78.3486 68.7324L49.0242 51.0584C47.6459 50.2276 45.4111 50.2276 44.0328 51.0584L14.7084 68.7324C13.3301 69.5631 13.3301 70.91 14.7084 71.7407L44.0328 89.4148C45.4111 90.2455 47.6459 90.2455 49.0242 89.4148L78.3486 71.7407C79.7269 70.91 79.727 69.5631 78.3486 68.7324Z"
+              ></path>
+            </mask>
+            <g mask="url(#mask0_204_217)">
+              <path
+                fill="#332C94"
+                d="M78.3486 68.7324L49.0242 51.0584C47.6459 50.2276 45.4111 50.2276 44.0328 51.0584L14.7084 68.7324C13.3301 69.5631 13.3301 70.91 14.7084 71.7407L44.0328 89.4148C45.4111 90.2455 47.6459 90.2455 49.0242 89.4148L78.3486 71.7407C79.7269 70.91 79.727 69.5631 78.3486 68.7324Z"
+              ></path>
+              <mask
+                height="29"
+                width="48"
+                y="56"
+                x="23"
+                maskUnits="userSpaceOnUse"
+                style={{ maskType: "luminance" }}
+                id="mask1_204_217"
+              >
+                <path
+                  fill="white"
+                  d="M68.9898 68.7324L49.0242 56.699C47.6459 55.8683 45.4111 55.8683 44.0328 56.699L24.0673 68.7324C22.6889 69.5631 22.6889 70.91 24.0673 71.7407L44.0328 83.7741C45.4111 84.6048 47.6459 84.6048 49.0242 83.7741L68.9898 71.7407C70.3681 70.91 70.3681 69.5631 68.9898 68.7324Z"
+                ></path>
+              </mask>
+              <g mask="url(#mask1_204_217)">
+                <path
+                  fill="#5E5E5E"
+                  d="M68.9898 68.7324L49.0242 56.699C47.6459 55.8683 45.4111 55.8683 44.0328 56.699L24.0673 68.7324C22.6889 69.5631 22.6889 70.91 24.0673 71.7407L44.0328 83.7741C45.4111 84.6048 47.6459 84.6048 49.0242 83.7741L68.9898 71.7407C70.3681 70.91 70.3681 69.5631 68.9898 68.7324Z"
+                ></path>
+                <path
+                  fill="#71B1C6"
+                  d="M70.1311 69.3884L48.42 56.303C47.3863 55.6799 45.7103 55.6799 44.6765 56.303L22.5275 69.6523C21.4938 70.2754 21.4938 71.2855 22.5275 71.9086L44.2386 84.994C45.2723 85.617 46.9484 85.617 47.9821 84.994L70.1311 71.6446C71.1648 71.0216 71.1648 70.0114 70.1311 69.3884Z"
+                ></path>
+                <path
+                  fill="#80C0D4"
+                  d="M70.131 70.8923L48.4199 57.8069C47.3862 57.1839 45.7101 57.1839 44.6764 57.8069L22.5274 71.1562C21.4937 71.7793 21.4937 72.7894 22.5274 73.4125L44.2385 86.4979C45.2722 87.1209 46.9482 87.1209 47.982 86.4979L70.131 73.1486C71.1647 72.5255 71.1647 71.5153 70.131 70.8923Z"
+                ></path>
+                <path
+                  fill="#89D3EB"
+                  d="M69.751 72.1675L48.4199 59.3111C47.3862 58.6881 45.7101 58.6881 44.6764 59.3111L23.2004 72.2548C22.1667 72.8779 22.1667 73.888 23.2004 74.5111L44.5315 87.3674C45.5653 87.9905 47.2413 87.9905 48.2751 87.3674L69.751 74.4238C70.7847 73.8007 70.7847 72.7905 69.751 72.1675Z"
+                ></path>
+                <path
+                  fill="#97E6FF"
+                  d="M68.5091 72.9231L48.4199 60.8153C47.3862 60.1922 45.7101 60.1922 44.6764 60.8153L24.8146 72.7861C23.7808 73.4091 23.7808 74.4193 24.8146 75.0424L44.9038 87.1502C45.9375 87.7733 47.6135 87.7733 48.6473 87.1502L68.5091 75.1794C69.5428 74.5563 69.5428 73.5462 68.5091 72.9231Z"
+                ></path>
+                <path
+                  fill="#97E6FF"
+                  d="M66.6747 73.3219L48.4199 62.3197C47.3862 61.6966 45.7101 61.6966 44.6764 62.3197L26.4412 73.3101C25.4075 73.9332 25.4075 74.9433 26.4412 75.5664L44.696 86.5686C45.7297 87.1917 47.4058 87.1917 48.4395 86.5686L66.6747 75.5782C67.7084 74.9551 67.7084 73.945 66.6747 73.3219Z"
+                ></path>
+              </g>
+              <path
+                strokeWidth="0.5"
+                stroke="#F4F4F4"
+                d="M68.9898 68.7324L49.0242 56.699C47.6459 55.8683 45.4111 55.8683 44.0328 56.699L24.0673 68.7324C22.6889 69.5631 22.6889 70.91 24.0673 71.7407L44.0328 83.7741C45.4111 84.6048 47.6459 84.6048 49.0242 83.7741L68.9898 71.7407C70.3681 70.91 70.3681 69.5631 68.9898 68.7324Z"
+              ></path>
+            </g>
+          </g>
+          <g id="particles">
+            <path
+              fill="url(#paint3_linear_204_217)"
+              d="M43.5482 32.558C44.5429 32.558 45.3493 31.7162 45.3493 30.6778C45.3493 29.6394 44.5429 28.7976 43.5482 28.7976C42.5535 28.7976 41.7471 29.6394 41.7471 30.6778C41.7471 31.7162 42.5535 32.558 43.5482 32.558Z"
+              className="particle p1"
+            ></path>
+            <path
+              fill="url(#paint4_linear_204_217)"
+              d="M50.0323 48.3519C51.027 48.3519 51.8334 47.5101 51.8334 46.4717C51.8334 45.4333 51.027 44.5915 50.0323 44.5915C49.0375 44.5915 48.2311 45.4333 48.2311 46.4717C48.2311 47.5101 49.0375 48.3519 50.0323 48.3519Z"
+              className="particle p2"
+            ></path>
+            <path
+              fill="url(#paint5_linear_204_217)"
+              d="M40.3062 62.6416C41.102 62.6416 41.7471 61.9681 41.7471 61.1374C41.7471 60.3067 41.102 59.6332 40.3062 59.6332C39.5104 59.6332 38.8653 60.3067 38.8653 61.1374C38.8653 61.9681 39.5104 62.6416 40.3062 62.6416Z"
+              className="particle p3"
+            ></path>
+            <path
+              fill="url(#paint6_linear_204_217)"
+              d="M50.7527 73.9229C52.1453 73.9229 53.2743 72.7444 53.2743 71.2906C53.2743 69.8368 52.1453 68.6583 50.7527 68.6583C49.3601 68.6583 48.2311 69.8368 48.2311 71.2906C48.2311 72.7444 49.3601 73.9229 50.7527 73.9229Z"
+              className="particle p4"
+            ></path>
+            <path
+              fill="url(#paint7_linear_204_217)"
+              d="M48.5913 76.9312C49.1882 76.9312 49.672 76.4262 49.672 75.8031C49.672 75.1801 49.1882 74.675 48.5913 74.675C47.9945 74.675 47.5107 75.1801 47.5107 75.8031C47.5107 76.4262 47.9945 76.9312 48.5913 76.9312Z"
+              className="particle p5"
+            ></path>
+            <path
+              fill="url(#paint8_linear_204_217)"
+              d="M52.9153 67.1541C53.115 67.1541 53.2768 66.9858 53.2768 66.7781C53.2768 66.5704 53.115 66.402 52.9153 66.402C52.7156 66.402 52.5538 66.5704 52.5538 66.7781C52.5538 66.9858 52.7156 67.1541 52.9153 67.1541Z"
+              className="particle p6"
+            ></path>
+            <path
+              fill="url(#paint9_linear_204_217)"
+              d="M52.1936 43.8394C52.7904 43.8394 53.2743 43.3344 53.2743 42.7113C53.2743 42.0883 52.7904 41.5832 52.1936 41.5832C51.5967 41.5832 51.1129 42.0883 51.1129 42.7113C51.1129 43.3344 51.5967 43.8394 52.1936 43.8394Z"
+              className="particle p7"
+            ></path>
+            <path
+              fill="url(#paint10_linear_204_217)"
+              d="M57.2367 29.5497C57.8335 29.5497 58.3173 29.0446 58.3173 28.4216C58.3173 27.7985 57.8335 27.2935 57.2367 27.2935C56.6398 27.2935 56.156 27.7985 56.156 28.4216C56.156 29.0446 56.6398 29.5497 57.2367 29.5497Z"
+              className="particle p8"
+            ></path>
+            <path
+              fill="url(#paint11_linear_204_217)"
+              d="M43.9084 34.8144C44.3063 34.8144 44.6289 34.4777 44.6289 34.0623C44.6289 33.647 44.3063 33.3102 43.9084 33.3102C43.5105 33.3102 43.188 33.647 43.188 34.0623C43.188 34.4777 43.5105 34.8144 43.9084 34.8144Z"
+              className="particle p9"
+            ></path>
+          </g>
+          <g id="reflectores">
+            <path
+              fillOpacity="0.2"
+              fill="url(#paint12_linear_204_217)"
+              d="M49.2037 57.0009L68.7638 68.7786C69.6763 69.3089 69.7967 69.9684 69.794 70.1625V13.7383C69.7649 13.5587 69.6807 13.4657 69.4338 13.3096L48.4832 0.601307C46.9202 -0.192595 46.0788 -0.208238 44.6446 0.601307L23.6855 13.2118C23.1956 13.5876 23.1966 13.7637 23.1956 14.4904L23.246 70.1625C23.2948 69.4916 23.7327 69.0697 25.1768 68.2447L43.9084 57.0008C44.8268 56.4344 45.3776 56.2639 46.43 56.2487C47.5299 56.2257 48.1356 56.4222 49.2037 57.0009Z"
+            ></path>
+            <path
+              fillOpacity="0.2"
+              fill="url(#paint13_linear_204_217)"
+              d="M48.8867 27.6696C49.9674 26.9175 68.6774 14.9197 68.6774 14.9197C69.3063 14.5327 69.7089 14.375 69.7796 13.756V70.1979C69.7775 70.8816 69.505 71.208 68.7422 71.7322L48.9299 83.6603C48.2003 84.1258 47.6732 84.2687 46.5103 84.2995C45.3295 84.2679 44.8074 84.1213 44.0907 83.6603L24.4348 71.8149C23.5828 71.3313 23.2369 71.0094 23.2316 70.1979L23.1884 13.9816C23.1798 14.8398 23.4982 15.3037 24.7518 16.0874C24.7518 16.0874 42.7629 26.9175 44.2038 27.6696C45.6447 28.4217 46.0049 28.4217 46.5452 28.4217C47.0856 28.4217 47.806 28.4217 48.8867 27.6696Z"
+            ></path>
+          </g>
+          <g id="panel-rigth">
+            <mask fill="white" id="path-26-inside-1_204_217">
+              <path
+                d="M72 91.8323C72 90.5121 72.9268 88.9068 74.0702 88.2467L87.9298 80.2448C89.0731 79.5847 90 80.1198 90 81.44V81.44C90 82.7602 89.0732 84.3656 87.9298 85.0257L74.0702 93.0275C72.9268 93.6876 72 93.1525 72 91.8323V91.8323Z"
+              ></path>
+            </mask>
+            <path
+              fill="#91DDFB"
+              d="M72 91.8323C72 90.5121 72.9268 88.9068 74.0702 88.2467L87.9298 80.2448C89.0731 79.5847 90 80.1198 90 81.44V81.44C90 82.7602 89.0732 84.3656 87.9298 85.0257L74.0702 93.0275C72.9268 93.6876 72 93.1525 72 91.8323V91.8323Z"
+            ></path>
+            <path
+              mask="url(#path-26-inside-1_204_217)"
+              fill="#489CB7"
+              d="M72 89.4419L90 79.0496L72 89.4419ZM90.6928 81.44C90.6928 82.9811 89.6109 84.8551 88.2762 85.6257L74.763 93.4275C73.237 94.3085 72 93.5943 72 91.8323V91.8323C72 92.7107 72.9268 92.8876 74.0702 92.2275L87.9298 84.2257C88.6905 83.7865 89.3072 82.7184 89.3072 81.84L90.6928 81.44ZM72 94.2227V89.4419V94.2227ZM88.2762 80.0448C89.6109 79.2742 90.6928 79.8989 90.6928 81.44V81.44C90.6928 82.9811 89.6109 84.8551 88.2762 85.6257L87.9298 84.2257C88.6905 83.7865 89.3072 82.7184 89.3072 81.84V81.84C89.3072 80.5198 88.6905 79.8056 87.9298 80.2448L88.2762 80.0448Z"
+            ></path>
+            <mask fill="white" id="path-28-inside-2_204_217">
+              <path
+                d="M67 94.6603C67 93.3848 67.8954 91.8339 69 91.1962V91.1962C70.1046 90.5584 71 91.0754 71 92.3509V92.5129C71 93.7884 70.1046 95.3393 69 95.977V95.977C67.8954 96.6147 67 96.0978 67 94.8223V94.6603Z"
+              ></path>
+            </mask>
+            <path
+              fill="#91DDFB"
+              d="M67 94.6603C67 93.3848 67.8954 91.8339 69 91.1962V91.1962C70.1046 90.5584 71 91.0754 71 92.3509V92.5129C71 93.7884 70.1046 95.3393 69 95.977V95.977C67.8954 96.6147 67 96.0978 67 94.8223V94.6603Z"
+            ></path>
+            <path
+              mask="url(#path-28-inside-2_204_217)"
+              fill="#489CB7"
+              d="M67 92.3509L71 90.0415L67 92.3509ZM71.6928 92.5129C71.6928 94.0093 70.6423 95.8288 69.3464 96.577L69.3464 96.577C68.0505 97.3252 67 96.7187 67 95.2223V94.8223C67 95.6559 67.8954 95.8147 69 95.177L69 95.177C69.7219 94.7602 70.3072 93.7465 70.3072 92.9129L71.6928 92.5129ZM67 97.1317V92.3509V97.1317ZM69.2762 91.0367C70.6109 90.2661 71.6928 90.8908 71.6928 92.4319V92.5129C71.6928 94.0093 70.6423 95.8288 69.3464 96.577L69 95.177C69.7219 94.7602 70.3072 93.7465 70.3072 92.9129V92.7509C70.3072 91.4754 69.7219 90.7794 69 91.1962L69.2762 91.0367Z"
+            ></path>
+          </g>
+          <defs>
+            <linearGradient
+              gradientUnits="userSpaceOnUse"
+              y2="92.0933"
+              x2="92.5421"
+              y1="92.0933"
+              x1="1.00946"
+              id="paint0_linear_204_217"
+            >
+              <stop stopColor="#5727CC"></stop>
+              <stop stopColor="#4354BF" offset="1"></stop>
+            </linearGradient>
+            <linearGradient
+              gradientUnits="userSpaceOnUse"
+              y2="91.1638"
+              x2="6.72169"
+              y1="70"
+              x1="92.5"
+              id="paint1_linear_204_217"
+            >
+              <stop stopColor="#4559C4"></stop>
+              <stop stopColor="#332C94" offset="0.29"></stop>
+              <stop stopColor="#5727CB" offset="1"></stop>
+            </linearGradient>
+            <linearGradient
+              gradientUnits="userSpaceOnUse"
+              y2="85.0762"
+              x2="3.55544"
+              y1="70"
+              x1="92.5"
+              id="paint2_linear_204_217"
+            >
+              <stop stopColor="#91DDFB"></stop>
+              <stop stopColor="#8841D5" offset="1"></stop>
+            </linearGradient>
+            <linearGradient
+              gradientUnits="userSpaceOnUse"
+              y2="32.558"
+              x2="43.5482"
+              y1="28.7976"
+              x1="43.5482"
+              id="paint3_linear_204_217"
+            >
+              <stop stopColor="#5927CE"></stop>
+              <stop stopColor="#91DDFB" offset="1"></stop>
+            </linearGradient>
+            <linearGradient
+              gradientUnits="userSpaceOnUse"
+              y2="48.3519"
+              x2="50.0323"
+              y1="44.5915"
+              x1="50.0323"
+              id="paint4_linear_204_217"
+            >
+              <stop stopColor="#5927CE"></stop>
+              <stop stopColor="#91DDFB" offset="1"></stop>
+            </linearGradient>
+            <linearGradient
+              gradientUnits="userSpaceOnUse"
+              y2="62.6416"
+              x2="40.3062"
+              y1="59.6332"
+              x1="40.3062"
+              id="paint5_linear_204_217"
+            >
+              <stop stopColor="#5927CE"></stop>
+              <stop stopColor="#91DDFB" offset="1"></stop>
+            </linearGradient>
+            <linearGradient
+              gradientUnits="userSpaceOnUse"
+              y2="73.9229"
+              x2="50.7527"
+              y1="68.6583"
+              x1="50.7527"
+              id="paint6_linear_204_217"
+            >
+              <stop stopColor="#5927CE"></stop>
+              <stop stopColor="#91DDFB" offset="1"></stop>
+            </linearGradient>
+            <linearGradient
+              gradientUnits="userSpaceOnUse"
+              y2="76.9312"
+              x2="48.5913"
+              y1="74.675"
+              x1="48.5913"
+              id="paint7_linear_204_217"
+            >
+              <stop stopColor="#5927CE"></stop>
+              <stop stopColor="#91DDFB" offset="1"></stop>
+            </linearGradient>
+            <linearGradient
+              gradientUnits="userSpaceOnUse"
+              y2="67.1541"
+              x2="52.9153"
+              y1="66.402"
+              x1="52.9153"
+              id="paint8_linear_204_217"
+            >
+              <stop stopColor="#5927CE"></stop>
+              <stop stopColor="#91DDFB" offset="1"></stop>
+            </linearGradient>
+            <linearGradient
+              gradientUnits="userSpaceOnUse"
+              y2="43.8394"
+              x2="52.1936"
+              y1="41.5832"
+              x1="52.1936"
+              id="paint9_linear_204_217"
+            >
+              <stop stopColor="#5927CE"></stop>
+              <stop stopColor="#91DDFB" offset="1"></stop>
+            </linearGradient>
+            <linearGradient
+              gradientUnits="userSpaceOnUse"
+              y2="29.5497"
+              x2="57.2367"
+              y1="27.2935"
+              x1="57.2367"
+              id="paint10_linear_204_217"
+            >
+              <stop stopColor="#5927CE"></stop>
+              <stop stopColor="#91DDFB" offset="1"></stop>
+            </linearGradient>
+            <linearGradient
+              gradientUnits="userSpaceOnUse"
+              y2="34.8144"
+              x2="43.9084"
+              y1="33.3102"
+              x1="43.9084"
+              id="paint11_linear_204_217"
+            >
+              <stop stopColor="#5927CE"></stop>
+              <stop stopColor="#91DDFB" offset="1"></stop>
+            </linearGradient>
+            <linearGradient
+              gradientUnits="userSpaceOnUse"
+              y2="16.0743"
+              x2="62.9858"
+              y1="88.5145"
+              x1="67.8638"
+              id="paint12_linear_204_217"
+            >
+              <stop stopColor="#97E6FF"></stop>
+              <stop stopOpacity="0" stopColor="white" offset="1"></stop>
+            </linearGradient>
+            <linearGradient
+              gradientUnits="userSpaceOnUse"
+              y2="39.4139"
+              x2="31.4515"
+              y1="88.0938"
+              x1="36.2597"
+              id="paint13_linear_204_217"
+            >
+              <stop stopColor="#97E6FF"></stop>
+              <stop stopOpacity="0" stopColor="white" offset="1"></stop>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <p className="text-xl font-semibold text-gray-700 mt-8">
+        Loading your ledger activities...
+      </p>
+      <p className="text-gray-500 mt-2">
+        Please wait while we fetch your transaction history
+      </p>
+
+      <style jsx>{`
+        #svg-global {
+          zoom: 1.2;
+          overflow: visible;
+        }
+
+        @keyframes fade-particles {
+          0%,
+          100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
+          }
+        }
+
+        @keyframes floatUp {
+          0% {
+            transform: translateY(0);
+            opacity: 0;
+          }
+          10% {
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(-40px);
+            opacity: 0;
+          }
+        }
+
+        #particles {
+          animation: fade-particles 5s infinite alternate;
+        }
+        .particle {
+          animation: floatUp linear infinite;
+        }
+
+        .p1 {
+          animation-duration: 2.2s;
+          animation-delay: 0s;
+        }
+        .p2 {
+          animation-duration: 2.5s;
+          animation-delay: 0.3s;
+        }
+        .p3 {
+          animation-duration: 2s;
+          animation-delay: 0.6s;
+        }
+        .p4 {
+          animation-duration: 2.8s;
+          animation-delay: 0.2s;
+        }
+        .p5 {
+          animation-duration: 2.3s;
+          animation-delay: 0.4s;
+        }
+        .p6 {
+          animation-duration: 3s;
+          animation-delay: 0.1s;
+        }
+        .p7 {
+          animation-duration: 2.1s;
+          animation-delay: 0.5s;
+        }
+        .p8 {
+          animation-duration: 2.6s;
+          animation-delay: 0.2s;
+        }
+        .p9 {
+          animation-duration: 2.4s;
+          animation-delay: 0.3s;
+        }
+
+        @keyframes bounce-lines {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-3px);
+          }
+        }
+
+        #line-v1,
+        #line-v2,
+        #node-server,
+        #panel-rigth,
+        #reflectores,
+        #particles {
+          animation: bounce-lines 3s ease-in-out infinite alternate;
+        }
+        #line-v2 {
+          animation-delay: 0.2s;
+        }
+
+        #node-server,
+        #panel-rigth,
+        #reflectores,
+        #particles {
+          animation-delay: 0.4s;
+        }
+      `}</style>
+    </div>
+  );
+}
 
 /* ========================= Small bits ========================= */
 
@@ -59,11 +522,153 @@ function StatusBadge({ value }: { value: Status }) {
   };
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-1 text-[12px] font-medium ring-1 ${map[value]}`}
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-[12px] font-medium ring-1 ring-inset ${map[value]}`}
     >
       {value}
     </span>
   );
+}
+
+function formatDate(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+// Events → ActivityRow
+function mapEventToActivityRow(ev: any): ActivityRow {
+  return {
+    id: ev.id,
+    asset: ev.asset === "BTN" ? "BTN coin" : "RICB Bond",
+    type: ev.type as ActivityRow["type"],
+    date: formatDate(ev.created_at),
+    amountLabel: ev.amount_label ?? `${ev.asset ?? "BTN"} ${ev.amount ?? ""}`,
+    status: (ev.status ?? "Completed") as Status,
+    detail: ev.details,
+    tx_hash: ev.tx_hash,
+    kind: "event",
+  };
+}
+
+// Pending subscriptions → ActivityRow
+function mapPendingSubToActivityRow(s: any): ActivityRow {
+  const rawAmount =
+    typeof s.subscription_amt === "number" && s.subscription_amt > 0
+      ? s.subscription_amt
+      : s.committed_amount;
+
+  return {
+    id: s.id,
+    asset: "RICB Bond",
+    type: "Subscription",
+    date: formatDate(s.created_at),
+    amountLabel: `${s.bond.bond_symbol} Nu ${rawAmount.toLocaleString("en-US")}`,
+    status: "Pending",
+    detail: `Pending subscription in ${s.bond.bond_name} (wallet: ${s.wallet_address}).`,
+    tx_hash: "",
+    kind: "subscription",
+  };
+}
+
+// Peer-to-peer BTN₵ transfers → ActivityRow
+function mapPeerTxToActivityRow(tx: any): ActivityRow {
+  const isOutgoing = tx.direction === "out";
+  const type: ActivityRow["type"] = isOutgoing ? "Transfer Out" : "Transfer In";
+
+  const detail = isOutgoing
+    ? "You sent BTN₵ to another wallet (peer-to-peer transfer)."
+    : "You received BTN₵ from another wallet (peer-to-peer transfer).";
+
+  return {
+    id: tx.id,
+    asset: "BTN coin", // 👈 peer tx = BTN coin
+    type,
+    date: formatDate(tx.created_at),
+    amountLabel: "Peer transfer", // no amount returned from API yet
+    status: "Completed",
+    detail,
+    tx_hash: tx.tx_hash || "",
+    kind: "peer",
+  };
+}
+
+// Allocation → ActivityRow
+function mapAllocationToActivityRow(a: any): ActivityRow {
+  const units = a.units ?? 0;
+  return {
+    id: a.id,
+    asset: "RICB Bond",
+    type: "Purchased",
+    date: formatDate(a.created_at),
+    amountLabel: `${a.bond.bond_symbol} ${units} units allocated`,
+    status: "Completed",
+    detail: `Primary allocation of ${units} units in ${a.bond.bond_name}.`,
+    tx_hash: a.tx_hash,
+    kind: "allocation",
+  };
+}
+
+// Send transaction → ActivityRow
+function mapSendToActivityRow(txData: {
+  id: string;
+  amount: string;
+  recipient: string;
+  transactionHash?: string;
+  date: string;
+}): ActivityRow {
+  return {
+    id: `send-${txData.id}`,
+    asset: "BTN coin",
+    type: "Send",
+    date: formatDate(txData.date),
+    amountLabel: `${txData.amount} BTN₵`,
+    status: "Completed",
+    detail: `Sent ${txData.amount} BTN₵ to ${txData.recipient.slice(0, 8)}...${txData.recipient.slice(-8)}`,
+    tx_hash: txData.transactionHash || "",
+    kind: "send",
+  };
+}
+
+// Buy transaction → ActivityRow
+function mapBuyToActivityRow(txData: {
+  id: string;
+  amount: string;
+  transactionHash?: string;
+  date: string;
+}): ActivityRow {
+  return {
+    id: `buy-${txData.id}`,
+    asset: "BTN coin",
+    type: "Buy",
+    date: formatDate(txData.date),
+    amountLabel: `${txData.amount} BTN₵`,
+    status: "Completed",
+    detail: `Purchased ${txData.amount} BTN₵`,
+    tx_hash: txData.transactionHash || "",
+    kind: "buy",
+  };
+}
+
+// Redeem transaction → ActivityRow
+function mapRedeemToActivityRow(txData: {
+  id: string;
+  amount: string;
+  transactionHash?: string;
+  date: string;
+}): ActivityRow {
+  return {
+    id: `redeem-${txData.id}`,
+    asset: "BTN coin",
+    type: "Redeem",
+    date: formatDate(txData.date),
+    amountLabel: `${txData.amount} BTN₵`,
+    status: "Completed",
+    detail: `Redeemed ${txData.amount} BTN₵ to bank account`,
+    tx_hash: txData.transactionHash || "",
+    kind: "redeem",
+  };
 }
 
 function WalletStrip({ walletAddress }: { walletAddress: string }) {
@@ -75,22 +680,27 @@ function WalletStrip({ walletAddress }: { walletAddress: string }) {
       setTimeout(() => setCopied(false), 1100);
     } catch {}
   };
+  if (!walletAddress) return null;
+
   return (
-    <motion.div {...fadeIn} className="rounded-xl border border-black/10 bg-white shadow-sm overflow-hidden">
+    <motion.div
+      {...fadeIn}
+      className="rounded-xl border border-black/10 bg-white shadow-sm overflow-hidden"
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4">
         <div className="flex items-center gap-2 text-sm text-gray-800">
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#5B50D9]/10 ring-1 ring-[#5B50D9]/20">
             <Wallet className="w-4 h-4 text-[#5B50D9]" strokeWidth={1.75} />
           </span>
           <span className="font-medium">Wallet address:</span>
-          <code className="px-2 py-1 rounded-md bg-gray-50 text-gray-700 border border-black/5 break-all">
+          <code className="px-2 py-1 rounded-md bg-gray-50 text-gray-700 border border-black/5 break-all font-mono text-sm">
             {walletAddress}
           </code>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={copy}
-            className="group inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm ring-1 ring-black/10 hover:ring-black/20 bg-white hover:shadow-md transition-all"
+            className="group inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm ring-1 ring-black/10 hover:ring-black/20 bg-white hover:shadow-md transition-all font-medium"
             aria-label="Copy wallet address"
           >
             <Copy className="w-4 h-4" />
@@ -108,20 +718,150 @@ function WalletStrip({ walletAddress }: { walletAddress: string }) {
 /* ========================= Page ========================= */
 
 export default function ActivityPage() {
-  const walletAddress = "0i4u1290nfkjd809214190poij"; // mock address
+  const currentUser = useCurrentUser();
+  const walletAddress = currentUser?.wallet_address || "";
 
   const [query, setQuery] = useState("");
-  const rows = useMemo(() => INITIAL_ROWS, []);
+  const [rows, setRows] = useState<ActivityRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [kindFilter, setKindFilter] = useState<"all" | ActivityKind>("all");
+
+  // Custom hook to handle wallet transactions from localStorage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const walletTransactions = JSON.parse(localStorage.getItem('walletTransactions') || '[]');
+      
+      const walletRows = walletTransactions.map((tx: any) => {
+        const baseData = {
+          id: tx.id,
+          amount: tx.amount,
+          transactionHash: tx.transactionHash,
+          date: tx.date || new Date().toISOString()
+        };
+
+        switch (tx.type) {
+          case 'send':
+            return mapSendToActivityRow({
+              ...baseData,
+              recipient: tx.recipient || ''
+            });
+          case 'buy':
+            return mapBuyToActivityRow(baseData);
+          case 'redeem':
+            return mapRedeemToActivityRow(baseData);
+          default:
+            return null;
+        }
+      }).filter(Boolean);
+
+      return walletRows;
+    };
+
+    // Load initial data from localStorage
+    const walletRows = handleStorageChange();
+    
+    // Set up storage event listener for real-time updates
+    const handleStorage = () => {
+      const newWalletRows = handleStorageChange();
+      setRows(prevRows => {
+        // Filter out existing wallet transactions and add new ones
+        const existingNonWalletRows = prevRows.filter(row => 
+          !row.kind.includes('send') && !row.kind.includes('buy') && !row.kind.includes('redeem')
+        );
+        return [...existingNonWalletRows, ...newWalletRows].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+      });
+    };
+
+    window.addEventListener('storage', handleStorage);
+    
+    // Also check for changes periodically (in case same tab)
+    const interval = setInterval(handleStorage, 2000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      clearInterval(interval);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    (async () => {
+      try {
+        setLoading(true);
+
+        const [eventLogs, peerTxs, allocations, pendingSubs] = await Promise.all([
+          fetchEventLogsforCurrentUser(currentUser.id),
+          fetchPeerToPeerTxForCurrentUser(currentUser.id),
+          fetchAllocationHistoryForCurrentUser(currentUser.id),
+          fetchPendingSubscriptionsForUser(currentUser.id),
+        ]);
+
+        const eventRows = eventLogs.map(mapEventToActivityRow);
+        const peerRows = peerTxs.map(mapPeerTxToActivityRow);
+        const allocationRows = allocations.map(mapAllocationToActivityRow);
+        const subscriptionRows = pendingSubs.map(mapPendingSubToActivityRow);
+
+        // Get wallet transactions from localStorage
+        const walletTransactions = JSON.parse(localStorage.getItem('walletTransactions') || '[]');
+        const walletRows = walletTransactions.map((tx: any) => {
+          const baseData = {
+            id: tx.id,
+            amount: tx.amount,
+            transactionHash: tx.transactionHash,
+            date: tx.date || new Date().toISOString()
+          };
+
+          switch (tx.type) {
+            case 'send':
+              return mapSendToActivityRow({
+                ...baseData,
+                recipient: tx.recipient || ''
+              });
+            case 'buy':
+              return mapBuyToActivityRow(baseData);
+            case 'redeem':
+              return mapRedeemToActivityRow(baseData);
+            default:
+              return null;
+          }
+        }).filter(Boolean);
+
+        const allRows = [...eventRows, ...peerRows, ...allocationRows, ...subscriptionRows, ...walletRows].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+
+        setRows(allRows);
+      } catch (e) {
+        console.error("Failed to load activity:", e);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [currentUser?.id]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter(
-      (r) =>
+
+    return rows.filter((r) => {
+      if (kindFilter !== "all" && r.kind !== kindFilter) return false;
+
+      if (!q) return true;
+
+      return (
         r.asset.toLowerCase().includes(q) ||
         r.type.toLowerCase().includes(q) ||
-        r.status.toLowerCase().includes(q)
-    );
-  }, [rows, query]);
+        r.status.toLowerCase().includes(q) ||
+        r.detail.toLowerCase().includes(q)
+      );
+    });
+  }, [rows, query, kindFilter]);
+
+  if (loading) {
+    return <FullScreenLoading />;
+  }
 
   return (
     <div className="flex min-h-screen bg-[#F7F8FB]">
@@ -132,36 +872,79 @@ export default function ActivityPage() {
         <WalletStrip walletAddress={walletAddress} />
 
         {/* Title + search */}
-        <motion.header {...fadeIn} className="mt-6 mb-2">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900">
-              Your Ledger
-            </h1>
-
-            <div className="relative">
-              <label htmlFor="search" className="sr-only">
-                Search activity
-              </label>
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path
-                    d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+        <motion.header {...fadeIn} className="mt-6 mb-6">
+          <div className="flex flex-col gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
+                Transaction Ledger
+              </h1>
+              <p className="text-sm text-gray-600 mt-1">
+                Track all your bond and coin transactions in one place
+              </p>
+            </div>
+            
+            {/* Mobile: Stack filter and search vertically */}
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              {/* Filter tabs - Scrollable on mobile */}
+              <div className="w-full lg:w-auto">
+                <div className="inline-flex items-center rounded-full bg-gray-100 p-1 text-xs font-medium text-gray-600 overflow-x-auto max-w-full">
+                  {[
+                    { id: "all", label: "All" },
+                    { id: "peer", label: "Peer-to-peer" },
+                    { id: "allocation", label: "Allocations" },
+                    { id: "subscription", label: "Subscriptions" },
+                    { id: "event", label: "Events" },
+                    { id: "send", label: "Send" },
+                    { id: "buy", label: "Buy" },
+                    { id: "redeem", label: "Redeem" },
+                  ].map((tab) => {
+                    const active = kindFilter === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setKindFilter(tab.id as any)}
+                        className={`flex-shrink-0 px-3 py-1.5 rounded-full transition-colors whitespace-nowrap ${
+                          active
+                            ? "bg-white text-gray-900 shadow-sm"
+                            : "text-gray-600 hover:text-gray-900"
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {/* Search - Full width on mobile */}
+              <div className="w-full lg:w-64">
+                <div className="relative">
+                  <label htmlFor="search" className="sr-only">
+                    Search activity
+                  </label>
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                      <path
+                        d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <input
+                    id="search"
+                    type="search"
+                    enterKeyHint="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="h-10 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3 text-sm text-gray-800 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#5B50D9]/20 focus:border-[#5B50D9] transition-colors"
+                    placeholder="Search transactions..."
                   />
-                </svg>
-              </span>
-              <input
-                id="search"
-                type="search"
-                enterKeyHint="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="h-10 w-[min(270px,75vw)] sm:w-[270px] rounded-lg border border-neutral-200 bg-white pl-9 pr-3 text-sm text-neutral-800 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-neutral-200"
-                placeholder="Search by type, asset or status"
-              />
+                </div>
+              </div>
             </div>
           </div>
         </motion.header>
@@ -172,105 +955,285 @@ export default function ActivityPage() {
           className="rounded-2xl border border-black/10 bg-white shadow-sm overflow-hidden"
           aria-labelledby="activity-title"
         >
-          {/* Desktop table */}
           {filtered.length > 0 ? (
-            <div className="hidden sm:block p-2">
-              <table className="min-w-full text-left bg-white rounded-2xl overflow-hidden">
-                <caption id="activity-title" className="sr-only">
-                  Ledger activity
-                </caption>
-                <thead>
-                  <tr className="text-[13px] text-neutral-600">
-                    <th scope="col" className="py-3 pr-3 pl-4 font-medium">Bond</th>
-                    <th scope="col" className="py-3 px-3 font-medium">Type</th>
-                    <th scope="col" className="py-3 px-3 font-medium">Date</th>
-                    <th scope="col" className="py-3 px-3 font-medium">Amount</th>
-                    <th scope="col" className="py-3 pl-3 pr-4 font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-100">
+            <>
+              {/* Desktop table */}
+              <div className="hidden lg:block">
+                <div className="p-1">
+                  <table className="w-full text-left bg-white">
+                    <caption id="activity-title" className="sr-only">
+                      Transaction ledger
+                    </caption>
+                    <thead>
+                      <tr className="text-sm text-gray-600 bg-gray-50/80 border-b border-gray-100">
+                        <th scope="col" className="py-4 pl-6 pr-3 font-semibold">
+                          Asset
+                        </th>
+                        <th scope="col" className="py-4 px-3 font-semibold">
+                          Transaction Type
+                        </th>
+                        <th scope="col" className="py-4 px-3 font-semibold">
+                          Date
+                        </th>
+                        <th scope="col" className="py-4 px-3 font-semibold">
+                          Transaction Hash
+                        </th>
+                        <th scope="col" className="py-4 px-3 font-semibold">
+                          Details
+                        </th>
+                        <th scope="col" className="py-4 pl-3 pr-6 font-semibold">
+                          Status
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {filtered.map((row) => (
+                        <tr
+                          key={row.id}
+                          className="align-middle hover:bg-gray-50/50 transition-colors group"
+                        >
+                          {/* Asset */}
+                          <td className="py-4 pl-6 pr-3">
+                            <div className="flex items-center gap-3">
+                              <div className="relative h-10 w-10 rounded-full border border-gray-200 bg-white grid place-items-center shadow-sm group-hover:shadow transition-shadow">
+                                {row.asset === "RICB Bond" ? (
+                                  <Image
+                                    src="/RSEB.png"
+                                    alt="RICB Bond"
+                                    width={22}
+                                    height={22}
+                                    className="rounded-full"
+                                  />
+                                ) : (
+                                  <Image
+                                    src="/coin.png"
+                                    alt="BTN coin"
+                                    width={22}
+                                    height={22}
+                                    className="rounded-full"
+                                  />
+                                )}
+                              </div>
+                              <div>
+                                <span className="text-[15px] font-semibold text-gray-900 block">
+                                  {row.asset}
+                                </span>
+                                <span className="text-[13px] text-gray-500">
+                                  {row.amountLabel}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Type */}
+                          <td className="py-4 px-3">
+                            <div className="flex items-center gap-2">
+                              {row.type === "Send" && <Send className="w-4 h-4 text-purple-600" />}
+                              {row.type === "Buy" && <ShoppingCart className="w-4 h-4 text-green-600" />}
+                              {row.type === "Redeem" && <Ticket className="w-4 h-4 text-blue-600" />}
+                              <span className="text-[14px] font-medium text-gray-900">
+                                {row.type}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Date */}
+                          <td className="py-4 px-3">
+                            <div className="flex items-center gap-2 text-[14px] text-gray-700">
+                              <Calendar className="w-4 h-4 text-gray-400" />
+                              {row.date}
+                            </div>
+                          </td>
+
+                          {/* Transaction Hash */}
+                          <td className="py-4 px-3">
+                            <div className="flex items-center gap-2 max-w-[200px]">
+                              <Hash className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                              <code className="text-[12px] font-mono text-gray-600 truncate bg-gray-50 px-2 py-1 rounded border border-gray-200">
+                                {row.tx_hash || "N/A"}
+                              </code>
+                              {row.tx_hash && (
+                                <button
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(row.tx_hash);
+                                  }}
+                                >
+                                  <Copy className="w-3 h-3 text-gray-500" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Details */}
+                          <td className="py-4 px-3">
+                            <span className="text-[14px] text-gray-700 line-clamp-2">
+                              {row.detail}
+                            </span>
+                          </td>
+
+                          {/* Status */}
+                          <td className="py-4 pl-3 pr-6">
+                            <StatusBadge value={row.status} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Mobile list */}
+              <div className="lg:hidden">
+                <div className="p-4 space-y-4">
                   {filtered.map((row) => (
-                    <tr key={row.id} className="align-middle">
-                      {/* Bond / Asset */}
-                      <td className="py-5 pr-3 pl-4">
+                    <div
+                      key={row.id}
+                      className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <div className="relative h-10 w-10 rounded-full border border-neutral-200 bg-white grid place-items-center">
+                          <div className="relative h-12 w-12 rounded-full border border-gray-200 bg-white grid place-items-center shadow-sm">
                             {row.asset === "RICB Bond" ? (
-                              <Image src="/RSEB.png" alt="RICB" width={22} height={22} />
+                              <Image
+                                src="/RSEB.png"
+                                alt="RICB Bond"
+                                width={24}
+                                height={24}
+                                className="rounded-full"
+                              />
                             ) : (
-                              <Image src="/coin.png" alt="BTN coin" width={22} height={22} />
+                              <Image
+                                src="/coin.png"
+                                alt="BTN coin"
+                                width={24}
+                                height={24}
+                                className="rounded-full"
+                              />
                             )}
                           </div>
-                          <span className="text-[15px] font-medium text-neutral-900">{row.asset}</span>
+                          <div>
+                            <p className="text-[15px] font-semibold text-gray-900">
+                              {row.asset}
+                            </p>
+                            <div className="flex items-center gap-2">
+                              {row.type === "Send" && <Send className="w-3.5 h-3.5 text-purple-600" />}
+                              {row.type === "Buy" && <ShoppingCart className="w-3.5 h-3.5 text-green-600" />}
+                              {row.type === "Redeem" && <Ticket className="w-3.5 h-3.5 text-blue-600" />}
+                              <p className="text-[13px] text-gray-600">{row.type}</p>
+                            </div>
+                          </div>
                         </div>
-                      </td>
-
-                      {/* Type */}
-                      <td className="py-5 px-3 text-[14px] text-neutral-900">{row.type}</td>
-
-                      {/* Date */}
-                      <td className="py-5 px-3 text-[14px] text-neutral-900">{row.date}</td>
-
-                      {/* Amount */}
-                      <td className="py-5 px-3 text-[14px] text-neutral-900">{row.amountLabel}</td>
-
-                      {/* Status */}
-                      <td className="py-5 pl-3 pr-4">
                         <StatusBadge value={row.status} />
-                      </td>
-                    </tr>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 text-[13px]">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-gray-500">
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span>Date</span>
+                          </div>
+                          <p className="text-gray-900 font-medium">{row.date}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-gray-500">
+                            <Coins className="w-3.5 h-3.5" />
+                            <span>Amount</span>
+                          </div>
+                          <p className="text-gray-900 font-medium">{row.amountLabel}</p>
+                        </div>
+                        <div className="col-span-2 space-y-1">
+                          <div className="flex items-center gap-2 text-gray-500">
+                            <Hash className="w-3.5 h-3.5" />
+                            <span>Transaction Hash</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <code className="text-[12px] font-mono text-gray-600 truncate bg-gray-50 px-2 py-1 rounded border border-gray-200 flex-1">
+                              {row.tx_hash || "N/A"}
+                            </code>
+                            {row.tx_hash && (
+                              <button
+                                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                                onClick={() => navigator.clipboard.writeText(row.tx_hash)}
+                              >
+                                <Copy className="w-3.5 h-3.5 text-gray-500" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <div className="col-span-2 space-y-1">
+                          <p className="text-gray-500">Details</p>
+                          <p className="text-gray-900 text-sm leading-5">{row.detail}</p>
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </div>
+              </div>
+            </>
           ) : (
-            <div className="p-8 text-center text-sm text-neutral-600">No activity found.</div>
+            <div className="p-12 text-center">
+              <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <FileText className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                No transactions found
+              </h3>
+              <p className="text-gray-600 max-w-sm mx-auto">
+                {query
+                  ? "No transactions match your search criteria."
+                  : "Your transaction history will appear here once you start trading."}
+              </p>
+            </div>
           )}
-
-          {/* Mobile list */}
-          <ul className="sm:hidden divide-y divide-neutral-100" role="list" aria-label="Ledger list">
-            {filtered.map((row) => (
-              <li key={row.id} className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="relative h-10 w-10 rounded-full border border-neutral-200 bg-white grid place-items-center">
-                      {row.asset === "RICB Bond" ? (
-                        <Image src="/RSEB.png" alt="RICB" width={22} height={22} />
-                      ) : (
-                        <Image src="/coin.png" alt="BTN coin" width={22} height={22} />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-[15px] font-medium text-neutral-900">{row.asset}</p>
-                      <p className="text-[13px] text-neutral-600">{row.type}</p>
-                    </div>
-                  </div>
-                  <button
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700 focus:outline-none"
-                    aria-label="Open details"
-                  >
-                    <FileText className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="mt-3 grid grid-cols-2 gap-2 text-[13px]">
-                  <div>
-                    <p className="text-neutral-500">Date</p>
-                    <p className="text-neutral-900">{row.date}</p>
-                  </div>
-                  <div>
-                    <p className="text-neutral-500">Amount</p>
-                    <p className="text-neutral-900">{row.amountLabel}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-neutral-500">Status</p>
-                    <StatusBadge value={row.status} />
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
         </motion.section>
+
+        {/* Summary stats */}
+        {filtered.length > 0 && (
+          <motion.div
+            {...fadeIn}
+            className="mt-6 flex flex-wrap gap-4 text-sm text-gray-600"
+          >
+            <div className="bg-white rounded-xl px-4 py-2 border border-gray-200">
+              <span className="font-medium text-gray-900">{filtered.length}</span>{" "}
+              transactions total
+            </div>
+            <div className="bg-white rounded-xl px-4 py-2 border border-gray-200">
+              <span className="font-medium text-emerald-600">
+                {
+                  filtered.filter(
+                    (r) => r.status === "Completed" || r.status === "Complete"
+                  ).length
+                }
+              </span>{" "}
+              completed
+            </div>
+            <div className="bg-white rounded-xl px-4 py-2 border border-gray-200">
+              <span className="font-medium text-amber-600">
+                {filtered.filter((r) => r.status === "Pending").length}
+              </span>{" "}
+              pending
+            </div>
+            <div className="bg-white rounded-xl px-4 py-2 border border-gray-200">
+              <span className="font-medium text-purple-600">
+                {filtered.filter((r) => r.kind === "send").length}
+              </span>{" "}
+              sends
+            </div>
+            <div className="bg-white rounded-xl px-4 py-2 border border-gray-200">
+              <span className="font-medium text-green-600">
+                {filtered.filter((r) => r.kind === "buy").length}
+              </span>{" "}
+              buys
+            </div>
+            <div className="bg-white rounded-xl px-4 py-2 border border-gray-200">
+              <span className="font-medium text-blue-600">
+                {filtered.filter((r) => r.kind === "redeem").length}
+              </span>{" "}
+              redeems
+            </div>
+          </motion.div>
+        )}
       </main>
     </div>
   );

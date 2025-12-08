@@ -1,185 +1,560 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, ChevronDown } from "lucide-react";
+import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+import { 
+    IoArrowBack, 
+    IoCalendarOutline,
+    IoStatsChart,
+    IoTimeOutline,
+    IoPersonOutline,
+    IoDocumentTextOutline
+} from 'react-icons/io5';
 
-/* ========================= Motion Animation ========================= */
-const fadeIn = {
-    initial: { opacity: 0, y: 8 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.5, ease: "easeOut" },
+// Register Chart.js components
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
+// -------- Types --------
+type SubscriptionActivity = {
+    // ISO datetime string, e.g. "2025-10-01T14:30:00Z"
+    time: string;
+    // NDI / CID or any investor identifier
+    investorId: string;
+    // Number of units subscribed in this transaction
+    units: number;
+    // Cumulative BTN amount *after* this subscription (for analytics/graph)
+    cumulative: number;
 };
 
-/* ========================= Reusable Components ========================= */
+// Animation variants
+const fadeIn = {
+    initial: { opacity: 0, y: 8, scale: 0.995 },
+    whileInView: { opacity: 1, y: 0, scale: 1 },
+    transition: { duration: 0.45, ease: "easeOut" },
+    viewport: { once: true, margin: "-10% 0% -10% 0%" },
+};
 
-// Tabs (Day, Week, Month switcher)
-function Tabs({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: string[] }) {
-    return (
-        <div className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 p-1 shadow-sm">
-            {options.map((o) => {
-                const active = value === o;
-                return (
-                    <button key={o} onClick={() => onChange(o)} type="button" className={`px-4 py-1.5 text-sm rounded-full transition-colors ${active ? "bg-[#5B50D9] text-white shadow" : "text-gray-600 hover:bg-gray-200"}`}>
-                        {o}
-                    </button>
-                );
-            })}
+const staggerChildren = {
+    initial: { opacity: 0, y: 20 },
+    whileInView: { 
+        opacity: 1, 
+        y: 0,
+        transition: {
+            duration: 0.6,
+            ease: "easeOut",
+            staggerChildren: 0.1
+        }
+    }
+};
+
+// Loading Spinner Component
+const LoadingSpinner = () => (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50/80 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
+        <div className="text-center">
+            <div className="w-16 h-16 border-4 border-[#5B50D9] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600 font-medium">Loading Bond Analytics...</p>
         </div>
-    );
-}
+    </div>
+);
 
-// Custom Popover Select (Dropdown)
-function MenuSelect({ value, options, onChange, icon, align = "left" }: { value: string; options: string[]; onChange: (v: string) => void; icon?: React.ReactNode; align?: "left" | "right" }) {
-    const [open, setOpen] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
-    useEffect(() => {
-        const handler = (e: MouseEvent) => { if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false); };
-        window.addEventListener("mousedown", handler);
-        return () => window.removeEventListener("mousedown", handler);
-    }, []);
-    return (
-        <div className="relative">
-            <button onClick={() => setOpen(o => !o)} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm bg-white transition ${open ? "border-[#5B50D9] ring-2 ring-[#5B50D9]/10" : "border-gray-200 hover:bg-gray-50"}`}>
-                {icon}{value}<ChevronDown className={`w-4 h-4 text-gray-500 ${open ? "rotate-180" : ""} transition-transform`} />
-            </button>
-            {open && (
-                <div ref={menuRef} className={`absolute mt-2 w-48 rounded-md border border-gray-200 bg-white shadow-lg z-10 ${align === "right" ? "right-0" : "left-0"}`}>
-                    {options.map((opt) => (<button key={opt} onClick={() => { onChange(opt); setOpen(false); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 first:rounded-t-md last:rounded-b-md">{opt}</button>))}
-                </div>
-            )}
-        </div>
-    );
-}
+// Chart options (static; data is dynamic)
+export const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { 
+        legend: { display: false },
+        tooltip: {
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            titleColor: '#1F2937',
+            bodyColor: '#1F2937',
+            borderColor: '#E5E7EB',
+            borderWidth: 1,
+            cornerRadius: 12,
+            displayColors: false,
+            callbacks: {
+                label: function(context: any) {
+                    if (context.parsed.y == null) return '';
+                    return `BTN ${context.parsed.y.toLocaleString()}`;
+                }
+            }
+        }
+    },
+    scales: {
+        y: { 
+            ticks: { 
+                stepSize: 10000,
+                callback: function(value: any) {
+                    return `BTN ${Number(value).toLocaleString()}`;
+                }
+            }, 
+            grid: {
+                color: 'rgba(0, 0, 0, 0.05)',
+            },
+            title: { 
+                display: true, 
+                text: 'Amount (BTN)',
+                color: '#6B7280',
+                font: { weight: '600', size: 12 }
+            } 
+        },
+        x: { 
+            grid: {
+                color: 'rgba(0, 0, 0, 0.05)',
+            },
+            title: { 
+                display: true, 
+                text: 'Timeline',
+                color: '#6B7280',
+                font: { weight: '600', size: 12 }
+            } 
+        },
+    },
+    elements: {
+        point: {
+            radius: 4,
+            hoverRadius: 6,
+            backgroundColor: '#5B50D9',
+            borderColor: '#FFFFFF',
+            borderWidth: 2
+        }
+    },
+    interaction: {
+        intersect: false,
+        mode: 'index' as const,
+    },
+};
 
-// Custom Animated Line Chart (SVG-based)
-function LineChart({ data, yLabel = "BTN Coin", xLabels }: { data: number[]; yLabel?: string; xLabels: string[] }) {
-    const ref = useRef<HTMLDivElement>(null);
-    const [width, setWidth] = useState(360);
-    const height = 300;
-    const pad = { t: 20, r: 20, b: 40, l: 50 };
-    useEffect(() => {
-        if (!ref.current) return;
-        const ro = new ResizeObserver(entries => setWidth(entries[0].contentRect.width));
-        ro.observe(ref.current);
-        return () => ro.disconnect();
-    }, []);
-    const max = Math.max(...data);
-    const pathD = data.map((v, i) => {
-        const x = pad.l + i * ((width - pad.l - pad.r) / (data.length - 1 || 1));
-        const y = pad.t + (1 - v / max) * (height - pad.t - pad.b);
-        return `${i === 0 ? 'M' : 'L'} ${x},${y}`;
-    }).join(" ");
-    return (
-        <div ref={ref} className="w-full">
-            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto">
-                {[...Array(5)].map((_, i) => <line key={i} x1={pad.l} x2={width - pad.r} y1={pad.t + (i / 4) * (height - pad.t - pad.b)} y2={pad.t + (i / 4) * (height - pad.t - pad.b)} stroke="#EEF2FA" />)}
-                <text x={12} y={height / 2} fill="#6b7280" fontSize="12" transform={`rotate(-90 12 ${height / 2})`} textAnchor="middle">{yLabel}</text>
-                {xLabels.map((lbl, i) => <text key={i} x={pad.l + i * ((width - pad.l - pad.r) / (xLabels.length - 1 || 1))} y={height - 12} textAnchor="middle" fontSize="12" fill="#6b7280">{lbl}</text>)}
-                <motion.path d={pathD} fill="none" stroke="#5B50D9" strokeWidth={2.5} initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.2, ease: "easeOut" }} />
-            </svg>
-        </div>
-    );
-}
-
-/* ========================= Data Simulation Helpers ========================= */
-function genDailySeries(monthIndex: number) { return Array.from({ length: new Date(2024, monthIndex + 1, 0).getDate() }, (_, i) => 10 + monthIndex * 2 + i * 0.5 + Math.sin(i / 5) * 2); }
-function bucketWeekly(values: number[]) { const r = []; for (let i = 0; i < values.length; i += 7) r.push(values.slice(i, i + 7).pop()!); return r; }
-function genMonthlySeries() { return Array.from({ length: 12 }, (_, i) => 10 + i * 5 + Math.sin(i / 2) * 5); }
-
-// More detailed dummy data for the table
-const allActivities = [
-    { time: '2025-10-01', id: '10709006442', unit: 11, cumulative: 0.05 },
-    { time: '2025-10-08', id: '10709006542', unit: 45, cumulative: 0.50 },
-    { time: '2025-10-15', id: '10709006842', unit: 76, cumulative: 1.26 },
-    { time: '2025-11-01', id: '10709006443', unit: 80, cumulative: 2.06 },
-    { time: '2025-11-09', id: '10709006412', unit: 99, cumulative: 3.05 },
-    { time: '2025-12-05', id: '10700006442', unit: 43, cumulative: 3.48 },
-];
-
-/* ========================= Main Page Component ========================= */
-const MoreDetailsPage = () => {
+const MoreDetailsPage = ({ params }: { params: Promise<{ bondId: string }> }) => {
     const router = useRouter();
-    const months = useMemo(() => ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], []);
+    const timeFilters = ['Day', 'Week', 'Month', 'Year'];
+    const [activeTimeFilter, setActiveTimeFilter] = useState('Month');
 
-    // === DECOUPLED STATE ===
-    const [monthFilter, setMonthFilter] = useState(months[0]);
-    const [chartGranularity, setChartGranularity] = useState<'Day' | 'Week' | 'Month'>("Month"); // State for the chart
-    const [tableGranularity, setTableGranularity] = useState<'Day' | 'Week' | 'Month'>("Day");   // State for the table
+    const [isLoading, setIsLoading] = useState(true);
+    const [activities, setActivities] = useState<SubscriptionActivity[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
-    // --- Chart-specific data logic ---
-    const monthIndex = months.indexOf(monthFilter);
-    const dailySeries = useMemo(() => genDailySeries(monthIndex), [monthIndex]);
-    const weeklySeries = useMemo(() => bucketWeekly(dailySeries), [dailySeries]);
-    const monthlySeries = useMemo(() => genMonthlySeries(), []);
+    const { bondId } = useParams<{ bondId : string}>();
 
-    const { chartData, xLabels } = useMemo(() => {
-        if (chartGranularity === "Day") return { chartData: dailySeries, xLabels: Array.from({ length: dailySeries.length }, (_, i) => `${i + 1}`) };
-        if (chartGranularity === "Week") return { chartData: weeklySeries, xLabels: Array.from({ length: weeklySeries.length }, (_, i) => `W${i + 1}`) };
-        return { chartData: monthlySeries, xLabels: months.map(m => m.slice(0, 3)) };
-    }, [chartGranularity, dailySeries, weeklySeries, monthlySeries, months]);
+    // 🚀 CHANGE THIS to your actual API route
+    const SUBSCRIPTION_API = "";
 
-    // --- Table-specific data logic ---
-    const tableRows = useMemo(() => {
-        if (tableGranularity === 'Week') {
-            // Simulate weekly view by picking one entry per week
-            return allActivities.filter((_, index) => index === 0 || index === 3);
+    // Fetch subscription data from backend
+    useEffect(() => {
+        const fetchSubscriptions = async () => {
+            try {
+                setIsLoading(true);
+                setError(null);
+
+                const res = await fetch(`/api/admin/bonds/subscriptions?bondId=${bondId}`);
+                if (!res.ok) {
+                    throw new Error(`Failed to load subscriptions (${res.status})`);
+                }
+
+                // Expecting an array of SubscriptionActivity-like objects
+                const json = await res.json();
+
+                // You can adapt this mapping depending on your backend DTO:
+                // e.g. json.map((s: any) => ({ time: s.created_at, investorId: s.ndi, units: s.amount_tenths / 10, cumulative: s.total_btn }))
+                const mapped: SubscriptionActivity[] = json.map((row: any) => ({
+                    time: row.time ?? row.createdAt,     // ISO string
+                    investorId: row.investorId ?? row.investor_id,
+                    units: row.units ?? row.quantity ?? 0,
+                    cumulative: row.cumulative ?? row.cumulativeAmountBtn ?? 0,
+                }));
+
+                // Sort by time ascending
+                mapped.sort(
+                    (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
+                );
+
+                setActivities(mapped);
+            } catch (e: any) {
+                console.error('Error loading subscriptions:', e);
+                setError(e?.message || 'Failed to load subscription data');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchSubscriptions();
+    }, [SUBSCRIPTION_API]);
+
+    // Dynamic chart data computed from activities
+    const chartData = useMemo(() => {
+        if (!activities.length) {
+            return {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Subscription Volume',
+                        data: [],
+                        borderColor: '#5B50D9',
+                        backgroundColor: 'rgba(91, 80, 217, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                    },
+                ],
+            };
         }
-        if (tableGranularity === 'Month') {
-            // Simulate monthly view by picking one entry per month
-            return allActivities.filter((_, index) => index === 0 || index === 3 || index === 5);
+
+        // Group by month, use the latest cumulative in that month
+        const byMonth = new Map<string, { label: string; value: number }>();
+
+        activities.forEach((act) => {
+            const d = new Date(act.time);
+            const key = `${d.getFullYear()}-${d.getMonth()}`; // e.g. 2025-0 for Jan 2025
+            const monthLabel = d.toLocaleDateString(undefined, {
+                month: 'short',
+                year: 'numeric',
+            });
+            const current = byMonth.get(key);
+
+            // We want the last cumulative value in that month (since activities sorted)
+            if (!current || act.cumulative >= current.value) {
+                byMonth.set(key, { label: monthLabel, value: act.cumulative });
+            }
+        });
+
+        const sortedKeys = Array.from(byMonth.keys()).sort((a, b) => {
+            const [ay, am] = a.split('-').map(Number);
+            const [by, bm] = b.split('-').map(Number);
+            return ay === by ? am - bm : ay - by;
+        });
+
+        const labels = sortedKeys.map((k) => byMonth.get(k)!.label);
+        const values = sortedKeys.map((k) => byMonth.get(k)!.value);
+
+        return {
+            labels,
+            datasets: [
+                {
+                    label: 'Subscription Volume',
+                    data: values,
+                    borderColor: '#5B50D9',
+                    backgroundColor: 'rgba(91, 80, 217, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                },
+            ],
+        };
+    }, [activities]);
+
+    // Dynamic stats from data
+    const {
+        totalVolume,
+        avgSubscription,
+        peakMonthLabel,
+        growthRate,
+        totalUnits,
+        activeInvestors,
+    } = useMemo(() => {
+        if (!activities.length) {
+            return {
+                totalVolume: 0,
+                avgSubscription: 0,
+                peakMonthLabel: 'N/A',
+                growthRate: 0,
+                totalUnits: 0,
+                activeInvestors: 0,
+            };
         }
-        return allActivities; // Default to 'Day' view, showing all activities
-    }, [tableGranularity]);
+
+        const last = activities[activities.length - 1];
+        const first = activities[0];
+
+        const totalVolume = last.cumulative;
+        const avgSubscription = totalVolume / activities.length;
+
+        // Peak month = month with highest cumulative value (same as last in chart)
+        let peakMonthLabel = 'N/A';
+        if (chartData.labels.length && chartData.datasets[0].data.length) {
+            const dataArr = chartData.datasets[0].data as number[];
+            const maxVal = Math.max(...dataArr);
+            const idx = dataArr.indexOf(maxVal);
+            peakMonthLabel = chartData.labels[idx] || 'N/A';
+        }
+
+        const growthRate =
+            first.cumulative > 0
+                ? ((last.cumulative - first.cumulative) / first.cumulative) * 100
+                : 0;
+
+        const totalUnits = activities.reduce((sum, a) => sum + a.units, 0);
+        const investorSet = new Set(activities.map((a) => a.investorId));
+
+        return {
+            totalVolume,
+            avgSubscription,
+            peakMonthLabel,
+            growthRate,
+            totalUnits,
+            activeInvestors: investorSet.size,
+        };
+    }, [activities, chartData]);
+
+    if (isLoading) {
+        return <LoadingSpinner />;
+    }
 
     return (
-        <motion.div initial="initial" animate="animate" variants={fadeIn} className="space-y-6">
-            <div className="flex items-center gap-4">
-                <button onClick={() => router.back()} className="p-2 rounded-full hover:bg-gray-100 transition-colors"><ArrowLeft size={20} /></button>
-                <h1 className="text-2xl font-bold">More Details</h1>
-            </div>
-
-            <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
-                    <h2 className="text-xl font-semibold">RSEB Bond</h2>
-                    <div className="flex items-center gap-3">
-                        <MenuSelect icon={<Calendar className="w-4 h-4 text-gray-600" />} value={monthFilter} onChange={setMonthFilter} options={months} align="right" />
-                        <MenuSelect value={chartGranularity} onChange={(v) => setChartGranularity(v as any)} options={["Day", "Week", "Month"]} align="right" />
+        <div className="min-h-screen bg-gradient-to-br from-gray-50/80 via-blue-50/30 to-indigo-50/20 p-4 sm:p-6 lg:p-8">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="max-w-7xl mx-auto"
+            >
+                {/* Header */}
+                <motion.div
+                    {...fadeIn}
+                    className="flex items-center gap-4 mb-8"
+                >
+                    <button 
+                        onClick={() => router.back()}
+                        className="p-2 rounded-xl hover:bg-gray-100/80 text-gray-600 transition-colors group"
+                    >
+                        <IoArrowBack className="w-6 h-6 group-hover:text-gray-900" />
+                    </button>
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">Bond Analytics</h1>
+                        <p className="text-gray-600 mt-1">Detailed insights and subscription activities</p>
+                        {error && (
+                            <p className="mt-2 text-sm text-red-600">
+                                {error}
+                            </p>
+                        )}
                     </div>
-                </div>
-                <div className="mb-8">
-                    <LineChart data={chartData} xLabels={xLabels} />
-                </div>
+                </motion.div>
 
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-semibold">Activities</h2>
-                    <Tabs value={tableGranularity} onChange={(v) => setTableGranularity(v as any)} options={["Day", "Week", "Month"]} />
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm whitespace-nowrap">
-                        <thead className="bg-gray-50/70 text-gray-500 uppercase text-xs rounded-lg">
-                            <tr>
-                                <th className="py-3 px-4 font-semibold">Time Stamp</th>
-                                <th className="py-3 px-4 font-semibold">Investor ID</th>
-                                <th className="py-3 px-4 font-semibold">Unit Subscribed</th>
-                                <th className="py-3 px-4 font-semibold">Cumulative amount (BTN Coin)</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {tableRows.map((row) => (
-                                <tr key={row.id}>
-                                    <td className="py-3 px-4 text-gray-700">{row.time}</td>
-                                    <td className="py-3 px-4 text-gray-700">{row.id}</td>
-                                    <td className="py-3 px-4 text-gray-900 font-medium">{row.unit}</td>
-                                    <td className="py-3 px-4 text-gray-900 font-medium">{row.cumulative}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </motion.div>
+                <motion.div
+                    variants={staggerChildren}
+                    initial="initial"
+                    whileInView="whileInView"
+                    className="space-y-8"
+                >
+                    {/* Chart Section */}
+                    <motion.div
+                        {...fadeIn}
+                        className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/80 p-6 shadow-sm"
+                    >
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                                    <IoStatsChart className="w-5 h-5 text-[#5B50D9]" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-gray-900">Subscription Trend</h2>
+                                    <p className="text-sm text-gray-600">RSEB Bond Performance Overview</p>
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap gap-3">
+                                <div className="flex items-center gap-2 px-4 py-2 bg-gray-50/80 border border-gray-200/60 rounded-xl">
+                                    <IoCalendarOutline className="w-4 h-4 text-gray-500" />
+                                    <select className="bg-transparent border-none outline-none text-sm font-medium text-gray-700">
+                                        <option>All Time</option>
+                                        <option>Last 12 Months</option>
+                                        <option>Last 6 Months</option>
+                                        <option>Last 3 Months</option>
+                                        <option>Last Month</option>
+                                    </select>
+                                </div>
+                                <div className="flex items-center gap-2 px-4 py-2 bg-gray-50/80 border border-gray-200/60 rounded-xl">
+                                    <select className="bg-transparent border-none outline-none text-sm font-medium text-gray-700">
+                                        <option>All Metrics</option>
+                                        <option>Subscriptions</option>
+                                        <option>Revenue</option>
+                                        <option>Growth</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="h-[400px]">
+                            {chartData.labels.length ? (
+                                <Line options={options} data={chartData} />
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-gray-500 text-sm">
+                                    No subscription data available yet.
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Chart Stats (dynamic) */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+                            <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-4 border border-blue-200/60">
+                                <p className="text-sm font-medium text-blue-700 mb-1">Total Volume</p>
+                                <p className="text-2xl font-bold text-blue-900">
+                                    BTN {totalVolume.toLocaleString()}
+                                </p>
+                            </div>
+                            <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-4 border border-green-200/60">
+                                <p className="text-sm font-medium text-green-700 mb-1">Avg. Subscription</p>
+                                <p className="text-2xl font-bold text-green-900">
+                                    BTN {Math.round(avgSubscription).toLocaleString()}
+                                </p>
+                            </div>
+                            <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-4 border border-purple-200/60">
+                                <p className="text-sm font-medium text-purple-700 mb-1">Peak Month</p>
+                                <p className="text-2xl font-bold text-purple-900">
+                                    {peakMonthLabel}
+                                </p>
+                            </div>
+                            <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-xl p-4 border border-orange-200/60">
+                                <p className="text-sm font-medium text-orange-700 mb-1">Growth Rate</p>
+                                <p className="text-2xl font-bold text-orange-900">
+                                    {growthRate >= 0 ? '+' : ''}
+                                    {growthRate.toFixed(1)}%
+                                </p>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Activities Section */}
+                    <motion.div
+                        {...fadeIn}
+                        className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/80 p-6 shadow-sm"
+                    >
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center">
+                                    <IoDocumentTextOutline className="w-5 h-5 text-emerald-600" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-gray-900">Subscription Activities</h2>
+                                    <p className="text-sm text-gray-600">Real-time bond subscription records</p>
+                                </div>
+                            </div>
+                            
+                            {/* Time Filter Buttons (currently just change summary label) */}
+                            <div className="flex bg-gray-100/80 rounded-xl p-1 border border-gray-200/60">
+                                {timeFilters.map((filter) => (
+                                    <button
+                                        key={filter}
+                                        onClick={() => setActiveTimeFilter(filter)}
+                                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                                            activeTimeFilter === filter
+                                                ? 'bg-[#5B50D9] text-white shadow-sm'
+                                                : 'text-gray-600 hover:text-gray-900'
+                                        }`}
+                                    >
+                                        {filter}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Activities Table */}
+                        <div className="overflow-hidden rounded-xl border border-gray-200/60">
+                            {/* Table Header */}
+                            <div className="grid grid-cols-12 gap-4 p-4 bg-gradient-to-r from-gray-50 to-gray-100/50 border-b border-gray-200/60">
+                                <div className="col-span-3 flex items-center gap-2">
+                                    <IoTimeOutline className="w-4 h-4 text-gray-500" />
+                                    <span className="text-sm font-semibold text-gray-700">Time Stamp</span>
+                                </div>
+                                <div className="col-span-3 flex items-center gap-2">
+                                    <IoPersonOutline className="w-4 h-4 text-gray-500" />
+                                    <span className="text-sm font-semibold text-gray-700">Investor ID</span>
+                                </div>
+                                <div className="col-span-3 text-sm font-semibold text-gray-700 text-center">Units Subscribed</div>
+                                <div className="col-span-3 text-sm font-semibold text-gray-700 text-right">Cumulative Amount</div>
+                            </div>
+
+                            {/* Table Body */}
+                            <div className="divide-y divide-gray-100">
+                                {activities.length === 0 ? (
+                                    <div className="p-6 text-center text-sm text-gray-500">
+                                        No subscription activities yet.
+                                    </div>
+                                ) : (
+                                    activities.map((activity, index) => {
+                                        const d = new Date(activity.time);
+                                        const datePart = d.toLocaleDateString();
+                                        const timePart = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                                        return (
+                                            <motion.div
+                                                key={index}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: index * 0.03 }}
+                                                className="grid grid-cols-12 gap-4 p-4 hover:bg-gray-50/50 transition-colors"
+                                            >
+                                                <div className="col-span-3">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-medium text-gray-900">
+                                                            {datePart}
+                                                        </span>
+                                                        <span className="text-xs text-gray-500">
+                                                            {timePart}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="col-span-3">
+                                                    <span className="text-sm font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded-lg">
+                                                        {activity.investorId}
+                                                    </span>
+                                                </div>
+                                                <div className="col-span-3 text-center">
+                                                    <span className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
+                                                        {activity.units / 10} units
+                                                    </span>
+                                                </div>
+                                                <div className="col-span-3 text-right">
+                                                    <span className="text-sm font-semibold text-gray-900">
+                                                        BTN {activity.cumulative.toLocaleString()}
+                                                    </span>
+                                                </div>
+                                            </motion.div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Table Summary (dynamic) */}
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50/50 rounded-xl border border-indigo-200/60">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+                                    <IoStatsChart className="w-4 h-4 text-indigo-600" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-indigo-700">Total Summary</p>
+                                    <p className="text-xs text-indigo-600">Last {activeTimeFilter.toLowerCase()} activities</p>
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap gap-6 text-sm">
+                                <div className="text-center">
+                                    <p className="text-gray-600">Total Units</p>
+                                    <p className="font-semibold text-gray-900">{totalUnits.toLocaleString()} units</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-gray-600">Total Amount</p>
+                                    <p className="font-semibold text-gray-900">BTN {totalVolume.toLocaleString()}</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-gray-600">Active Investors</p>
+                                    <p className="font-semibold text-gray-900">{activeInvestors} investors</p>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            </motion.div>
+        </div>
     );
 };
 
