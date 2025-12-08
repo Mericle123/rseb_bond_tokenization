@@ -11,12 +11,6 @@ import { useCurrentUser } from "@/context/UserContext";
 import BondCountdown from "@/app/admin/countdown";
 import { subscribeToBond } from "@/server/blockchain/bond";
 
-type AboutBondPageProps = {
-  params: {
-    bondId: string;
-  };
-};
-
 /* ====================== Motion ====================== */
 const fadeIn = {
   initial: { opacity: 0, y: 8, scale: 0.995 },
@@ -1015,7 +1009,7 @@ function BuyBondModal({
 
 /* ====================== PAGE ====================== */
 
-// interface AboutBondPageProps {
+interface AboutBondPageProps {
   params: { bondId: string };
 }
 
