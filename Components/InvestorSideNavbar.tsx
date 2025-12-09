@@ -47,7 +47,7 @@ export default function InvestorSideNavbar() {
     { label: "Assets", href: "/investor/Assets", icon: PieChart },
     { label: "Earnings", href: "/investor/Earnings", icon: DollarSign },
     { label: "Activity", href: "/investor/Activity", icon: Activity },
-    { label: "Negotiative Channel", href: "/investor/Negotiative", icon: MessageSquare }
+    { label: "Trading Channel", href: "/investor/Negotiative", icon: MessageSquare }
   ];
 
   const isActive = (href: string) => {
