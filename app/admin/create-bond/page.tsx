@@ -486,7 +486,6 @@ const TokenizationBondPage = () => {
                                                 <option value="green_Bond">Green Bond</option>
                                                 <option value="development_Bond">Development Bond</option>
                                                 <option value="domestic_BondM2">Domestic Project Bond</option>
-                                                <option value="SYM2">Others</option>
                                             </select>
                                             <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
                                                 {errors.bond_type && touched.bond_type && (
