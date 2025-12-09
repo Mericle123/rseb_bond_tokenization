@@ -26,7 +26,9 @@ import {
   IoChevronDownOutline,
   IoEyeOutline,
   IoLinkOutline,
-  IoCalendarOutline
+  IoCalendarOutline,
+  IoGridOutline,
+  IoListOutline
 } from "react-icons/io5";
 import { BsFileEarmarkTextFill } from "react-icons/bs";
 import { CgSpinner } from "react-icons/cg";
@@ -829,6 +831,7 @@ export default function AdminHomePage() {
   const [hashModalOpen, setHashModalOpen] = useState(false);
   const [currentNetwork, setCurrentNetwork] = useState('testnet');
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   // --- LOADING STATES ---
   const [balanceLoading, setBalanceLoading] = useState(false);
@@ -1208,147 +1211,378 @@ export default function AdminHomePage() {
           transition={{ delay: 0.2 }}
           className="space-y-4 sm:space-y-6"
         >
-          <div className="flex flex-col gap-3 sm:gap-4">
+          {/* Header with Stats */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900">Active Offerings</h2>
-              <p className="text-gray-600 text-xs sm:text-sm mt-0.5 sm:mt-1">
-                Manage and monitor all bond offerings
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Active Offerings</h2>
+              <p className="text-gray-600 text-sm mt-1">
+                Manage and monitor all bond offerings in real-time
               </p>
             </div>
             
-            <div className="flex flex-col xs:flex-row gap-2 sm:gap-3 w-full">
-              {/* Search */}
-              <div className="relative group flex-1 min-w-0">
-                <IoSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#5A4BDA] transition-colors" size={16} className="sm:w-4.5 sm:h-4.5" />
-                <input 
-                  type="text" 
-                  placeholder="Search bonds..." 
-                  className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 h-10 sm:h-11 rounded-lg sm:rounded-xl border border-gray-200 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#5A4BDA]/20 focus:border-[#5A4BDA] transition-all shadow-sm"
-                  value={filterText}
-                  onChange={(e) => setFilterText(e.target.value)}
-                />
-              </div>
-
-              {/* Filter Dropdown */}
-              <div className="filter-dropdown-container relative flex-1 xs:flex-none">
-                <button 
-                  className="w-full xs:w-auto h-10 sm:h-11 px-3 sm:px-4 rounded-lg sm:rounded-xl border border-gray-200 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#5A4BDA]/20 focus:border-[#5A4BDA] cursor-pointer shadow-sm font-medium text-gray-700 flex items-center gap-1.5 sm:gap-2 justify-center"
-                  onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* View Toggle - ADDED THIS SECTION */}
+              <div className="flex bg-gray-100 p-1 rounded-lg">
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`px-3 py-1.5 rounded-md transition-all ${
+                    viewMode === 'list' 
+                      ? 'bg-white text-[#5A4BDA] shadow-sm' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
                 >
-                  <IoFilter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span>Filter</span>
-                  <IoChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform ${showFilterDropdown ? 'rotate-180' : ''}`} />
+                  <IoListOutline className="w-4 h-4" />
                 </button>
-                
-                <AnimatePresence>
-                  {showFilterDropdown && (
-                    <FilterDropdown
-                      onFilterChange={setActiveFilter}
-                      activeFilter={activeFilter}
-                      onClose={() => setShowFilterDropdown(false)}
-                    />
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Sort Dropdown */}
-              <div className="sort-dropdown-container relative flex-1 xs:flex-none">
-                <button 
-                  className="w-full xs:w-auto h-10 sm:h-11 px-3 sm:px-4 rounded-lg sm:rounded-xl border border-gray-200 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#5A4BDA]/20 focus:border-[#5A4BDA] cursor-pointer shadow-sm font-medium text-gray-700 flex items-center gap-1.5 sm:gap-2 justify-center"
-                  onClick={() => setShowSortDropdown(!showSortDropdown)}
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`px-3 py-1.5 rounded-md transition-all ${
+                    viewMode === 'grid' 
+                      ? 'bg-white text-[#5A4BDA] shadow-sm' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
                 >
-                  <IoCalendarOutline className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span>Sort</span>
-                  <IoChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} />
+                  <IoGridOutline className="w-4 h-4" />
                 </button>
-                
-                <AnimatePresence>
-                  {showSortDropdown && (
-                    <SortDropdown
-                      onSortChange={setSortBy}
-                      activeSort={sortBy}
-                      onClose={() => setShowSortDropdown(false)}
-                    />
-                  )}
-                </AnimatePresence>
               </div>
-
-              {/* Create Button */}
+              
+              {/* Refresh Button */}
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                <IoRefresh className={`w-4 h-4 text-gray-600 ${refreshing ? 'animate-spin' : ''}`} />
+              </button>
+              
+              {/* Create Button - Now in primary color */}
               <Link 
                 href="/admin/create-bond" 
-                className="flex items-center justify-center gap-1.5 sm:gap-2 bg-[#5A4BDA] text-white px-3 sm:px-4 md:px-6 h-10 sm:h-11 rounded-lg sm:rounded-xl font-semibold hover:bg-[#4a3ec0] active:scale-[0.98] transition-all shadow-md shadow-[#5A4BDA]/20 whitespace-nowrap text-xs sm:text-sm md:text-base"
+                className="flex items-center gap-2 bg-gradient-to-r from-[#5A4BDA] to-[#6C63FF] text-white px-4 py-2.5 rounded-xl font-semibold hover:shadow-lg hover:shadow-[#5A4BDA]/20 transition-all active:scale-[0.98] whitespace-nowrap"
               >
-                <span>Create Bond</span>
-                <IoAdd size={12} className="sm:w-3.5 sm:h-3.5" />
+                <IoAdd className="w-4 h-4" />
+                <span className="hidden sm:inline">Create Bond</span>
+                <span className="sm:hidden">Create</span>
               </Link>
             </div>
           </div>
 
-          {/* Active Filter Badge */}
-          {activeFilter !== "all" && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex items-center gap-1.5 sm:gap-2"
-            >
-              <span className="text-xs sm:text-sm text-gray-600">Active filter:</span>
-              <div className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-100 text-blue-700 rounded-full text-xs sm:text-sm">
-                <span>
-                  {activeFilter === "all" ? "All Bonds" : 
-                   activeFilter === "active" ? "Active" : 
-                   activeFilter === "completed" ? "Completed" : "Drafts"}
-                </span>
-                <button
-                  onClick={() => setActiveFilter("all")}
-                  className="hover:text-blue-900 transition-colors"
-                  aria-label="Clear filter"
-                >
-                  <IoClose className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                </button>
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-white p-4 rounded-xl border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Total Bonds</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{stats.totalBonds}</p>
+                </div>
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <IoDocumentTextOutline className="w-5 h-5 text-blue-600" />
+                </div>
               </div>
-            </motion.div>
+            </div>
+            
+            <div className="bg-white p-4 rounded-xl border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Active</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{stats.activeBonds}</p>
+                </div>
+                <div className="p-2 bg-emerald-50 rounded-lg">
+                  <IoStatsChart className="w-5 h-5 text-emerald-600" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white p-4 rounded-xl border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Total Units</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{stats.totalUnits.toLocaleString()}</p>
+                </div>
+                <div className="p-2 bg-amber-50 rounded-lg">
+                  <IoTrendingUp className="w-5 h-5 text-amber-600" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white p-4 rounded-xl border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">Avg. Interest</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{stats.avgInterest.toFixed(2)}%</p>
+                </div>
+                <div className="p-2 bg-purple-50 rounded-lg">
+                  <IoWallet className="w-5 h-5 text-purple-600" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Controls Bar */}
+          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              {/* Left side: Search and Filter */}
+              <div className="flex-1 flex flex-col sm:flex-row gap-3 sm:gap-4">
+                {/* Search */}
+                <div className="flex-1 min-w-0">
+                  <div className="relative group">
+                    <IoSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#5A4BDA] transition-colors" size={16} />
+                    <input 
+                      type="text" 
+                      placeholder="Search bonds by name, interest rate, or status..." 
+                      className="w-full pl-10 pr-4 h-11 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#5A4BDA]/20 focus:border-[#5A4BDA] transition-all"
+                      value={filterText}
+                      onChange={(e) => setFilterText(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Filter and Sort Buttons */}
+                <div className="flex gap-3">
+                  {/* Filter Dropdown */}
+                  <div className="filter-dropdown-container relative">
+                    <button 
+                      className="h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#5A4BDA]/20 focus:border-[#5A4BDA] cursor-pointer font-medium text-gray-700 flex items-center gap-2"
+                      onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                    >
+                      <IoFilter className="w-4 h-4" />
+                      <span>Filter</span>
+                      <IoChevronDown className={`w-4 h-4 transition-transform ${showFilterDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    <AnimatePresence>
+                      {showFilterDropdown && (
+                        <FilterDropdown
+                          onFilterChange={setActiveFilter}
+                          activeFilter={activeFilter}
+                          onClose={() => setShowFilterDropdown(false)}
+                        />
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Sort Dropdown */}
+                  <div className="sort-dropdown-container relative">
+                    <button 
+                      className="h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#5A4BDA]/20 focus:border-[#5A4BDA] cursor-pointer font-medium text-gray-700 flex items-center gap-2"
+                      onClick={() => setShowSortDropdown(!showSortDropdown)}
+                    >
+                      <IoCalendarOutline className="w-4 h-4" />
+                      <span>Sort</span>
+                      <IoChevronDown className={`w-4 h-4 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    <AnimatePresence>
+                      {showSortDropdown && (
+                        <SortDropdown
+                          onSortChange={setSortBy}
+                          activeSort={sortBy}
+                          onClose={() => setShowSortDropdown(false)}
+                        />
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Active Filter Badge */}
+            {activeFilter !== "all" && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100"
+              >
+                <span className="text-sm text-gray-600">Active filter:</span>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm border border-blue-100">
+                  <div className={`w-2 h-2 rounded-full ${
+                    activeFilter === "active" ? "bg-emerald-500" :
+                    activeFilter === "completed" ? "bg-blue-500" :
+                    "bg-amber-500"
+                  }`}></div>
+                  <span className="font-medium">
+                    {activeFilter === "all" ? "All Bonds" : 
+                     activeFilter === "active" ? "Active Bonds" : 
+                     activeFilter === "completed" ? "Completed Bonds" : "Drafts"}
+                  </span>
+                  <button
+                    onClick={() => setActiveFilter("all")}
+                    className="hover:text-blue-900 transition-colors p-0.5 rounded hover:bg-blue-100"
+                    aria-label="Clear filter"
+                  >
+                    <IoClose className="w-3 h-3" />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {/* Results Count */}
+          {filteredBonds.length > 0 && (
+            <div className="text-sm text-gray-600">
+              Showing <span className="font-semibold text-gray-900">{filteredBonds.length}</span> of{" "}
+              <span className="font-semibold text-gray-900">{bonds.length}</span> total bond offerings
+            </div>
           )}
 
-          {/* Table */}
-          <div className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-            {/* Table Header - Responsive */}
-            <div className="hidden lg:grid grid-cols-12 gap-3 md:gap-4 px-4 md:px-6 py-3 md:py-4 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm font-semibold text-gray-500 text-xs uppercase tracking-wider">
-              <div className="col-span-4">Bond Name</div>
-              <div className="col-span-2">Created Date</div>
-              <div className="col-span-2">Interest Rate</div>
-              <div className="col-span-2">Units Offered</div>
-              <div className="col-span-1">Status</div>
-              <div className="col-span-1 text-center">Action</div>
-            </div>
+          {/* Table - UPDATED FOR VIEW MODE TOGGLE */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            {/* Table Header - Show only in list view */}
+            {viewMode === 'list' && (
+              <>
+                <div className="hidden lg:grid grid-cols-12 gap-6 px-6 py-4 border-b border-gray-100 bg-gray-50/50 font-semibold text-gray-500 text-xs uppercase tracking-wider">
+                  <div className="col-span-4">Bond Details</div>
+                  <div className="col-span-2">Created Date</div>
+                  <div className="col-span-2">Interest Rate</div>
+                  <div className="col-span-2">Units Offered</div>
+                  <div className="col-span-1">Status</div>
+                  <div className="col-span-1 text-right">Actions</div>
+                </div>
 
-            {/* Mobile Table Header */}
-            <div className="lg:hidden px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-100 bg-gray-50/80 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Bond Offerings
-            </div>
+                {/* Mobile Table Header */}
+                <div className="lg:hidden px-4 py-3 border-b border-gray-100 bg-gray-50/50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Bond Offerings
+                </div>
+              </>
+            )}
 
             {/* Table Body */}
             <div className="divide-y divide-gray-100">
               {bondsLoading ? (
-                <div className="flex flex-col items-center justify-center py-8 sm:py-12">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 border-3 sm:border-4 border-[#5A4BDA]/20 border-t-[#5A4BDA] rounded-full animate-spin"></div>
-                  <p className="text-sm sm:text-base md:text-lg font-medium text-gray-700 mt-3 sm:mt-4">Loading offerings...</p>
+                <div className="flex flex-col items-center justify-center py-16">
+                  <div className="w-12 h-12 border-4 border-[#5A4BDA]/20 border-t-[#5A4BDA] rounded-full animate-spin"></div>
+                  <p className="text-lg font-medium text-gray-700 mt-4">Loading offerings...</p>
+                  <p className="text-sm text-gray-500 mt-2">Fetching bond data from the blockchain</p>
                 </div>
               ) : filteredBonds.length === 0 ? (
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="flex flex-col items-center justify-center h-40 sm:h-48 md:h-64 text-gray-400"
+                  className="flex flex-col items-center justify-center h-64 text-gray-400"
                 >
-                  <IoSearch size={28} className="sm:w-9 sm:h-9 mb-2 sm:mb-3 md:mb-4 opacity-20" />
-                  <p className="text-sm sm:text-base md:text-lg font-medium text-gray-500 mb-1 sm:mb-2">No bonds found</p>
-                  <p className="text-xs sm:text-sm text-gray-400 text-center px-3 sm:px-4 max-w-xs">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <IoSearch size={32} className="opacity-20" />
+                  </div>
+                  <p className="text-lg font-medium text-gray-500 mb-2">No bonds found</p>
+                  <p className="text-sm text-gray-400 text-center max-w-sm">
                     {filterText || activeFilter !== "all" 
-                      ? "Try adjusting your search or filters" 
-                      : "Get started by creating your first bond offering"
+                      ? "Try adjusting your search or filters to find what you're looking for." 
+                      : "Get started by creating your first bond offering."
                     }
                   </p>
+                  {!filterText && activeFilter === "all" && (
+                    <Link 
+                      href="/admin/create-bond" 
+                      className="mt-4 flex items-center gap-2 bg-gradient-to-r from-[#5A4BDA] to-[#6C63FF] text-white px-6 py-2.5 rounded-xl font-semibold hover:shadow-lg hover:shadow-[#5A4BDA]/20 transition-all"
+                    >
+                      <IoAdd className="w-4 h-4" />
+                      Create Your First Bond
+                    </Link>
+                  )}
                 </motion.div>
+              ) : viewMode === 'grid' ? (
+                // Grid View
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 sm:p-6">
+                  <AnimatePresence>
+                    {filteredBonds.map((bond: Bond, index: number) => {
+                      const isLastElement = filteredBonds.length === index + 1;
+                      
+                      return (
+                        <motion.div
+                          key={bond.id}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          transition={{ duration: 0.2 }}
+                          ref={isLastElement ? lastBondElementRef : null}
+                          className="group relative bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md hover:border-[#5A4BDA]/30 transition-all"
+                        >
+                          {/* Grid Card Content */}
+                          <div className="space-y-3">
+                            {/* Bond Header */}
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="relative flex items-center justify-center bg-white rounded-lg border border-gray-200 w-10 h-10 p-2 shrink-0">
+                                  <Image 
+                                    src="/logo.png" 
+                                    alt="Bond Icon" 
+                                    width={24} 
+                                    height={24} 
+                                    className="object-contain" 
+                                  />
+                                  <div className={`absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white ${
+                                    bond.status === 'active' ? 'bg-emerald-500' :
+                                    bond.status === 'completed' ? 'bg-blue-500' :
+                                    'bg-amber-500'
+                                  }`}></div>
+                                </div>
+                                <div className="min-w-0">
+                                  <h3 className="font-semibold text-gray-900 truncate text-sm">
+                                    {bond.bond_name}
+                                  </h3>
+                                  <p className="text-xs text-gray-500 truncate">
+                                    ID: {bond.id.slice(0, 8)}...
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handleViewHash(bond)}
+                                className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                title="View Transaction Hash"
+                              >
+                                <IoLinkOutline className="w-3.5 h-3.5 text-gray-400" />
+                              </button>
+                            </div>
+
+                            {/* Status and Interest */}
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                                bond.status === 'active' ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' :
+                                bond.status === 'completed' ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' :
+                                'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
+                              }`}>
+                                {bond.status || 'active'}
+                              </span>
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg font-medium text-emerald-700 bg-emerald-50 border border-emerald-100 text-xs whitespace-nowrap">
+                                <IoTrendingUp className="w-3 h-3" />
+                                +{bond.interest_rate}%
+                              </span>
+                            </div>
+
+                            {/* Stats */}
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="bg-gray-50 p-2 rounded-lg">
+                                <p className="text-xs text-gray-600">Units Offered</p>
+                                <p className="text-lg font-bold text-gray-900">{(bond.tl_unit_offered / 10).toLocaleString()}</p>
+                              </div>
+                              <div className="bg-gray-50 p-2 rounded-lg">
+                                <p className="text-xs text-gray-600">Created</p>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {new Date(bond.created_at).toLocaleDateString('en-GB', { 
+                                    day: 'numeric', 
+                                    month: 'short' 
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Action Button */}
+                            <div className="pt-2 border-t border-gray-100">
+                              <Link 
+                                href={`/admin/bonds/${bond.id}`} 
+                                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:text-[#5A4BDA] hover:bg-[#5A4BDA]/5 transition-all group/btn border border-gray-200 hover:border-[#5A4BDA]/30 text-sm"
+                              >
+                                <span className="font-medium">View Details</span>
+                                <IoChevronForward className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
+                              </Link>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+                </div>
               ) : (
+                // List View (Original)
                 <AnimatePresence>
                   {filteredBonds.map((bond: Bond, index: number) => {
                     const isLastElement = filteredBonds.length === index + 1;
@@ -1361,54 +1595,80 @@ export default function AdminHomePage() {
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
                         ref={isLastElement ? lastBondElementRef : null}
-                        className="hover:bg-gray-50/80 transition-colors"
+                        className="hover:bg-gray-50/50 transition-colors group"
                       >
                         {/* Desktop View */}
-                        <div className="hidden lg:grid grid-cols-12 gap-3 md:gap-4 px-4 md:px-6 py-3 md:py-4 items-center">
+                        <div className="hidden lg:grid grid-cols-12 gap-6 px-6 py-4 items-center">
                           {/* Bond Name */}
-                          <div className="col-span-4 flex items-center gap-2 md:gap-3 min-w-0">
-                            <div className="relative flex items-center justify-center bg-white rounded-full border border-gray-200 w-9 h-9 md:w-11 md:h-11 p-1 shrink-0">
-                              <Image src="/logo.png" alt="Bond Icon" width={24} height={24} className="object-contain w-5 h-5 md:w-7 md:h-7" />
-                              <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full border-2 border-white ${
+                          <div className="col-span-4 flex items-center gap-3 min-w-0">
+                            <div className="relative flex items-center justify-center bg-white rounded-xl border border-gray-200 w-12 h-12 p-2 shrink-0 group-hover:border-[#5A4BDA]/30 transition-colors">
+                              <Image 
+                                src="/logo.png" 
+                                alt="Bond Icon" 
+                                width={28} 
+                                height={28} 
+                                className="object-contain" 
+                              />
+                              <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
                                 bond.status === 'active' ? 'bg-emerald-500' :
                                 bond.status === 'completed' ? 'bg-blue-500' :
                                 'bg-amber-500'
                               }`}></div>
                             </div>
                             <div className="min-w-0 flex-1">
-                              <span className="font-semibold text-gray-900 truncate text-sm md:text-base block">
-                                {bond.bond_name}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-gray-900 truncate text-base">
+                                  {bond.bond_name}
+                                </span>
+                                {bond.transaction_hash && (
+                                  <button
+                                    onClick={() => handleViewHash(bond)}
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded-lg"
+                                    title="View Transaction Hash"
+                                  >
+                                    <IoLinkOutline className="w-3.5 h-3.5 text-gray-400" />
+                                  </button>
+                                )}
+                              </div>
                               <span className="text-xs text-gray-500 capitalize truncate block">
-                                {bond.status || 'active'}
+                                {bond.status || 'active'} • ID: {bond.id.slice(0, 8)}...
                               </span>
                             </div>
                           </div>
 
                           {/* Created Date */}
-                          <div className="col-span-2 text-gray-600 font-medium text-xs md:text-sm truncate">
-                            {new Date(bond.created_at).toLocaleDateString('en-GB', { 
-                              day: 'numeric', 
-                              month: 'short', 
-                              year: 'numeric' 
-                            })}
+                          <div className="col-span-2">
+                            <div className="text-gray-600 font-medium text-sm">
+                              {new Date(bond.created_at).toLocaleDateString('en-GB', { 
+                                day: 'numeric', 
+                                month: 'short', 
+                                year: 'numeric' 
+                              })}
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              {new Date(bond.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
                           </div>
 
                           {/* Interest Rate */}
                           <div className="col-span-2">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 text-xs md:text-sm whitespace-nowrap">
+                            <span className="inline-flex items-center px-3 py-1.5 rounded-lg font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 text-sm whitespace-nowrap">
+                              <IoTrendingUp className="w-3.5 h-3.5 mr-1.5" />
                               +{bond.interest_rate}% / yr
                             </span>
                           </div>
 
                           {/* Units Offered */}
-                          <div className="col-span-2 text-gray-900 font-bold font-mono text-sm md:text-base">
-                            {bond.tl_unit_offered / 10}
+                          <div className="col-span-2">
+                            <div className="text-gray-900 font-bold font-mono text-lg">
+                              {(bond.tl_unit_offered / 10).toLocaleString()}
+                            </div>
+                            <div className="text-xs text-gray-500">units</div>
                           </div>
 
                           {/* Status */}
                           <div className="col-span-1">
-                            <span className={`inline-flex items-center px-2 py-0.5 md:px-2.5 md:py-1 rounded-full text-xs font-medium ${
+                            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${
                               bond.status === 'active' ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' :
                               bond.status === 'completed' ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' :
                               'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
@@ -1418,60 +1678,71 @@ export default function AdminHomePage() {
                           </div>
 
                           {/* Action */}
-                          <div className="col-span-1 flex justify-center">
+                          <div className="col-span-1 flex justify-end">
                             <Link 
                               href={`/admin/bonds/${bond.id}`} 
-                              className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
-                              title="View Details"
+                              className="flex items-center gap-2 px-4 py-2 rounded-xl text-gray-600 hover:text-[#5A4BDA] hover:bg-[#5A4BDA]/5 transition-all group/btn border border-gray-200 hover:border-[#5A4BDA]/30"
                             >
-                              <IoDocumentTextOutline className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                              <span className="text-sm font-medium">View</span>
+                              <IoChevronForward className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
                             </Link>
                           </div>
                         </div>
 
                         {/* Mobile View */}
-                        <div className="lg:hidden p-3 sm:p-4">
-                          <div className="flex items-start justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
-                            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                              <div className="relative flex items-center justify-center bg-white rounded-full border border-gray-200 w-8 h-8 sm:w-10 sm:h-10 p-1 shrink-0">
-                                <Image src="/logo.png" alt="Bond Icon" width={20} height={20} className="object-contain w-4 h-4 sm:w-6 sm:h-6" />
-                                <div className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full border-2 border-white ${
+                        <div className="lg:hidden p-4">
+                          <div className="flex items-start justify-between gap-3 mb-3">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <div className="relative flex items-center justify-center bg-white rounded-xl border border-gray-200 w-10 h-10 p-2 shrink-0">
+                                <Image src="/logo.png" alt="Bond Icon" width={24} height={24} className="object-contain" />
+                                <div className={`absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white ${
                                   bond.status === 'active' ? 'bg-emerald-500' :
                                   bond.status === 'completed' ? 'bg-blue-500' :
                                   'bg-amber-500'
                                 }`}></div>
                               </div>
                               <div className="min-w-0 flex-1">
-                                <span className="font-semibold text-gray-900 truncate text-sm sm:text-base block">
-                                  {bond.bond_name}
-                                </span>
-                                <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
-                                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-gray-900 truncate text-sm">
+                                    {bond.bond_name}
+                                  </span>
+                                  {bond.transaction_hash && (
+                                    <button
+                                      onClick={() => handleViewHash(bond)}
+                                      className="p-1 hover:bg-gray-100 rounded-lg"
+                                      title="View Transaction Hash"
+                                    >
+                                      <IoLinkOutline className="w-3 h-3 text-gray-400" />
+                                    </button>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-1.5 mt-1">
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
                                     bond.status === 'active' ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' :
                                     bond.status === 'completed' ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' :
                                     'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
                                   }`}>
                                     {bond.status || 'active'}
                                   </span>
-                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-md font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 text-xs whitespace-nowrap">
-                                    +{bond.interest_rate}% / yr
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-md font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 text-xs whitespace-nowrap">
+                                    +{bond.interest_rate}%
                                   </span>
                                 </div>
                               </div>
                             </div>
                             <Link 
                               href={`/admin/bonds/${bond.id}`} 
-                              className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all shrink-0"
+                              className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all shrink-0"
                               title="View Details"
                             >
-                              <IoDocumentTextOutline className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                              <IoDocumentTextOutline className="w-4 h-4" />
                             </Link>
                           </div>
                           
-                          <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
+                          <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
                               <span className="text-gray-500 text-xs">Created Date</span>
-                              <p className="font-medium text-gray-900 truncate">
+                              <p className="font-medium text-gray-900">
                                 {new Date(bond.created_at).toLocaleDateString('en-GB', { 
                                   day: 'numeric', 
                                   month: 'short', 
@@ -1481,7 +1752,7 @@ export default function AdminHomePage() {
                             </div>
                             <div>
                               <span className="text-gray-500 text-xs">Units Offered</span>
-                              <p className="font-bold font-mono text-gray-900 truncate">
+                              <p className="font-bold font-mono text-gray-900 text-lg">
                                 {bond.tl_unit_offered / 10}
                               </p>
                             </div>
@@ -1497,9 +1768,9 @@ export default function AdminHomePage() {
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="py-4 sm:py-6 flex justify-center items-center gap-1.5 sm:gap-2 text-gray-500 text-xs sm:text-sm"
+                  className="py-6 flex justify-center items-center gap-2 text-gray-500 text-sm"
                 >
-                  <CgSpinner className="animate-spin text-[#5A4BDA] w-4 h-4 sm:w-5 sm:h-5" />
+                  <CgSpinner className="animate-spin text-[#5A4BDA] w-5 h-5" />
                   <span>Loading more offerings...</span>
                 </motion.div>
               )}
