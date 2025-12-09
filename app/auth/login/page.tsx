@@ -63,7 +63,7 @@ export default function AdminLoginPage() {
         <div className="flex justify-center mb-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[11px] sm:text-xs font-semibold border border-blue-100">
             <span className="w-2 h-2 rounded-full bg-blue-500" />
-            Admin Console
+            Admin / Investor Console
           </div>
         </div>
 
