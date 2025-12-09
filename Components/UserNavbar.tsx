@@ -20,7 +20,7 @@ export default function UserNavbar() {
   // Only /user and /user/aboutus
   const navItems = [
     { label: "Home", href: "/user" },
-    { label: "About Us", href: "/user/aboutus" },
+    { label: "Public Bonds", href: "/user/aboutus" },
   ];
 
   // Active logic: Home exact; others prefix match
