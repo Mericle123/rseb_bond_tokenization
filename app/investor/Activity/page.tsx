@@ -3,7 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
-import { Copy, Wallet, FileText, Calendar, Hash, Coins, Send, ShoppingCart, Ticket } from "lucide-react";
+import {
+  Copy,
+  Wallet,
+  FileText,
+  Calendar,
+  Hash,
+  Coins,
+  Send,
+  ShoppingCart,
+  Ticket,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { useCurrentUser } from "@/context/UserContext";
 import {
@@ -14,7 +24,15 @@ import {
 } from "@/server/db_actions/action";
 
 /* ========================= Types ========================= */
-type ActivityKind = "event" | "peer" | "allocation" | "subscription" | "buy_sell" | "send" | "redeem" | "buy";
+type ActivityKind =
+  | "event"
+  | "peer"
+  | "allocation"
+  | "subscription"
+  | "buy_sell"
+  | "send"
+  | "redeem"
+  | "buy";
 
 type Status = "Completed" | "Complete" | "Pending" | "In progress";
 
@@ -47,6 +65,27 @@ const fadeIn = {
   transition: { duration: 0.45, ease: "easeOut" },
   viewport: { once: true, margin: "-10% 0% -10% 0%" },
 };
+
+/* ========================= Helpers ========================= */
+
+function shortenHash(hash: string, chars = 6): string {
+  if (!hash) return "N/A";
+  if (hash.length <= chars * 2 + 3) return hash;
+  return `${hash.slice(0, chars)}...${hash.slice(-chars)}`;
+}
+
+// Helper to shorten long addresses/details in the Details section
+function shortenDetailsDetail(detail: string): string {
+  // Look for long hex addresses (0x followed by 40+ chars)
+  const hexPattern = /(0x[a-fA-F0-9]{40,})/g;
+  
+  return detail.replace(hexPattern, (match) => {
+    if (match.length > 20) {
+      return `${match.slice(0, 10)}...${match.slice(-8)}`;
+    }
+    return match;
+  });
+}
 
 /* ========================= Loading Animation ========================= */
 
@@ -583,10 +622,10 @@ function mapPeerTxToActivityRow(tx: any): ActivityRow {
 
   return {
     id: tx.id,
-    asset: "BTN coin", // 👈 peer tx = BTN coin
+    asset: "BTN coin",
     type,
     date: formatDate(tx.created_at),
-    amountLabel: "Peer transfer", // no amount returned from API yet
+    amountLabel: "Peer transfer",
     status: "Completed",
     detail,
     tx_hash: tx.tx_hash || "",
@@ -682,25 +721,45 @@ function WalletStrip({ walletAddress }: { walletAddress: string }) {
   };
   if (!walletAddress) return null;
 
+  const shortened =
+    walletAddress.length > 20
+      ? `${walletAddress.slice(0, 10)}...${walletAddress.slice(-8)}`
+      : walletAddress;
+
   return (
     <motion.div
       {...fadeIn}
-      className="rounded-xl border border-black/10 bg-white shadow-sm overflow-hidden"
+      className="rounded-2xl border border-black/10 bg-white/90 shadow-sm backdrop-blur-sm overflow-hidden"
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4">
-        <div className="flex items-center gap-2 text-sm text-gray-800">
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#5B50D9]/10 ring-1 ring-[#5B50D9]/20">
-            <Wallet className="w-4 h-4 text-[#5B50D9]" strokeWidth={1.75} />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 lg:p-5">
+        <div className="flex items-start gap-3 text-sm text-gray-800 max-w-full">
+          <span className="inline-flex items-center justify-center w-9 h-9 rounded-2xl bg-[#5B50D9]/10 ring-1 ring-[#5B50D9]/20">
+            <Wallet className="w-5 h-5 text-[#5B50D9]" strokeWidth={1.75} />
           </span>
-          <span className="font-medium">Wallet address:</span>
-          <code className="px-2 py-1 rounded-md bg-gray-50 text-gray-700 border border-black/5 break-all font-mono text-sm">
-            {walletAddress}
-          </code>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-semibold text-gray-800">
+                Wallet address
+              </span>
+              {copied && (
+                <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 ring-1 ring-emerald-200">
+                  Copied
+                </span>
+              )}
+            </div>
+            <code className="mt-1 inline-block max-w-full px-2 py-1 rounded-lg bg-gray-50 text-gray-800 border border-black/5 break-all font-mono text-xs sm:text-sm">
+              {shortened}
+            </code>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
             onClick={copy}
-            className="group inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm ring-1 ring-black/10 hover:ring-black/20 bg-white hover:shadow-md transition-all font-medium"
+            className={`group inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs sm:text-sm ring-1 transition-all font-medium ${
+              copied
+                ? "bg-emerald-50 text-emerald-700 ring-emerald-300"
+                : "bg-white text-gray-700 ring-black/10 hover:ring-black/20 hover:bg-gray-50"
+            }`}
             aria-label="Copy wallet address"
           >
             <Copy className="w-4 h-4" />
@@ -725,62 +784,65 @@ export default function ActivityPage() {
   const [rows, setRows] = useState<ActivityRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [kindFilter, setKindFilter] = useState<"all" | ActivityKind>("all");
+  const [copiedHashId, setCopiedHashId] = useState<string | null>(null);
 
-  // Custom hook to handle wallet transactions from localStorage
+  // localStorage wallet tx sync
   useEffect(() => {
-    const handleStorageChange = () => {
-      const walletTransactions = JSON.parse(localStorage.getItem('walletTransactions') || '[]');
-      
-      const walletRows = walletTransactions.map((tx: any) => {
-        const baseData = {
-          id: tx.id,
-          amount: tx.amount,
-          transactionHash: tx.transactionHash,
-          date: tx.date || new Date().toISOString()
-        };
+    const loadFromStorage = () => {
+      const walletTransactions = JSON.parse(
+        localStorage.getItem("walletTransactions") || "[]"
+      );
 
-        switch (tx.type) {
-          case 'send':
-            return mapSendToActivityRow({
-              ...baseData,
-              recipient: tx.recipient || ''
-            });
-          case 'buy':
-            return mapBuyToActivityRow(baseData);
-          case 'redeem':
-            return mapRedeemToActivityRow(baseData);
-          default:
-            return null;
-        }
-      }).filter(Boolean);
+      const walletRows = walletTransactions
+        .map((tx: any) => {
+          const baseData = {
+            id: tx.id,
+            amount: tx.amount,
+            transactionHash: tx.transactionHash,
+            date: tx.date || new Date().toISOString(),
+          };
+
+          switch (tx.type) {
+            case "send":
+              return mapSendToActivityRow({
+                ...baseData,
+                recipient: tx.recipient || "",
+              });
+            case "buy":
+              return mapBuyToActivityRow(baseData);
+            case "redeem":
+              return mapRedeemToActivityRow(baseData);
+            default:
+              return null;
+          }
+        })
+        .filter(Boolean) as ActivityRow[];
 
       return walletRows;
     };
 
-    // Load initial data from localStorage
-    const walletRows = handleStorageChange();
-    
-    // Set up storage event listener for real-time updates
     const handleStorage = () => {
-      const newWalletRows = handleStorageChange();
-      setRows(prevRows => {
-        // Filter out existing wallet transactions and add new ones
-        const existingNonWalletRows = prevRows.filter(row => 
-          !row.kind.includes('send') && !row.kind.includes('buy') && !row.kind.includes('redeem')
+      const newWalletRows = loadFromStorage();
+      setRows((prevRows) => {
+        const existingNonWalletRows = prevRows.filter(
+          (row) =>
+            row.kind !== "send" && row.kind !== "buy" && row.kind !== "redeem"
         );
         return [...existingNonWalletRows, ...newWalletRows].sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          (a, b) =>
+            new Date(b.date).getTime() - new Date(a.date).getTime()
         );
       });
     };
 
-    window.addEventListener('storage', handleStorage);
-    
-    // Also check for changes periodically (in case same tab)
+    // initial sync for wallet tx in this tab
+    handleStorage();
+
+    window.addEventListener("storage", handleStorage);
     const interval = setInterval(handleStorage, 2000);
 
     return () => {
-      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener("storage", handleStorage);
       clearInterval(interval);
     };
   }, []);
@@ -792,44 +854,54 @@ export default function ActivityPage() {
       try {
         setLoading(true);
 
-        const [eventLogs, peerTxs, allocations, pendingSubs] = await Promise.all([
-          fetchEventLogsforCurrentUser(currentUser.id),
-          fetchPeerToPeerTxForCurrentUser(currentUser.id),
-          fetchAllocationHistoryForCurrentUser(currentUser.id),
-          fetchPendingSubscriptionsForUser(currentUser.id),
-        ]);
+        const [eventLogs, peerTxs, allocations, pendingSubs] =
+          await Promise.all([
+            fetchEventLogsforCurrentUser(currentUser.id),
+            fetchPeerToPeerTxForCurrentUser(currentUser.id),
+            fetchAllocationHistoryForCurrentUser(currentUser.id),
+            fetchPendingSubscriptionsForUser(currentUser.id),
+          ]);
 
         const eventRows = eventLogs.map(mapEventToActivityRow);
         const peerRows = peerTxs.map(mapPeerTxToActivityRow);
         const allocationRows = allocations.map(mapAllocationToActivityRow);
         const subscriptionRows = pendingSubs.map(mapPendingSubToActivityRow);
 
-        // Get wallet transactions from localStorage
-        const walletTransactions = JSON.parse(localStorage.getItem('walletTransactions') || '[]');
-        const walletRows = walletTransactions.map((tx: any) => {
-          const baseData = {
-            id: tx.id,
-            amount: tx.amount,
-            transactionHash: tx.transactionHash,
-            date: tx.date || new Date().toISOString()
-          };
+        const walletTransactions = JSON.parse(
+          localStorage.getItem("walletTransactions") || "[]"
+        );
+        const walletRows = walletTransactions
+          .map((tx: any) => {
+            const baseData = {
+              id: tx.id,
+              amount: tx.amount,
+              transactionHash: tx.transactionHash,
+              date: tx.date || new Date().toISOString(),
+            };
 
-          switch (tx.type) {
-            case 'send':
-              return mapSendToActivityRow({
-                ...baseData,
-                recipient: tx.recipient || ''
-              });
-            case 'buy':
-              return mapBuyToActivityRow(baseData);
-            case 'redeem':
-              return mapRedeemToActivityRow(baseData);
-            default:
-              return null;
-          }
-        }).filter(Boolean);
+            switch (tx.type) {
+              case "send":
+                return mapSendToActivityRow({
+                  ...baseData,
+                  recipient: tx.recipient || "",
+                });
+              case "buy":
+                return mapBuyToActivityRow(baseData);
+              case "redeem":
+                return mapRedeemToActivityRow(baseData);
+              default:
+                return null;
+            }
+          })
+          .filter(Boolean) as ActivityRow[];
 
-        const allRows = [...eventRows, ...peerRows, ...allocationRows, ...subscriptionRows, ...walletRows].sort(
+        const allRows = [
+          ...eventRows,
+          ...peerRows,
+          ...allocationRows,
+          ...subscriptionRows,
+          ...walletRows,
+        ].sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
         );
 
@@ -847,7 +919,6 @@ export default function ActivityPage() {
 
     return rows.filter((r) => {
       if (kindFilter !== "all" && r.kind !== kindFilter) return false;
-
       if (!q) return true;
 
       return (
@@ -859,381 +930,478 @@ export default function ActivityPage() {
     });
   }, [rows, query, kindFilter]);
 
+  const handleCopyHash = async (hash: string, id: string) => {
+    if (!hash) return;
+    try {
+      await navigator.clipboard.writeText(hash);
+      setCopiedHashId(id);
+      setTimeout(() => {
+        setCopiedHashId((prev) => (prev === id ? null : prev));
+      }, 1100);
+    } catch (e) {
+      console.error("Failed to copy hash", e);
+    }
+  };
+
   if (loading) {
     return <FullScreenLoading />;
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F7F8FB]">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-blue-50/40">
       <InvestorSideNavbar />
 
-      <main className="flex-1 min-w-0 p-4 sm:p-6">
-        {/* Wallet strip */}
-        <WalletStrip walletAddress={walletAddress} />
+      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto w-full max-w-6xl">
+          {/* Wallet strip */}
+          <WalletStrip walletAddress={walletAddress} />
 
-        {/* Title + search */}
-        <motion.header {...fadeIn} className="mt-6 mb-6">
-          <div className="flex flex-col gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
-                Transaction Ledger
-              </h1>
-              <p className="text-sm text-gray-600 mt-1">
-                Track all your bond and coin transactions in one place
-              </p>
-            </div>
-            
-            {/* Mobile: Stack filter and search vertically */}
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              {/* Filter tabs - Scrollable on mobile */}
-              <div className="w-full lg:w-auto">
-                <div className="inline-flex items-center rounded-full bg-gray-100 p-1 text-xs font-medium text-gray-600 overflow-x-auto max-w-full">
-                  {[
-                    { id: "all", label: "All" },
-                    { id: "peer", label: "Peer-to-peer" },
-                    { id: "allocation", label: "Allocations" },
-                    { id: "subscription", label: "Subscriptions" },
-                    { id: "event", label: "Events" },
-                    { id: "send", label: "Send" },
-                    { id: "buy", label: "Buy" },
-                    { id: "redeem", label: "Redeem" },
-                  ].map((tab) => {
-                    const active = kindFilter === tab.id;
-                    return (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        onClick={() => setKindFilter(tab.id as any)}
-                        className={`flex-shrink-0 px-3 py-1.5 rounded-full transition-colors whitespace-nowrap ${
-                          active
-                            ? "bg-white text-gray-900 shadow-sm"
-                            : "text-gray-600 hover:text-gray-900"
-                        }`}
-                      >
-                        {tab.label}
-                      </button>
-                    );
-                  })}
-                </div>
+          {/* Header + filters */}
+          <motion.header {...fadeIn} className="mt-6 mb-6">
+            <div className="flex flex-col gap-4">
+              <div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900">
+                  Transaction Ledger
+                </h1>
+                <p className="text-sm sm:text-base text-gray-600 mt-1 max-w-xl">
+                  View all your bond and BTN coin transactions, neatly grouped
+                  and searchable.
+                </p>
               </div>
-              
-              {/* Search - Full width on mobile */}
-              <div className="w-full lg:w-64">
-                <div className="relative">
-                  <label htmlFor="search" className="sr-only">
-                    Search activity
-                  </label>
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                      <path
-                        d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
-                  <input
-                    id="search"
-                    type="search"
-                    enterKeyHint="search"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    className="h-10 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3 text-sm text-gray-800 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#5B50D9]/20 focus:border-[#5B50D9] transition-colors"
-                    placeholder="Search transactions..."
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.header>
 
-        {/* Activity table/card container */}
-        <motion.section
-          {...fadeIn}
-          className="rounded-2xl border border-black/10 bg-white shadow-sm overflow-hidden"
-          aria-labelledby="activity-title"
-        >
-          {filtered.length > 0 ? (
-            <>
-              {/* Desktop table */}
-              <div className="hidden lg:block">
-                <div className="p-1">
-                  <table className="w-full text-left bg-white">
-                    <caption id="activity-title" className="sr-only">
-                      Transaction ledger
-                    </caption>
-                    <thead>
-                      <tr className="text-sm text-gray-600 bg-gray-50/80 border-b border-gray-100">
-                        <th scope="col" className="py-4 pl-6 pr-3 font-semibold">
-                          Asset
-                        </th>
-                        <th scope="col" className="py-4 px-3 font-semibold">
-                          Transaction Type
-                        </th>
-                        <th scope="col" className="py-4 px-3 font-semibold">
-                          Date
-                        </th>
-                        <th scope="col" className="py-4 px-3 font-semibold">
-                          Transaction Hash
-                        </th>
-                        <th scope="col" className="py-4 px-3 font-semibold">
-                          Details
-                        </th>
-                        <th scope="col" className="py-4 pl-3 pr-6 font-semibold">
-                          Status
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {filtered.map((row) => (
-                        <tr
-                          key={row.id}
-                          className="align-middle hover:bg-gray-50/50 transition-colors group"
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                {/* Filter tabs */}
+                <div className="w-full lg:w-auto">
+                  <div className="flex items-center gap-2 mb-1 text-xs text-gray-500">
+                    <span className="inline-block w-1 h-1 rounded-full bg-[#5B50D9]" />
+                    <span>Filter by activity type</span>
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 -mx-1 px-1 rounded-full bg-gray-100/80">
+                    {[
+                      { id: "all", label: "All" },
+                      { id: "peer", label: "Peer-to-peer" },
+                      { id: "allocation", label: "Allocations" },
+                      { id: "subscription", label: "Subscriptions" },
+                      { id: "event", label: "Events" },
+                      { id: "send", label: "Send" },
+                      { id: "buy", label: "Buy" },
+                      { id: "redeem", label: "Redeem" },
+                    ].map((tab) => {
+                      const active = kindFilter === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setKindFilter(tab.id as any)}
+                          className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs sm:text-[13px] font-medium transition-colors whitespace-nowrap ${
+                            active
+                              ? "bg-white text-gray-900 shadow-sm"
+                              : "text-gray-600 hover:text-gray-900"
+                          }`}
                         >
-                          {/* Asset */}
-                          <td className="py-4 pl-6 pr-3">
+                          {tab.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Search */}
+                <div className="w-full lg:w-72">
+                  <div className="relative">
+                    <label htmlFor="search" className="sr-only">
+                      Search activity
+                    </label>
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden
+                      >
+                        <path
+                          d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                    <input
+                      id="search"
+                      type="search"
+                      enterKeyHint="search"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-gray-200 bg-white/90 pl-9 pr-3 text-sm text-gray-800 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#5B50D9]/20 focus:border-[#5B50D9] transition-colors"
+                      placeholder="Search transactions..."
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.header>
+
+          {/* Activity table/card */}
+          <motion.section
+            {...fadeIn}
+            className="rounded-2xl border border-black/10 bg-white shadow-sm overflow-hidden"
+            aria-labelledby="activity-title"
+          >
+            {filtered.length > 0 ? (
+              <>
+                {/* Desktop table */}
+                <div className="hidden lg:block">
+                  <div className="p-2 border-b border-gray-100 bg-gray-50/60">
+                    <h2
+                      id="activity-title"
+                      className="text-sm font-semibold text-gray-700"
+                    >
+                      Transaction history
+                    </h2>
+                  </div>
+                  <div className="w-full overflow-x-auto">
+                    <table className="w-full min-w-[880px] text-left bg-white">
+                      <caption className="sr-only">
+                        Transaction ledger
+                      </caption>
+                      <thead>
+                        <tr className="text-xs text-gray-600 bg-gray-50/80 border-b border-gray-100">
+                          <th
+                            scope="col"
+                            className="py-3.5 pl-6 pr-3 font-semibold"
+                          >
+                            Asset
+                          </th>
+                          <th
+                            scope="col"
+                            className="py-3.5 px-3 font-semibold"
+                          >
+                            Transaction Type
+                          </th>
+                          <th
+                            scope="col"
+                            className="py-3.5 px-3 font-semibold"
+                          >
+                            Date
+                          </th>
+                          <th
+                            scope="col"
+                            className="py-3.5 px-3 font-semibold"
+                          >
+                            Transaction Hash
+                          </th>
+                          <th
+                            scope="col"
+                            className="py-3.5 px-3 font-semibold"
+                          >
+                            Details
+                          </th>
+                          <th
+                            scope="col"
+                            className="py-3.5 pl-3 pr-6 font-semibold"
+                          >
+                            Status
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {filtered.map((row) => {
+                          const isCopied = copiedHashId === row.id;
+                          const shortenedDetail = shortenDetailsDetail(row.detail);
+                          return (
+                            <tr
+                              key={row.id}
+                              className="align-middle hover:bg-gray-50/50 transition-colors group"
+                            >
+                              {/* Asset */}
+                              <td className="py-4 pl-6 pr-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="relative h-10 w-10 rounded-full border border-gray-200 bg-white grid place-items-center shadow-sm group-hover:shadow transition-shadow">
+                                    {row.asset === "RICB Bond" ? (
+                                      <Image
+                                        src="/RSEB.png"
+                                        alt="RICB Bond"
+                                        width={22}
+                                        height={22}
+                                        className="rounded-full"
+                                      />
+                                    ) : (
+                                      <Image
+                                        src="/coin.png"
+                                        alt="BTN coin"
+                                        width={22}
+                                        height={22}
+                                        className="rounded-full"
+                                      />
+                                    )}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <span className="text-[15px] font-semibold text-gray-900 block">
+                                      {row.asset}
+                                    </span>
+                                    <span className="text-[13px] text-gray-500 truncate block max-w-[220px]">
+                                      {row.amountLabel}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Type */}
+                              <td className="py-4 px-3">
+                                <div className="flex items-center gap-2">
+                                  {row.type === "Send" && (
+                                    <Send className="w-4 h-4 text-purple-600" />
+                                  )}
+                                  {row.type === "Buy" && (
+                                    <ShoppingCart className="w-4 h-4 text-green-600" />
+                                  )}
+                                  {row.type === "Redeem" && (
+                                    <Ticket className="w-4 h-4 text-blue-600" />
+                                  )}
+                                  <span className="text-[14px] font-medium text-gray-900">
+                                    {row.type}
+                                  </span>
+                                </div>
+                              </td>
+
+                              {/* Date */}
+                              <td className="py-4 px-3">
+                                <div className="flex items-center gap-2 text-[14px] text-gray-700">
+                                  <Calendar className="w-4 h-4 text-gray-400" />
+                                  {row.date}
+                                </div>
+                              </td>
+
+                              {/* Transaction Hash */}
+                              <td className="py-4 px-3">
+                                <div className="flex items-center gap-2 max-w-[260px]">
+                                  <Hash className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                  <code className="text-[12px] font-mono text-gray-700 truncate bg-gray-50 px-2 py-1 rounded border border-gray-200 flex-1">
+                                    {shortenHash(row.tx_hash)}
+                                  </code>
+                                  {row.tx_hash && (
+                                    <button
+                                      className={`ml-1 inline-flex items-center justify-center rounded-full border px-2 py-1 text-[11px] font-medium transition-colors ${
+                                        isCopied
+                                          ? "bg-emerald-50 border-emerald-300 text-emerald-700"
+                                          : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
+                                      }`}
+                                      onClick={() =>
+                                        handleCopyHash(row.tx_hash, row.id)
+                                      }
+                                    >
+                                      <Copy className="w-3 h-3 mr-1" />
+                                      {isCopied ? "Copied" : "Copy"}
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* Details */}
+                              <td className="py-4 px-3">
+                                <span className="text-[14px] text-gray-700 line-clamp-2 max-w-xs">
+                                  {shortenedDetail}
+                                </span>
+                              </td>
+
+                              {/* Status */}
+                              <td className="py-4 pl-3 pr-6">
+                                <StatusBadge value={row.status} />
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Mobile / tablet cards */}
+                <div className="lg:hidden">
+                  <div className="p-4 space-y-4">
+                    {filtered.map((row) => {
+                      const isCopied = copiedHashId === row.id;
+                      const shortenedDetail = shortenDetailsDetail(row.detail);
+                      return (
+                        <div
+                          key={row.id}
+                          className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex items-start justify-between mb-3 gap-3">
                             <div className="flex items-center gap-3">
-                              <div className="relative h-10 w-10 rounded-full border border-gray-200 bg-white grid place-items-center shadow-sm group-hover:shadow transition-shadow">
+                              <div className="relative h-11 w-11 rounded-full border border-gray-200 bg-white grid place-items-center shadow-sm">
                                 {row.asset === "RICB Bond" ? (
                                   <Image
                                     src="/RSEB.png"
                                     alt="RICB Bond"
-                                    width={22}
-                                    height={22}
+                                    width={24}
+                                    height={24}
                                     className="rounded-full"
                                   />
                                 ) : (
                                   <Image
                                     src="/coin.png"
                                     alt="BTN coin"
-                                    width={22}
-                                    height={22}
+                                    width={24}
+                                    height={24}
                                     className="rounded-full"
                                   />
                                 )}
                               </div>
                               <div>
-                                <span className="text-[15px] font-semibold text-gray-900 block">
+                                <p className="text-[15px] font-semibold text-gray-900">
                                   {row.asset}
-                                </span>
-                                <span className="text-[13px] text-gray-500">
-                                  {row.amountLabel}
-                                </span>
+                                </p>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {row.type === "Send" && (
+                                    <Send className="w-3.5 h-3.5 text-purple-600" />
+                                  )}
+                                  {row.type === "Buy" && (
+                                    <ShoppingCart className="w-3.5 h-3.5 text-green-600" />
+                                  )}
+                                  {row.type === "Redeem" && (
+                                    <Ticket className="w-3.5 h-3.5 text-blue-600" />
+                                  )}
+                                  <p className="text-[13px] text-gray-600">
+                                    {row.type}
+                                  </p>
+                                </div>
                               </div>
                             </div>
-                          </td>
-
-                          {/* Type */}
-                          <td className="py-4 px-3">
-                            <div className="flex items-center gap-2">
-                              {row.type === "Send" && <Send className="w-4 h-4 text-purple-600" />}
-                              {row.type === "Buy" && <ShoppingCart className="w-4 h-4 text-green-600" />}
-                              {row.type === "Redeem" && <Ticket className="w-4 h-4 text-blue-600" />}
-                              <span className="text-[14px] font-medium text-gray-900">
-                                {row.type}
-                              </span>
-                            </div>
-                          </td>
-
-                          {/* Date */}
-                          <td className="py-4 px-3">
-                            <div className="flex items-center gap-2 text-[14px] text-gray-700">
-                              <Calendar className="w-4 h-4 text-gray-400" />
-                              {row.date}
-                            </div>
-                          </td>
-
-                          {/* Transaction Hash */}
-                          <td className="py-4 px-3">
-                            <div className="flex items-center gap-2 max-w-[200px]">
-                              <Hash className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                              <code className="text-[12px] font-mono text-gray-600 truncate bg-gray-50 px-2 py-1 rounded border border-gray-200">
-                                {row.tx_hash || "N/A"}
-                              </code>
-                              {row.tx_hash && (
-                                <button
-                                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(row.tx_hash);
-                                  }}
-                                >
-                                  <Copy className="w-3 h-3 text-gray-500" />
-                                </button>
-                              )}
-                            </div>
-                          </td>
-
-                          {/* Details */}
-                          <td className="py-4 px-3">
-                            <span className="text-[14px] text-gray-700 line-clamp-2">
-                              {row.detail}
-                            </span>
-                          </td>
-
-                          {/* Status */}
-                          <td className="py-4 pl-3 pr-6">
                             <StatusBadge value={row.status} />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Mobile list */}
-              <div className="lg:hidden">
-                <div className="p-4 space-y-4">
-                  {filtered.map((row) => (
-                    <div
-                      key={row.id}
-                      className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="relative h-12 w-12 rounded-full border border-gray-200 bg-white grid place-items-center shadow-sm">
-                            {row.asset === "RICB Bond" ? (
-                              <Image
-                                src="/RSEB.png"
-                                alt="RICB Bond"
-                                width={24}
-                                height={24}
-                                className="rounded-full"
-                              />
-                            ) : (
-                              <Image
-                                src="/coin.png"
-                                alt="BTN coin"
-                                width={24}
-                                height={24}
-                                className="rounded-full"
-                              />
-                            )}
                           </div>
-                          <div>
-                            <p className="text-[15px] font-semibold text-gray-900">
-                              {row.asset}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              {row.type === "Send" && <Send className="w-3.5 h-3.5 text-purple-600" />}
-                              {row.type === "Buy" && <ShoppingCart className="w-3.5 h-3.5 text-green-600" />}
-                              {row.type === "Redeem" && <Ticket className="w-3.5 h-3.5 text-blue-600" />}
-                              <p className="text-[13px] text-gray-600">{row.type}</p>
+
+                          <div className="grid grid-cols-2 gap-4 text-[13px]">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-gray-500">
+                                <Calendar className="w-3.5 h-3.5" />
+                                <span>Date</span>
+                              </div>
+                              <p className="text-gray-900 font-medium">
+                                {row.date}
+                              </p>
+                            </div>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-gray-500">
+                                <Coins className="w-3.5 h-3.5" />
+                                <span>Amount</span>
+                              </div>
+                              <p className="text-gray-900 font-medium">
+                                {row.amountLabel}
+                              </p>
+                            </div>
+                            <div className="col-span-2 space-y-1">
+                              <div className="flex items-center gap-2 text-gray-500">
+                                <Hash className="w-3.5 h-3.5" />
+                                <span>Transaction Hash</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <code className="text-[12px] font-mono text-gray-700 truncate bg-gray-50 px-2 py-1 rounded border border-gray-200 flex-1">
+                                  {shortenHash(row.tx_hash)}
+                                </code>
+                                {row.tx_hash && (
+                                  <button
+                                    className={`px-2 py-1 rounded-full text-[11px] font-medium border inline-flex items-center gap-1 transition-colors ${
+                                      isCopied
+                                        ? "bg-emerald-50 border-emerald-300 text-emerald-700"
+                                        : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
+                                    }`}
+                                    onClick={() =>
+                                      handleCopyHash(row.tx_hash, row.id)
+                                    }
+                                  >
+                                    <Copy className="w-3.5 h-3.5" />
+                                    {isCopied ? "Copied" : "Copy"}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            <div className="col-span-2 space-y-1">
+                              <div className="flex items-center gap-2 text-gray-500">
+                                <FileText className="w-3.5 h-3.5" />
+                                <span>Details</span>
+                              </div>
+                              <p className="text-gray-900 text-sm leading-5">
+                                {shortenedDetail}
+                              </p>
                             </div>
                           </div>
                         </div>
-                        <StatusBadge value={row.status} />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4 text-[13px]">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-gray-500">
-                            <Calendar className="w-3.5 h-3.5" />
-                            <span>Date</span>
-                          </div>
-                          <p className="text-gray-900 font-medium">{row.date}</p>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-gray-500">
-                            <Coins className="w-3.5 h-3.5" />
-                            <span>Amount</span>
-                          </div>
-                          <p className="text-gray-900 font-medium">{row.amountLabel}</p>
-                        </div>
-                        <div className="col-span-2 space-y-1">
-                          <div className="flex items-center gap-2 text-gray-500">
-                            <Hash className="w-3.5 h-3.5" />
-                            <span>Transaction Hash</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <code className="text-[12px] font-mono text-gray-600 truncate bg-gray-50 px-2 py-1 rounded border border-gray-200 flex-1">
-                              {row.tx_hash || "N/A"}
-                            </code>
-                            {row.tx_hash && (
-                              <button
-                                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                                onClick={() => navigator.clipboard.writeText(row.tx_hash)}
-                              >
-                                <Copy className="w-3.5 h-3.5 text-gray-500" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                        <div className="col-span-2 space-y-1">
-                          <p className="text-gray-500">Details</p>
-                          <p className="text-gray-900 text-sm leading-5">{row.detail}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    })}
+                  </div>
                 </div>
+              </>
+            ) : (
+              <div className="p-10 sm:p-12 text-center">
+                <div className="mx-auto w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <FileText className="w-9 h-9 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  No transactions found
+                </h3>
+                <p className="text-gray-600 max-w-sm mx-auto text-sm sm:text-base">
+                  {query
+                    ? "No transactions match your search or filters."
+                    : "Your transaction history will appear here once you start trading."}
+                </p>
               </div>
-            </>
-          ) : (
-            <div className="p-12 text-center">
-              <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <FileText className="w-8 h-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                No transactions found
-              </h3>
-              <p className="text-gray-600 max-w-sm mx-auto">
-                {query
-                  ? "No transactions match your search criteria."
-                  : "Your transaction history will appear here once you start trading."}
-              </p>
-            </div>
-          )}
-        </motion.section>
+            )}
+          </motion.section>
 
-        {/* Summary stats */}
-        {filtered.length > 0 && (
-          <motion.div
-            {...fadeIn}
-            className="mt-6 flex flex-wrap gap-4 text-sm text-gray-600"
-          >
-            <div className="bg-white rounded-xl px-4 py-2 border border-gray-200">
-              <span className="font-medium text-gray-900">{filtered.length}</span>{" "}
-              transactions total
-            </div>
-            <div className="bg-white rounded-xl px-4 py-2 border border-gray-200">
-              <span className="font-medium text-emerald-600">
-                {
-                  filtered.filter(
-                    (r) => r.status === "Completed" || r.status === "Complete"
-                  ).length
-                }
-              </span>{" "}
-              completed
-            </div>
-            <div className="bg-white rounded-xl px-4 py-2 border border-gray-200">
-              <span className="font-medium text-amber-600">
-                {filtered.filter((r) => r.status === "Pending").length}
-              </span>{" "}
-              pending
-            </div>
-            <div className="bg-white rounded-xl px-4 py-2 border border-gray-200">
-              <span className="font-medium text-purple-600">
-                {filtered.filter((r) => r.kind === "send").length}
-              </span>{" "}
-              sends
-            </div>
-            <div className="bg-white rounded-xl px-4 py-2 border border-gray-200">
-              <span className="font-medium text-green-600">
-                {filtered.filter((r) => r.kind === "buy").length}
-              </span>{" "}
-              buys
-            </div>
-            <div className="bg-white rounded-xl px-4 py-2 border border-gray-200">
-              <span className="font-medium text-blue-600">
-                {filtered.filter((r) => r.kind === "redeem").length}
-              </span>{" "}
-              redeems
-            </div>
-          </motion.div>
-        )}
+          {/* Summary stats */}
+          {filtered.length > 0 && (
+            <motion.div
+              {...fadeIn}
+              className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs sm:text-sm text-gray-600"
+            >
+              <div className="bg-white rounded-xl px-4 py-2.5 border border-gray-200 shadow-sm flex flex-col items-start">
+                <span className="font-medium text-gray-900">
+                  {filtered.length}
+                </span>
+                <span className="mt-0.5 text-gray-500">transactions</span>
+              </div>
+              <div className="bg-white rounded-xl px-4 py-2.5 border border-gray-200 shadow-sm flex flex-col items-start">
+                <span className="font-medium text-emerald-600">
+                  {
+                    filtered.filter(
+                      (r) =>
+                        r.status === "Completed" || r.status === "Complete"
+                    ).length
+                  }
+                </span>
+                <span className="mt-0.5 text-gray-500">completed</span>
+              </div>
+              <div className="bg-white rounded-xl px-4 py-2.5 border border-gray-200 shadow-sm flex flex-col items-start">
+                <span className="font-medium text-amber-600">
+                  {filtered.filter((r) => r.status === "Pending").length}
+                </span>
+                <span className="mt-0.5 text-gray-500">pending</span>
+              </div>
+              <div className="bg-white rounded-xl px-4 py-2.5 border border-gray-200 shadow-sm flex flex-col items-start">
+                <span className="font-medium text-purple-600">
+                  {filtered.filter((r) => r.kind === "send").length}
+                </span>
+                <span className="mt-0.5 text-gray-500">sends</span>
+              </div>
+              <div className="bg-white rounded-xl px-4 py-2.5 border border-gray-200 shadow-sm flex flex-col items-start">
+                <span className="font-medium text-green-600">
+                  {filtered.filter((r) => r.kind === "buy").length}
+                </span>
+                <span className="mt-0.5 text-gray-500">buys</span>
+              </div>
+              <div className="bg-white rounded-xl px-4 py-2.5 border border-gray-200 shadow-sm flex flex-col items-start">
+                <span className="font-medium text-blue-600">
+                  {filtered.filter((r) => r.kind === "redeem").length}
+                </span>
+                <span className="mt-0.5 text-gray-500">redeems</span>
+              </div>
+            </motion.div>
+          )}
+        </div>
       </main>
     </div>
   );

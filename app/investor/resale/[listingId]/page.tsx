@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import InvestorSideNavbar from "@/Components/InvestorSideNavbar";
-import { Copy, Wallet, ArrowLeft, Calendar, Hash, User, Coins, Percent, Package, TrendingDown, X, ArrowRight, Shield, Clock, CheckCircle2, Info } from "lucide-react";
+import { Copy, Wallet, ArrowLeft, Calendar, Hash, User, Coins, Percent, Package, TrendingDown, X, ArrowRight, Shield, Clock, CheckCircle2, Info, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCurrentUser } from "@/context/UserContext";
 import { fetchResaleListingById } from "@/server/db_actions/action";
@@ -989,33 +989,33 @@ function BuyNowModal({
                     </div>
                   </div>
                 )}
+
+                {/* Global styles for sliders */}
+                <style>{`
+                  .slider::-webkit-slider-thumb {
+                    appearance: none;
+                    height: 20px;
+                    width: 20px;
+                    border-radius: 50%;
+                    background: #10b981;
+                    cursor: pointer;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                  }
+                  
+                  .slider::-moz-range-thumb {
+                    height: 20px;
+                    width: 20px;
+                    border-radius: 50%;
+                    background: #10b981;
+                    cursor: pointer;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                  }
+                `}</style>
               </div>
             </motion.div>
           </div>
-
-          {/* Custom slider styles */}
-          <style jsx>{`
-            .slider::-webkit-slider-thumb {
-              appearance: none;
-              height: 20px;
-              width: 20px;
-              border-radius: 50%;
-              background: #10b981;
-              cursor: pointer;
-              border: 2px solid white;
-              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            }
-            
-            .slider::-moz-range-thumb {
-              height: 20px;
-              width: 20px;
-              border-radius: 50%;
-              background: #10b981;
-              cursor: pointer;
-              border: 2px solid white;
-              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            }
-          `}</style>
         </>
       )}
     </AnimatePresence>
@@ -1038,6 +1038,41 @@ function NegotiationModal({
   const [negotiationLoading, setNegotiationLoading] = useState(false);
   const [step, setStep] = useState<"input" | "confirm" | "processing" | "success">("input");
   const [transactionHash, setTransactionHash] = useState("");
+  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
+
+  // Modal container ref for scrolling
+  const modalContentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen && modalContentRef.current) {
+      modalContentRef.current.scrollTop = 0;
+      checkScrollIndicator();
+    }
+  }, [isOpen, step]);
+
+  useEffect(() => {
+    if (proposedInterest && modalContentRef.current) {
+      // Small delay to ensure content is rendered
+      setTimeout(() => {
+        checkScrollIndicator();
+      }, 100);
+    }
+  }, [proposedInterest]);
+
+  const checkScrollIndicator = () => {
+    if (modalContentRef.current) {
+      const { scrollHeight, clientHeight, scrollTop } = modalContentRef.current;
+      const isScrollable = scrollHeight > clientHeight;
+      const isAtBottom = scrollHeight - clientHeight - scrollTop < 10;
+      
+      // Show indicator only if content is scrollable AND not at bottom
+      setShowScrollIndicator(isScrollable && !isAtBottom);
+    }
+  };
+
+  const handleScroll = () => {
+    checkScrollIndicator();
+  };
 
   if (!listing || !isOpen) return null;
 
@@ -1092,6 +1127,7 @@ function NegotiationModal({
     setStep("input");
     setTransactionHash("");
     setNegotiationLoading(false);
+    setShowScrollIndicator(true);
   };
 
   const handleClose = () => {
@@ -1102,6 +1138,12 @@ function NegotiationModal({
   const handleConfirm = async () => {
     if (!isValid) return;
     setStep("confirm");
+  };
+
+  // Function to handle slider change
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    setProposedInterest(value.toFixed(2));
   };
 
   const executeNegotiation = async () => {
@@ -1147,34 +1189,34 @@ function NegotiationModal({
           />
           
           {/* Modal */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
             <motion.div
               variants={modalVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="w-full max-w-md"
+              className="w-full max-w-md h-[90vh] sm:h-auto flex flex-col"
             >
-              <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+              <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200 flex flex-col max-h-full">
                 
-                {/* Header */}
-                <div className="relative p-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100">
+                {/* Header - Fixed */}
+                <div className="relative p-4 sm:p-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100 shrink-0">
                   <button
                     onClick={handleClose}
-                    className="absolute right-4 top-4 p-1.5 rounded-lg hover:bg-white/50 transition-colors"
+                    className="absolute right-3 top-3 sm:right-4 sm:top-4 p-1.5 rounded-lg hover:bg-white/50 transition-colors"
                   >
                     <X className="w-5 h-5 text-gray-600" />
                   </button>
                   
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 pr-8">
                     <div className="p-2 bg-purple-100 rounded-xl">
                       <TrendingDown className="w-6 h-6 text-purple-600" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900">
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-900">
                         {step === "success" ? "Offer Sent!" : "Negotiate Price"}
                       </h2>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-xs sm:text-sm text-gray-600 mt-1">
                         {step === "success" 
                           ? "Your negotiation offer has been sent to the seller" 
                           : `Propose a better price for ${bond.bond_name}`
@@ -1184,43 +1226,131 @@ function NegotiationModal({
                   </div>
                 </div>
 
-                {/* Content */}
-                <div className="p-6">
-                  
+                {/* Scrollable Content Area with Visual Scroll Bar */}
+                <div 
+                  ref={modalContentRef}
+                  onScroll={handleScroll}
+                  className="flex-1 overflow-y-auto p-4 sm:p-6 relative"
+                  style={{
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: '#c7d2fe #f5f3ff',
+                    scrollBehavior: 'smooth'
+                  }}
+                >
+                  {/* Global styles for custom scrollbar and sliders */}
+                  <style>{`
+                    /* Custom scrollbar styles */
+                    .scroll-container::-webkit-scrollbar {
+                      width: 6px;
+                    }
+                    .scroll-container::-webkit-scrollbar-track {
+                      background: #f5f3ff;
+                      border-radius: 10px;
+                    }
+                    .scroll-container::-webkit-scrollbar-thumb {
+                      background: #c7d2fe;
+                      border-radius: 10px;
+                    }
+                    .scroll-container::-webkit-scrollbar-thumb:hover {
+                      background: #a5b4fc;
+                    }
+                    
+                    /* Interest slider styles */
+                    .interest-slider::-webkit-slider-thumb {
+                      appearance: none;
+                      height: 20px;
+                      width: 20px;
+                      border-radius: 50%;
+                      background: #8b5cf6;
+                      cursor: pointer;
+                      border: 2px solid white;
+                      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                    }
+                    
+                    .interest-slider::-moz-range-thumb {
+                      height: 20px;
+                      width: 20px;
+                      border-radius: 50%;
+                      background: #8b5cf6;
+                      cursor: pointer;
+                      border: 2px solid white;
+                      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                    }
+                    
+                    /* Regular slider styles */
+                    .slider::-webkit-slider-thumb {
+                      appearance: none;
+                      height: 20px;
+                      width: 20px;
+                      border-radius: 50%;
+                      background: #10b981;
+                      cursor: pointer;
+                      border: 2px solid white;
+                      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                    }
+                    
+                    .slider::-moz-range-thumb {
+                      height: 20px;
+                      width: 20px;
+                      border-radius: 50%;
+                      background: #10b981;
+                      cursor: pointer;
+                      border: 2px solid white;
+                      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                    }
+                  `}</style>
+
+                  {/* Scroll Down Indicator (only shows when content is scrollable) */}
+                  {step === "input" && showScrollIndicator && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-10"
+                    >
+                      <div className="flex flex-col items-center">
+                        <span className="text-xs text-purple-600 font-medium bg-purple-100 px-3 py-1 rounded-full mb-1 shadow-sm">
+                          Scroll down for more details
+                        </span>
+                        <ChevronDown className="w-5 h-5 text-purple-500 animate-bounce" />
+                      </div>
+                    </motion.div>
+                  )}
+
                   {/* Bond Info Card */}
                   {(step === "input" || step === "confirm") && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-200"
+                      className="bg-gray-50 rounded-xl p-3 sm:p-4 mb-4 border border-gray-200"
                     >
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
                           <Image
                             src="/RSEB.png"
                             alt="Issuer"
-                            width={32}
-                            height={32}
+                            width={28}
+                            height={28}
                             className="rounded-lg"
                           />
                           <div>
-                            <h3 className="font-semibold text-gray-900">{bond.bond_name}</h3>
-                            <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                              <Percent className="w-4 h-4 text-emerald-600" />
+                            <h3 className="text-sm font-semibold text-gray-900">{bond.bond_name}</h3>
+                            <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                              <Percent className="w-3.5 h-3.5 text-emerald-600" />
                               <span>{baseRatePct}% / yr (current)</span>
                             </div>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
                         <div>
                           <p className="text-gray-500">Available Units</p>
                           <p className="font-semibold text-gray-900">{totalUnitsAvailable.toLocaleString()}</p>
                         </div>
                         <div>
                           <p className="text-gray-500">Current Price/Unit</p>
-                          <p className="font-semibold text-gray-900">BTN Nu {baseResalePricePerUnit.toLocaleString()}</p>
+                          <p className="font-semibold text-gray-900">Nu {baseResalePricePerUnit.toLocaleString()}</p>
                         </div>
                       </div>
                     </motion.div>
@@ -1231,7 +1361,7 @@ function NegotiationModal({
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="space-y-4"
+                      className="space-y-6 pb-4"
                     >
                       {/* Proposed Interest Input */}
                       <div>
@@ -1261,14 +1391,14 @@ function NegotiationModal({
                       </div>
 
                       {/* Interest Rate Adjustment Slider */}
-                      <div className="mt-4">
+                      <div>
                         <input
                           type="range"
                           min={baseRatePct - 0.2}
                           max={baseRatePct + 0.2}
                           step="0.01"
                           value={proposedInterest || baseRatePct}
-                          onChange={(e) => setProposedInterest(e.target.value)}
+                          onChange={handleSliderChange}
                           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer interest-slider"
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -1289,77 +1419,96 @@ function NegotiationModal({
                         </div>
                       </div>
 
-                      {/* Price Comparison */}
+                      {/* Dynamic Content Section - Only shows when interest is entered */}
                       {proposedInterest && (
                         <motion.div
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
-                          className="bg-blue-50 rounded-xl p-4 border border-blue-200"
+                          className="space-y-4 pt-2"
                         >
-                          <div className="flex items-center gap-2 mb-3">
-                            <Info className="w-4 h-4 text-blue-600" />
-                            <span className="text-sm font-medium text-blue-900">Price Comparison</span>
-                          </div>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-blue-700">Original Total:</span>
-                              <span className="font-semibold text-blue-900">BTN Nu {totalBaseAmount.toLocaleString()}</span>
+                          {/* Price Comparison */}
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="bg-blue-50 rounded-xl p-4 border border-blue-200"
+                          >
+                            <div className="flex items-center gap-2 mb-3">
+                              <Info className="w-4 h-4 text-blue-600" />
+                              <span className="text-sm font-medium text-blue-900">Price Comparison</span>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-purple-700">Proposed Total:</span>
-                              <span className="font-semibold text-purple-900">BTN Nu {totalProposedAmount.toLocaleString()}</span>
+                            <div className="space-y-3">
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <p className="text-xs text-blue-700 mb-1">Original Total</p>
+                                  <p className="text-lg font-bold text-blue-900">Nu {totalBaseAmount.toLocaleString()}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-xs text-purple-700 mb-1">Proposed Total</p>
+                                  <p className="text-lg font-bold text-purple-900">Nu {totalProposedAmount.toLocaleString()}</p>
+                                </div>
+                              </div>
+                              <div className="pt-3 border-t border-blue-200">
+                                <div className="flex justify-between items-center">
+                                  <span className={savings >= 0 ? "text-emerald-700 font-medium" : "text-red-600 font-medium"}>
+                                    {savings >= 0 ? "Your Savings" : "Additional Cost"}
+                                  </span>
+                                  <span className={`text-xl font-bold ${savings >= 0 ? "text-emerald-900" : "text-red-600"}`}>
+                                    Nu {Math.abs(savings).toLocaleString()}
+                                  </span>
+                                </div>
+                                {savings >= 0 && (
+                                  <p className="text-xs text-emerald-700 mt-1">
+                                    You save {((savings / totalBaseAmount) * 100).toFixed(2)}% from the original price
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex justify-between pt-2 border-t border-blue-200">
-                              <span className={savings >= 0 ? "text-emerald-700" : "text-red-600"}>
-                                {savings >= 0 ? "Your Savings:" : "Additional Cost:"}
-                              </span>
-                              <span className={`font-bold ${savings >= 0 ? "text-emerald-900" : "text-red-600"}`}>
-                                BTN Nu {Math.abs(savings).toLocaleString()}
-                              </span>
+                          </motion.div>
+
+                          {/* Investment Yield Explanation */}
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="bg-emerald-50 rounded-xl p-4 border border-emerald-200"
+                          >
+                            <div className="flex items-center gap-2 mb-2">
+                              <Percent className="w-4 h-4 text-emerald-600" />
+                              <span className="text-sm font-medium text-emerald-900">Investment Yield</span>
                             </div>
-                          </div>
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-sm text-emerald-800">If you propose:</span>
+                                <span className="font-semibold text-emerald-900">{proposedRatePct.toFixed(2)}%</span>
+                              </div>
+                              <div className="text-xs text-emerald-700">
+                                {proposedRatePct > baseRatePct 
+                                  ? "Higher rate means you pay less now for the same future returns. This gives you a better effective yield." 
+                                  : proposedRatePct < baseRatePct 
+                                  ? "Lower rate means you pay more now but receive lower returns. This gives you a lower effective yield." 
+                                  : "Same rate means you pay the current market price with standard yield."}
+                              </div>
+                            </div>
+                          </motion.div>
+
+                          {/* Rules Info */}
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="bg-amber-50 rounded-xl p-4 border border-amber-200"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Shield className="w-4 h-4 text-amber-600" />
+                              <span className="text-sm font-medium text-amber-800">Negotiation Rules</span>
+                            </div>
+                            <p className="text-xs text-amber-700 mt-1">
+                              You can adjust the interest rate by ±0.2%. The seller will review your offer and can accept, reject, or counter-offer. Offers are valid for 48 hours.
+                            </p>
+                          </motion.div>
                         </motion.div>
                       )}
-
-                      {/* Investment Yield Explanation */}
-                      {proposedInterest && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          className="bg-emerald-50 rounded-xl p-4 border border-emerald-200"
-                        >
-                          <div className="flex items-center gap-2 mb-2">
-                            <Percent className="w-4 h-4 text-emerald-600" />
-                            <span className="text-sm font-medium text-emerald-900">Investment Yield</span>
-                          </div>
-                          <div className="space-y-2 text-xs text-emerald-800">
-                            <div className="flex justify-between">
-                              <span>If you propose {proposedRatePct.toFixed(2)}%:</span>
-                              <span className="font-semibold">
-                                Your effective yield: {proposedRatePct.toFixed(2)}%
-                              </span>
-                            </div>
-                            <div className="text-xs text-emerald-700">
-                              {proposedRatePct > baseRatePct 
-                                ? "Higher rate means you pay less now for the same future returns." 
-                                : proposedRatePct < baseRatePct 
-                                ? "Lower rate means you pay more now but receive lower returns." 
-                                : "Same rate means you pay the current market price."}
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-
-                      {/* Rules Info */}
-                      <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
-                        <div className="flex items-center gap-2">
-                          <Shield className="w-4 h-4 text-amber-600" />
-                          <span className="text-sm font-medium text-amber-800">Negotiation Rules</span>
-                        </div>
-                        <p className="text-xs text-amber-700 mt-1">
-                          You can adjust the interest rate by ±0.2%. The seller will review your offer and can accept, reject, or counter-offer.
-                        </p>
-                      </div>
                     </motion.div>
                   )}
 
@@ -1368,7 +1517,7 @@ function NegotiationModal({
                     <motion.div
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="space-y-4"
+                      className="space-y-6"
                     >
                       <div className="text-center py-4">
                         <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -1382,42 +1531,55 @@ function NegotiationModal({
                         </p>
                       </div>
 
-                      <div className="bg-gray-50 rounded-xl p-4 space-y-3 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Bond Name:</span>
-                          <span className="font-medium">{bond.bond_name}</span>
+                      <div className="bg-gray-50 rounded-xl p-4 space-y-4 text-sm">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <p className="text-gray-500 mb-1">Bond Name</p>
+                            <p className="font-medium">{bond.bond_name}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500 mb-1">Units</p>
+                            <p className="font-medium">{totalUnitsAvailable.toLocaleString()}</p>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Units:</span>
-                          <span className="font-medium">{totalUnitsAvailable.toLocaleString()}</span>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <p className="text-gray-500 mb-1">Current Rate</p>
+                            <p className="font-medium text-gray-900">{baseRatePct}%</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500 mb-1">Proposed Rate</p>
+                            <p className="font-medium text-purple-600">{proposedRatePct.toFixed(2)}%</p>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Current Rate:</span>
-                          <span className="font-medium text-gray-900">{baseRatePct}%</span>
+
+                        <div className="pt-3 border-t border-gray-200">
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Current Price/Unit:</span>
+                              <span className="font-medium text-gray-900">Nu {baseResalePricePerUnit.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Proposed Price/Unit:</span>
+                              <span className="font-medium text-purple-600">Nu {proposedPricePerUnit.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Proposed Total:</span>
+                              <span className="font-medium text-purple-600">Nu {totalProposedAmount.toLocaleString()}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Proposed Rate:</span>
-                          <span className="font-medium text-purple-600">{proposedRatePct.toFixed(2)}%</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Current Price/Unit:</span>
-                          <span className="font-medium text-gray-900">BTN Nu {baseResalePricePerUnit.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Proposed Price/Unit:</span>
-                          <span className="font-medium text-purple-600">BTN Nu {proposedPricePerUnit.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Proposed Total:</span>
-                          <span className="font-medium text-purple-600">BTN Nu {totalProposedAmount.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between pt-2 border-t border-gray-200">
-                          <span className="text-gray-700 font-semibold">
-                            {savings >= 0 ? "Your Savings:" : "Additional Cost:"}
-                          </span>
-                          <span className={`font-bold ${savings >= 0 ? "text-emerald-600" : "text-red-600"}`}>
-                            BTN Nu {Math.abs(savings).toLocaleString()}
-                          </span>
+
+                        <div className="pt-3 border-t border-gray-200">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-700 font-semibold">
+                              {savings >= 0 ? "Your Savings:" : "Additional Cost:"}
+                            </span>
+                            <span className={`text-lg font-bold ${savings >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                              Nu {Math.abs(savings).toLocaleString()}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </motion.div>
@@ -1471,22 +1633,22 @@ function NegotiationModal({
                   )}
                 </div>
 
-                {/* Footer Actions */}
+                {/* Fixed Footer Actions - Always visible at bottom */}
                 {(step === "input" || step === "confirm") && (
-                  <div className="px-6 pb-6">
+                  <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-white shrink-0">
                     <div className="flex gap-3">
                       {step === "input" ? (
                         <>
                           <button
                             onClick={handleClose}
-                            className="flex-1 px-4 py-3 text-gray-700 font-medium bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                            className="flex-1 px-4 py-3 text-gray-700 font-medium bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors text-sm"
                           >
                             Cancel
                           </button>
                           <button
                             onClick={handleConfirm}
                             disabled={!isValid || negotiationLoading}
-                            className="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                            className="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm"
                           >
                             Continue
                             <ArrowRight className="w-4 h-4" />
@@ -1496,14 +1658,14 @@ function NegotiationModal({
                         <>
                           <button
                             onClick={() => setStep("input")}
-                            className="flex-1 px-4 py-3 text-gray-700 font-medium bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                            className="flex-1 px-4 py-3 text-gray-700 font-medium bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors text-sm"
                           >
                             Back
                           </button>
                           <button
                             onClick={executeNegotiation}
                             disabled={negotiationLoading}
-                            className="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                            className="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm"
                           >
                             {negotiationLoading ? (
                               <>
@@ -1522,30 +1684,6 @@ function NegotiationModal({
               </div>
             </motion.div>
           </div>
-
-          {/* Custom slider styles */}
-          <style jsx>{`
-            .interest-slider::-webkit-slider-thumb {
-              appearance: none;
-              height: 20px;
-              width: 20px;
-              border-radius: 50%;
-              background: #8b5cf6;
-              cursor: pointer;
-              border: 2px solid white;
-              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            }
-            
-            .interest-slider::-moz-range-thumb {
-              height: 20px;
-              width: 20px;
-              border-radius: 50%;
-              background: #8b5cf6;
-              cursor: pointer;
-              border: 2px solid white;
-              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            }
-          `}</style>
         </>
       )}
     </AnimatePresence>

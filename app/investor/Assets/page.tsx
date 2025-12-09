@@ -526,11 +526,13 @@ function FullScreenLoading() {
 function FilterSortBar({ 
   onFilterChange, 
   activeFilter,
-  onClose
+  onClose,
+  isMobile = false
 }: {
   onFilterChange: (filter: string) => void;
   activeFilter: string;
   onClose: () => void;
+  isMobile?: boolean;
 }) {
   const filters = [
     { key: "all", label: "All Bonds" },
@@ -544,7 +546,11 @@ function FilterSortBar({
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50"
+      className={`absolute ${
+        isMobile 
+          ? 'top-full left-0 mt-2 w-full sm:w-48' 
+          : 'top-full right-0 mt-2 w-48'
+      } bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50`}
     >
       <div className="px-4 py-2 border-b border-gray-100">
         <span className="text-sm font-medium text-gray-700">Filter by Status</span>
@@ -1225,10 +1231,10 @@ export default function AssetsPage() {
                   </div>
                 </div>
                 
-                {/* Filter Button with Dropdown */}
-                <div className="filter-dropdown-container relative">
+                {/* Filter Button with Dropdown - Improved positioning */}
+                <div className="filter-dropdown-container relative flex sm:block">
                   <button 
-                    className="h-10 sm:h-11 px-3 sm:px-4 rounded-lg sm:rounded-xl border border-gray-300 bg-white hover:bg-gray-50 transition-colors flex items-center gap-2 justify-center sm:justify-start"
+                    className="h-10 sm:h-11 px-3 sm:px-4 rounded-lg sm:rounded-xl border border-gray-300 bg-white hover:bg-gray-50 transition-colors flex items-center gap-2 justify-center sm:justify-start w-full sm:w-auto"
                     onClick={() => setShowFilterDropdown(!showFilterDropdown)}
                     aria-expanded={showFilterDropdown}
                     aria-haspopup="true"
@@ -1243,6 +1249,7 @@ export default function AssetsPage() {
                         onFilterChange={setActiveFilter}
                         activeFilter={activeFilter}
                         onClose={() => setShowFilterDropdown(false)}
+                        isMobile={true}
                       />
                     )}
                   </AnimatePresence>
