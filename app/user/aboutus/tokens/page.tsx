@@ -557,7 +557,7 @@ export default function BondSummaryCard() {
                     ].join(" ")}
                     disabled
                   >
-                    Subscribe (Coming Soon)
+                    Buy/ Sell Now 
                   </button>
 
                   <p className="mt-2 text-[10px] sm:text-[11px] text-neutral-600">
