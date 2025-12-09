@@ -1039,14 +1039,12 @@ function NegotiationModal({
   const [step, setStep] = useState<"input" | "confirm" | "processing" | "success">("input");
   const [transactionHash, setTransactionHash] = useState("");
 
- 
-
   if (!listing || !isOpen) return null;
 
   const bond = listing.bond;
   const totalUnitsAvailable = Number(listing.amount_tenths ?? 0) / 10;
   
-  // Base pricing calculation
+  // 1. EXISTING: Calculate Base details (Standard 6% logic)
   const faceValuePerUnit = Number(bond.face_value) / 10;
   const baseRatePct = parseFloat(bond.interest_rate ?? "0");
   const MS_PER_DAY = 86_400_000;
@@ -1056,16 +1054,34 @@ function NegotiationModal({
     1,
     Math.floor((now.getTime() - issuedAt.getTime()) / MS_PER_DAY)
   );
+  
+  // Accrued interest is a historical fact based on the Original Rate. It does not change.
   const baseInterestPerUnit = faceValuePerUnit * (baseRatePct / 100) * (daysHeld / 365);
   const baseResalePricePerUnit = faceValuePerUnit + baseInterestPerUnit;
 
-  // Proposed interest calculation
+  // 2. FIXED: Proposed Price Calculation (Inverse Relationship)
   const proposedRatePct = parseFloat(proposedInterest) || baseRatePct;
-  const proposedInterestPerUnit = faceValuePerUnit * (proposedRatePct / 100) * (daysHeld / 365);
-  const proposedPricePerUnit = faceValuePerUnit + proposedInterestPerUnit;
 
+  // Step A: Calculate the fixed annual income (coupon) the bond actually pays
+  // Example: 1000 Face Value * 6% = 60 Annual Income
+  const fixedAnnualIncome = faceValuePerUnit * (baseRatePct / 100);
+
+  // Step B: Calculate what Price makes that income equal to the Proposed Rate
+  // Formula: Price = Income / TargetRate
+  // Example: 60 / 0.062 = 967.74 (Price drops)
+  let impliedPrincipalPrice = faceValuePerUnit;
+  if (proposedRatePct > 0) {
+    impliedPrincipalPrice = fixedAnnualIncome / (proposedRatePct / 100);
+  }
+
+  // Step C: Add the accrued interest back (User pays for the days the seller held the bond)
+  const proposedPricePerUnit = impliedPrincipalPrice + baseInterestPerUnit;
+
+  // ... Continue with totals ...
   const totalBaseAmount = totalUnitsAvailable * baseResalePricePerUnit;
   const totalProposedAmount = totalUnitsAvailable * proposedPricePerUnit;
+  
+  // Savings will now be positive when Rate is Higher
   const savings = totalBaseAmount - totalProposedAmount;
 
   const isValid = proposedRatePct >= baseRatePct - 0.2 && proposedRatePct <= baseRatePct + 0.2;
@@ -1088,33 +1104,33 @@ function NegotiationModal({
     setStep("confirm");
   };
 
-   const executeNegotiation = async () => {
-  try {
-    setStep("processing");
-    setNegotiationLoading(true);
+  const executeNegotiation = async () => {
+    try {
+      setStep("processing");
+      setNegotiationLoading(true);
 
-    const offerData = {
-      // only data the modal itself knows
-      units: totalUnitsAvailable,
-      proposedInterestRate: proposedRatePct,
-      totalProposedAmount,
-      totalBaseAmount,
-      savings,
-    };
+      const offerData = {
+        // only data the modal itself knows
+        units: totalUnitsAvailable,
+        proposedInterestRate: proposedRatePct,
+        totalProposedAmount,
+        totalBaseAmount,
+        savings,
+      };
 
-    // 🔗 call parent (page-level) handler
-    await onConfirm(offerData);
+      // 🔗 call parent (page-level) handler
+      await onConfirm(offerData);
 
-    // if success → show success screen
-    setStep("success");
-  } catch (error) {
-    console.error("Negotiation failed:", error);
-    // send user back to input on error
-    setStep("input");
-  } finally {
-    setNegotiationLoading(false);
-  }
-};
+      // if success → show success screen
+      setStep("success");
+    } catch (error) {
+      console.error("Negotiation failed:", error);
+      // send user back to input on error
+      setStep("input");
+    } finally {
+      setNegotiationLoading(false);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -1294,8 +1310,41 @@ function NegotiationModal({
                               <span className="font-semibold text-purple-900">BTN Nu {totalProposedAmount.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between pt-2 border-t border-blue-200">
-                              <span className="text-emerald-700">Your Savings:</span>
-                              <span className="font-bold text-emerald-900">BTN Nu {savings.toLocaleString()}</span>
+                              <span className={savings >= 0 ? "text-emerald-700" : "text-red-600"}>
+                                {savings >= 0 ? "Your Savings:" : "Additional Cost:"}
+                              </span>
+                              <span className={`font-bold ${savings >= 0 ? "text-emerald-900" : "text-red-600"}`}>
+                                BTN Nu {Math.abs(savings).toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* Investment Yield Explanation */}
+                      {proposedInterest && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          className="bg-emerald-50 rounded-xl p-4 border border-emerald-200"
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <Percent className="w-4 h-4 text-emerald-600" />
+                            <span className="text-sm font-medium text-emerald-900">Investment Yield</span>
+                          </div>
+                          <div className="space-y-2 text-xs text-emerald-800">
+                            <div className="flex justify-between">
+                              <span>If you propose {proposedRatePct.toFixed(2)}%:</span>
+                              <span className="font-semibold">
+                                Your effective yield: {proposedRatePct.toFixed(2)}%
+                              </span>
+                            </div>
+                            <div className="text-xs text-emerald-700">
+                              {proposedRatePct > baseRatePct 
+                                ? "Higher rate means you pay less now for the same future returns." 
+                                : proposedRatePct < baseRatePct 
+                                ? "Lower rate means you pay more now but receive lower returns." 
+                                : "Same rate means you pay the current market price."}
                             </div>
                           </div>
                         </motion.div>
@@ -1351,12 +1400,24 @@ function NegotiationModal({
                           <span className="font-medium text-purple-600">{proposedRatePct.toFixed(2)}%</span>
                         </div>
                         <div className="flex justify-between">
+                          <span className="text-gray-600">Current Price/Unit:</span>
+                          <span className="font-medium text-gray-900">BTN Nu {baseResalePricePerUnit.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Proposed Price/Unit:</span>
+                          <span className="font-medium text-purple-600">BTN Nu {proposedPricePerUnit.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
                           <span className="text-gray-600">Proposed Total:</span>
                           <span className="font-medium text-purple-600">BTN Nu {totalProposedAmount.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between pt-2 border-t border-gray-200">
-                          <span className="text-gray-700 font-semibold">Your Savings:</span>
-                          <span className="font-bold text-emerald-600">BTN Nu {savings.toLocaleString()}</span>
+                          <span className="text-gray-700 font-semibold">
+                            {savings >= 0 ? "Your Savings:" : "Additional Cost:"}
+                          </span>
+                          <span className={`font-bold ${savings >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                            BTN Nu {Math.abs(savings).toLocaleString()}
+                          </span>
                         </div>
                       </div>
                     </motion.div>
@@ -1530,49 +1591,48 @@ const ResaleBondPage = ({ params }: ResalePageProps) => {
   };
 
   const handleNegotiationConfirm = async (offerData: any) => {
-  if (!currentUser) {
-    // optionally: redirect to login or show toast
-    router.push("/login");
-    return;
-  }
+    if (!currentUser) {
+      // optionally: redirect to login or show toast
+      router.push("/login");
+      return;
+    }
 
-  const bond = listing.bond;
+    const bond = listing.bond;
 
-  // NOTE: adjust this if your listing model uses different field name
-  const sellerUserId = listing.seller_user_id; // or listing.sellerUserId
+    // NOTE: adjust this if your listing model uses different field name
+    const sellerUserId = listing.seller_user_id; // or listing.sellerUserId
 
-  const res = await fetch("/api/investor/negotiations/create", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      bondId: bond.id,
-      listingId: listing.id,
+    const res = await fetch("/api/investor/negotiations/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        bondId: bond.id,
+        listingId: listing.id,
 
-      buyerUserId: currentUser.id,
-      buyerWallet: currentUser.wallet_address,
+        buyerUserId: currentUser.id,
+        buyerWallet: currentUser.wallet_address,
 
-      sellerUserId,
-      sellerWallet: listing.seller_wallet,
+        sellerUserId,
+        sellerWallet: listing.seller_wallet,
 
-      units: offerData.units, // from modal
-      originalInterestRate: Number(bond.interest_rate),
-      proposedInterestRate: offerData.proposedInterestRate,
-      proposedTotalAmountNu: Math.round(offerData.totalProposedAmount),
+        units: offerData.units, // from modal
+        originalInterestRate: Number(bond.interest_rate),
+        proposedInterestRate: offerData.proposedInterestRate,
+        proposedTotalAmountNu: Math.round(offerData.totalProposedAmount),
 
-      // optional – if you want to save savings or note later
-      savings: offerData.savings,
-    }),
-  });
+        // optional – if you want to save savings or note later
+        savings: offerData.savings,
+      }),
+    });
 
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
-    throw new Error(error?.error || "Failed to create negotiation offer");
-  }
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error?.error || "Failed to create negotiation offer");
+    }
 
-  const { offer } = await res.json();
-  console.log("Negotiation offer persisted:", offer);
-};
-
+    const { offer } = await res.json();
+    console.log("Negotiation offer persisted:", offer);
+  };
 
   if (loading || !listing) {
     return <FullScreenLoading />;
