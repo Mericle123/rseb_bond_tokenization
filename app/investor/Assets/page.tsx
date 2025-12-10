@@ -18,6 +18,7 @@ import {
   IoCalendarOutline,
   IoCashOutline,
   IoDocumentTextOutline,
+  IoSearchOutline,
 } from "react-icons/io5";
 
 /* ========================= Types ========================= */
@@ -76,6 +77,352 @@ const isMatured = (maturityStr: string): boolean => {
   return maturityMidnight.getTime() <= todayMidnight.getTime();
 };
 
+/* ========================= Loader (Book Animation) ========================= */
+
+function BookLoader() {
+  return (
+    <div className="flex flex-col items-center justify-center">
+      {/* From Uiverse.io by anand_4957 */}
+      <style>{`
+        .book,
+        .book__pg-shadow,
+        .book__pg {
+          animation: cover 5s ease-in-out infinite;
+        }
+        .book {
+          background-color: hsl(268, 90%, 65%);
+          border-radius: 0.25em;
+          box-shadow:
+            0 0.25em 0.5em hsla(0, 0%, 0%, 0.3),
+            0 0 0 0.25em hsl(278, 100%, 57%) inset;
+          padding: 0.25em;
+          perspective: 37.5em;
+          position: relative;
+          width: 8em;
+          height: 6em;
+          transform: translate3d(0, 0, 0);
+          transform-style: preserve-3d;
+        }
+        .book__pg-shadow,
+        .book__pg {
+          position: absolute;
+          left: 0.25em;
+          width: calc(50% - 0.25em);
+        }
+        .book__pg-shadow {
+          animation-name: shadow;
+          background-image: linear-gradient(
+            -45deg,
+            hsla(0, 0%, 0%, 0) 50%,
+            hsla(0, 0%, 0%, 0.3) 50%
+          );
+          filter: blur(0.25em);
+          top: calc(100% - 0.25em);
+          height: 3.75em;
+          transform: scaleY(0);
+          transform-origin: 100% 0%;
+        }
+        .book__pg {
+          animation-name: pg1;
+          background-color: hsl(223, 10%, 100%);
+          background-image: linear-gradient(
+            90deg,
+            hsla(223, 10%, 90%, 0) 87.5%,
+            hsl(223, 10%, 90%)
+          );
+          height: calc(100% - 0.5em);
+          transform-origin: 100% 50%;
+        }
+        .book__pg--2,
+        .book__pg--3,
+        .book__pg--4 {
+          background-image: repeating-linear-gradient(
+              hsl(223, 10%, 10%) 0 0.125em,
+              hsla(223, 10%, 10%, 0) 0.125em 0.5em
+            ),
+            linear-gradient(90deg, hsla(223, 10%, 90%, 0) 87.5%, hsl(223, 10%, 90%));
+          background-repeat: no-repeat;
+          background-position: center;
+          background-size:
+            2.5em 4.125em,
+            100% 100%;
+        }
+        .book__pg--2 {
+          animation-name: pg2;
+        }
+        .book__pg--3 {
+          animation-name: pg3;
+        }
+        .book__pg--4 {
+          animation-name: pg4;
+        }
+        .book__pg--5 {
+          animation-name: pg5;
+        }
+
+        /* Dark theme */
+        @media (prefers-color-scheme: dark) {
+          :root {
+            --bg: hsl(223, 10%, 30%);
+            --fg: hsl(223, 10%, 90%);
+          }
+        }
+
+        /* Animations */
+        @keyframes cover {
+          from,
+          5%,
+          45%,
+          55%,
+          95%,
+          to {
+            animation-timing-function: ease-out;
+            background-color: hsl(278, 84%, 67%);
+          }
+          10%,
+          40%,
+          60%,
+          90% {
+            animation-timing-function: ease-in;
+            background-color: hsl(271, 90%, 45%);
+          }
+        }
+        @keyframes shadow {
+          from,
+          10.01%,
+          20.01%,
+          30.01%,
+          40.01% {
+            animation-timing-function: ease-in;
+            transform: translate3d(0, 0, 1px) scaleY(0) rotateY(0);
+          }
+          5%,
+          15%,
+          25%,
+          35%,
+          45%,
+          55%,
+          65%,
+          75%,
+          85%,
+          95% {
+            animation-timing-function: ease-out;
+            transform: translate3d(0, 0, 1px) scaleY(0.2) rotateY(90deg);
+          }
+          10%,
+          20%,
+          30%,
+          40%,
+          50%,
+          to {
+            animation-timing-function: ease-out;
+            transform: translate3d(0, 0, 1px) scaleY(0) rotateY(180deg);
+          }
+          50.01%,
+          60.01%,
+          70.01%,
+          80.01%,
+          90.01% {
+            animation-timing-function: ease-in;
+            transform: translate3d(0, 0, 1px) scaleY(0) rotateY(180deg);
+          }
+          60%,
+          70%,
+          80%,
+          90%,
+          to {
+            animation-timing-function: ease-out;
+            transform: translate3d(0, 0, 1px) scaleY(0) rotateY(0);
+          }
+        }
+        @keyframes pg1 {
+          from,
+          to {
+            animation-timing-function: ease-in-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(0.4deg);
+          }
+          10%,
+          15% {
+            animation-timing-function: ease-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(180deg);
+          }
+          20%,
+          80% {
+            animation-timing-function: ease-in;
+            background-color: hsl(223, 10%, 45%);
+            transform: translate3d(0, 0, 1px) rotateY(180deg);
+          }
+          85%,
+          90% {
+            animation-timing-function: ease-in-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(180deg);
+          }
+        }
+        @keyframes pg2 {
+          from,
+          to {
+            animation-timing-function: ease-in;
+            background-color: hsl(223, 10%, 45%);
+            transform: translate3d(0, 0, 1px) rotateY(0.3deg);
+          }
+          5%,
+          10% {
+            animation-timing-function: ease-in-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(0.3deg);
+          }
+          20%,
+          25% {
+            animation-timing-function: ease-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(179.9deg);
+          }
+          30%,
+          70% {
+            animation-timing-function: ease-in;
+            background-color: hsl(223, 10%, 45%);
+            transform: translate3d(0, 0, 1px) rotateY(179.9deg);
+          }
+          75%,
+          80% {
+            animation-timing-function: ease-in-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(179.9deg);
+          }
+          90%,
+          95% {
+            animation-timing-function: ease-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(0.3deg);
+          }
+        }
+        @keyframes pg3 {
+          from,
+          10%,
+          90%,
+          to {
+            animation-timing-function: ease-in;
+            background-color: hsl(223, 10%, 45%);
+            transform: translate3d(0, 0, 1px) rotateY(0.2deg);
+          }
+          15%,
+          20% {
+            animation-timing-function: ease-in-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(0.2deg);
+          }
+          30%,
+          35% {
+            animation-timing-function: ease-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(179.8deg);
+          }
+          40%,
+          60% {
+            animation-timing-function: ease-in;
+            background-color: hsl(223, 10%, 45%);
+            transform: translate3d(0, 0, 1px) rotateY(179.8deg);
+          }
+          65%,
+          70% {
+            animation-timing-function: ease-in-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(179.8deg);
+          }
+          80%,
+          85% {
+            animation-timing-function: ease-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(0.2deg);
+          }
+        }
+        @keyframes pg4 {
+          from,
+          20%,
+          80%,
+          to {
+            animation-timing-function: ease-in;
+            background-color: hsl(223, 10%, 45%);
+            transform: translate3d(0, 0, 1px) rotateY(0.1deg);
+          }
+          25%,
+          30% {
+            animation-timing-function: ease-in-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(0.1deg);
+          }
+          40%,
+          45% {
+            animation-timing-function: ease-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(179.7deg);
+          }
+          50% {
+            animation-timing-function: ease-in;
+            background-color: hsl(223, 10%, 45%);
+            transform: translate3d(0, 0, 1px) rotateY(179.7deg);
+          }
+          55%,
+          60% {
+            animation-timing-function: ease-in-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(179.7deg);
+          }
+          70%,
+          75% {
+            animation-timing-function: ease-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(0.1deg);
+          }
+        }
+        @keyframes pg5 {
+          from,
+          30%,
+          70%,
+          to {
+            animation-timing-function: ease-in;
+            background-color: hsl(223, 10%, 45%);
+            transform: translate3d(0, 0, 1px) rotateY(0);
+          }
+          35%,
+          40% {
+            animation-timing-function: ease-in-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(0deg);
+          }
+          50% {
+            animation-timing-function: ease-in-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(179.6deg);
+          }
+          60%,
+          65% {
+            animation-timing-function: ease-out;
+            background-color: hsl(223, 10%, 100%);
+            transform: translate3d(0, 0, 1px) rotateY(0);
+          }
+        }
+      `}</style>
+
+      <div className="book">
+        <div className="book__pg-shadow" />
+        <div className="book__pg" />
+        <div className="book__pg book__pg--2" />
+        <div className="book__pg book__pg--3" />
+        <div className="book__pg book__pg--4" />
+        <div className="book__pg book__pg--5" />
+      </div>
+
+      <p className="mt-4 text-gray-600 text-sm sm:text-base">
+        Loading your earnings...
+      </p>
+    </div>
+  );
+}
+
 /* ========================= Component ========================= */
 
 export default function EarningsPage() {
@@ -91,6 +438,9 @@ export default function EarningsPage() {
 
   // list vs cards (desktop behaviour)
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+
+  // search
+  const [searchQuery, setSearchQuery] = useState("");
 
   const sliderRef = useRef<HTMLDivElement | null>(null);
 
@@ -112,8 +462,23 @@ export default function EarningsPage() {
     load();
   }, []);
 
+  const filteredRows = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return rows;
+
+    return rows.filter((r) => {
+      const fields = [
+        r.name,
+        r.bondType,
+        r.maturity,
+        r.purchaseDate,
+      ].map((f) => f.toLowerCase());
+      return fields.some((f) => f.includes(q));
+    });
+  }, [rows, searchQuery]);
+
   const sortedRows = useMemo(() => {
-    const copy = [...rows];
+    const copy = [...filteredRows];
 
     copy.sort((a, b) => {
       if (sortBy === "maturity") {
@@ -133,7 +498,7 @@ export default function EarningsPage() {
     });
 
     return copy;
-  }, [rows, sortBy, sortDir]);
+  }, [filteredRows, sortBy, sortDir]);
 
   const toggleSort = (field: "maturity" | "rate" | "interest") => {
     if (sortBy === field) {
@@ -245,15 +610,13 @@ export default function EarningsPage() {
     }
   };
 
-  // Simple loading state (no animation)
+  // Loading state with book animation
   if (loading) {
     return (
       <div className="flex min-h-screen bg-[#F7F8FB]">
         <InvestorSideNavbar />
         <main className="flex-1 min-w-0 p-6 flex items-center justify-center">
-          <p className="text-gray-600 text-sm sm:text-base">
-            Loading your earnings...
-          </p>
+          <BookLoader />
         </main>
       </div>
     );
@@ -350,7 +713,7 @@ export default function EarningsPage() {
           </div>
         </motion.section>
 
-        {/* Toolbar – info + Export / Share with working handlers */}
+        {/* Toolbar – info + Export / Share */}
         <motion.div
           {...fadeIn}
           className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4"
@@ -386,6 +749,32 @@ export default function EarningsPage() {
               <IoShareSocialOutline className="w-4 h-4" />
               Share Summary
             </button>
+          </div>
+        </motion.div>
+
+        {/* Search bar */}
+        <motion.div {...fadeIn} className="mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="relative max-w-md w-full">
+              <IoSearchOutline className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by bond name, type, maturity or purchase date..."
+                className="w-full h-10 sm:h-11 rounded-lg sm:rounded-xl border border-gray-300 bg-white pl-9 pr-3 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5B50D9] focus:border-[#5B50D9] transition-all"
+              />
+            </div>
+            <p className="text-xs sm:text-sm text-gray-500">
+              Showing{" "}
+              <span className="font-semibold text-gray-800">
+                {sortedRows.length}
+              </span>{" "}
+              earning position{sortedRows.length === 1 ? "" : "s"}
+              {searchQuery.trim()
+                ? " matching your search."
+                : " across your portfolio."}
+            </p>
           </div>
         </motion.div>
 
@@ -485,7 +874,9 @@ export default function EarningsPage() {
                         colSpan={7}
                         className="px-6 py-6 text-center text-gray-500 text-sm"
                       >
-                        No earnings to display yet.
+                        {searchQuery.trim()
+                          ? "No earnings match your search."
+                          : "No earnings to display yet."}
                       </td>
                     </tr>
                   )}
@@ -746,7 +1137,9 @@ export default function EarningsPage() {
         )}
         {viewMode === "cards" && !error && sortedRows.length === 0 && (
           <div className="hidden lg:flex items-center justify-center mt-4 text-sm text-gray-500 bg-white rounded-2xl border border-gray-200 py-8">
-            No earnings to display yet.
+            {searchQuery.trim()
+              ? "No earnings match your search."
+              : "No earnings to display yet."}
           </div>
         )}
 
