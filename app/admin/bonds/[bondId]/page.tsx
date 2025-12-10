@@ -12,16 +12,12 @@ import {
   IoAlertCircle, 
   IoTimeOutline, 
   IoTrashOutline,
-  IoWalletOutline,
-  IoCopyOutline,
   IoTrendingUp,
   IoCalendarOutline,
   IoCashOutline,
   IoBusinessOutline,
   IoStatsChart,
-  IoDocumentTextOutline,
-  IoPeopleOutline,
-  IoPieChartOutline
+  IoDocumentTextOutline
 } from 'react-icons/io5';
 import { fetchBondById } from '@/server/bond/creation';
 import BondCountDown from '../../countdown';
@@ -327,28 +323,14 @@ function SuccessModal({
                   {/* Algorithm Tag */}
                   {algorithm && (
                     <div className="flex justify-center mb-4">
-                      <div className={`px-4 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 ${
-                        algorithm === 'prorata' 
-                          ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                          : 'bg-purple-100 text-purple-800 border border-purple-200'
-                      }`}>
-                        {algorithm === 'prorata' ? (
-                          <>
-                            <IoPieChartOutline className="w-4 h-4" />
-                            Pro-rata Allocation
-                          </>
-                        ) : (
-                          <>
-                            <IoPeopleOutline className="w-4 h-4" />
-                            Equal Allocation
-                          </>
-                        )}
+                      <div className="px-4 py-1.5 rounded-full text-sm font-medium bg-blue-50 text-blue-800 border border-blue-200">
+                        {algorithm === 'prorata' ? 'Pro-rata Allocation' : 'Equal Allocation'}
                       </div>
                     </div>
                   )}
                   
                   <p className="text-gray-600 mb-6 leading-relaxed">
-                    Allocation finalized successfully{algorithm ? ` using the ${algorithm} method.` : '.'}
+                    Allocation finalized successfully{algorithm ? ` using the ${algorithm === 'prorata' ? 'pro-rata' : 'equal'} method.` : '.'}
                   </p>
                   
                   {txDigest && (
@@ -649,9 +631,6 @@ const AboutBondPage = ({ params }: { params: Promise<{ bondId: string }> }) => {
   const subscribedUnits = Number(bond.tl_unit_subscribed) / 10;
   const totalUnits = Number(bond.tl_unit_offered) / 10;
 
-  // Check if bond has allocation method stored
-  const allocationMethod = bond.allocated_method || null;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50/80 via-blue-50/30 to-indigo-50/20 p-4 sm:p-6 lg:p-8">
       <motion.div
@@ -715,27 +694,6 @@ const AboutBondPage = ({ params }: { params: Promise<{ bondId: string }> }) => {
                         +{bond.interest_rate}% / yr
                       </span>
                     </div>
-                    
-                    {/* Allocation Status Tag */}
-                    {isAllocated && allocationMethod && (
-                      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
-                        allocationMethod === 'prorata' 
-                          ? 'bg-blue-50 border-blue-200 text-blue-800' 
-                          : 'bg-purple-50 border-purple-200 text-purple-800'
-                      }`}>
-                        {allocationMethod === 'prorata' ? (
-                          <>
-                            <IoPieChartOutline className="w-4 h-4" />
-                            <span className="text-sm font-semibold">Pro-rata Allocated</span>
-                          </>
-                        ) : (
-                          <>
-                            <IoPeopleOutline className="w-4 h-4" />
-                            <span className="text-sm font-semibold">Equal Allocated</span>
-                          </>
-                        )}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -867,17 +825,6 @@ const AboutBondPage = ({ params }: { params: Promise<{ bondId: string }> }) => {
                     }`}>
                       {isSubscriptionEnded ? 'Subscription Closed' : 'Subscription Open'}
                     </span>
-                    
-                    {/* Allocation Status Badge */}
-                    {isAllocated && allocationMethod && (
-                      <span className={`mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                        allocationMethod === 'prorata' 
-                          ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                          : 'bg-purple-100 text-purple-800 border border-purple-200'
-                      }`}>
-                        {allocationMethod === 'prorata' ? 'Pro-rata' : 'Equal'} Allocation
-                      </span>
-                    )}
                   </div>
                 </div>
               </div>
@@ -890,45 +837,36 @@ const AboutBondPage = ({ params }: { params: Promise<{ bondId: string }> }) => {
             >
               {/* Allocation Card */}
               <div className="bg-gradient-to-br from-emerald-50 to-green-100/50 rounded-2xl border border-emerald-200/60 p-6 shadow-sm">
-                <h4 className="font-semibold text-emerald-900 mb-3">Bond Allocation</h4>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-emerald-900">Bond Allocation</h4>
+                  
+                  {/* Allocation Method Tag */}
+                  {isAllocated && bond.allocated_method && (
+                    <div className="px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-800 border border-blue-200">
+                      {bond.allocated_method === 'prorata' ? 'Pro-rata' : 'Equal'} Allocation
+                    </div>
+                  )}
+                </div>
+                
                 <p className="text-sm text-emerald-700 mb-4">
                   {!isSubscriptionEnded
                     ? 'Allocation will be available after subscription ends.'
                     : isAllocated
-                    ? 'This bond has already been allocated on-chain. No further allocation is required.'
+                    ? `This bond has already been allocated using the ${bond.allocated_method === 'prorata' ? 'pro-rata' : 'equal'} method. No further allocation is required.`
                     : 'Subscription period has ended. You can now allocate the bond.'}
                 </p>
                 
-                {/* Show allocation method if already allocated */}
-                {isAllocated && allocationMethod && (
-                  <div className="mb-4">
-                    <div className={`flex items-center gap-2 p-3 rounded-lg ${
-                      allocationMethod === 'prorata' 
-                        ? 'bg-blue-50 border border-blue-200' 
-                        : 'bg-purple-50 border border-purple-200'
-                    }`}>
-                      <div className={`p-2 rounded-lg ${
-                        allocationMethod === 'prorata' 
-                          ? 'bg-blue-100 text-blue-600' 
-                          : 'bg-purple-100 text-purple-600'
-                      }`}>
-                        {allocationMethod === 'prorata' ? (
-                          <IoPieChartOutline className="w-4 h-4" />
-                        ) : (
-                          <IoPeopleOutline className="w-4 h-4" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">
-                          {allocationMethod === 'prorata' ? 'Pro-rata Allocation' : 'Equal Allocation'}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          {allocationMethod === 'prorata' 
-                            ? 'Units distributed based on subscription share' 
-                            : 'Units distributed equally among subscribers'}
-                        </p>
-                      </div>
-                    </div>
+                {isAllocated && (
+                  <div className="mb-4 p-3 bg-white rounded-lg border border-emerald-200">
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">Allocation Method: </span>
+                      <span className="text-gray-900">{bond.allocated_method === 'prorata' ? 'Pro-rata Allocation' : 'Equal Allocation'}</span>
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {bond.allocated_method === 'prorata' 
+                        ? 'Units were distributed based on subscription share percentage' 
+                        : 'Units were distributed equally among all subscribers'}
+                    </p>
                   </div>
                 )}
                 
