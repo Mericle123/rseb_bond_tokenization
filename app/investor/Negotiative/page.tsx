@@ -128,12 +128,10 @@ function mapDtoToOffer(dto: NegotiationOfferDTO, walletAddress: string): Offer {
     originalInterestRate: dto.originalInterestRate,
     proposedTotalAmount: dto.proposedTotalAmountNu,
     originalTotalAmount: dto.proposedTotalAmountNu,
-    savings: savings,
-
+    savings,
     status,
     type,
     direction: dto.direction,
-
     timestamp: createdAt,
     expiration,
     bondDetails: {
@@ -722,8 +720,10 @@ export default function NegotiationsPage() {
   const [filteredOffers, setFilteredOffers] = useState<Offer[]>([]);
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
 
-  // 🔹 CHANGED: activeTab can now be null (no tab selected)
-  const [activeTab, setActiveTab] = useState<"my_resale" | "offers" | "history" | null>(null);
+  // 🔹 activeTab can now be null (no tab selected)
+  const [activeTab, setActiveTab] = useState<
+    "my_resale" | "offers" | "history" | null
+  >(null);
 
   const [bondFilter, setBondFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -732,9 +732,9 @@ export default function NegotiationsPage() {
   const [loading, setLoading] = useState(true);
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [actionType, setActionType] = useState<"accept" | "reject" | "counter">(
-    "accept"
-  );
+  const [actionType, setActionType] = useState<
+    "accept" | "reject" | "counter"
+  >("accept");
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
   const [activeDropdown, setActiveDropdown] = useState<
     "status" | "bond" | "type" | null
@@ -790,9 +790,6 @@ export default function NegotiationsPage() {
 
       setOffers(mappedOffers);
       setFilteredOffers(mappedOffers);
-
-      // 🔸 Removed auto-select of first offer to keep UX consistent
-      // with "no tab selected until user chooses".
     } catch (err) {
       console.error("Error loading negotiations:", err);
       setOffers([]);
@@ -985,13 +982,14 @@ export default function NegotiationsPage() {
     }
   };
 
+  // ✅ FIXED: do not use Intl currency with invalid code "BTNC"
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "BTNC",
+    const formatted = new Intl.NumberFormat("en-IN", {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(amount || 0);
+
+    return `${formatted} BTNC`;
   };
 
   const formatWalletAddress = (address: string) => {
@@ -1601,7 +1599,9 @@ export default function NegotiationsPage() {
                           </p>
                         </div>
                         <div className="bg-gray-50 p-3 rounded-xl">
-                          <p className="text-xs text-gray-600">Proposed Total Amount  </p>
+                          <p className="text-xs text-gray-600">
+                            Proposed Total Amount
+                          </p>
                           <p className="text-lg font-bold text-gray-900">
                             {formatCurrency(
                               selectedOffer.proposedTotalAmount
