@@ -9,9 +9,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCurrentUser } from "@/context/UserContext";
 import { fetchResaleListingById } from "@/server/db_actions/action";
 
-// import { buyFromListingAndPersist } from "@/server/blockchain/bond"; // 👈 you'll implement this
-// import { createNegotiationOffer } from "@/server/blockchain/negotiation"; // 👈 you'll implement this
-
 /* ====================== Motion ====================== */
 const fadeIn = {
   initial: { opacity: 0, y: 8, scale: 0.995 },
@@ -1040,7 +1037,6 @@ function NegotiationModal({
   const [transactionHash, setTransactionHash] = useState("");
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
 
-  // Modal container ref for scrolling
   const modalContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -1052,7 +1048,6 @@ function NegotiationModal({
 
   useEffect(() => {
     if (proposedInterest && modalContentRef.current) {
-      // Small delay to ensure content is rendered
       setTimeout(() => {
         checkScrollIndicator();
       }, 100);
@@ -1065,7 +1060,6 @@ function NegotiationModal({
       const isScrollable = scrollHeight > clientHeight;
       const isAtBottom = scrollHeight - clientHeight - scrollTop < 10;
       
-      // Show indicator only if content is scrollable AND not at bottom
       setShowScrollIndicator(isScrollable && !isAtBottom);
     }
   };
@@ -1079,7 +1073,6 @@ function NegotiationModal({
   const bond = listing.bond;
   const totalUnitsAvailable = Number(listing.amount_tenths ?? 0) / 10;
   
-  // 1. EXISTING: Calculate Base details (Standard 6% logic)
   const faceValuePerUnit = Number(bond.face_value) / 10;
   const baseRatePct = parseFloat(bond.interest_rate ?? "0");
   const MS_PER_DAY = 86_400_000;
@@ -1090,33 +1083,23 @@ function NegotiationModal({
     Math.floor((now.getTime() - issuedAt.getTime()) / MS_PER_DAY)
   );
   
-  // Accrued interest is a historical fact based on the Original Rate. It does not change.
   const baseInterestPerUnit = faceValuePerUnit * (baseRatePct / 100) * (daysHeld / 365);
   const baseResalePricePerUnit = faceValuePerUnit + baseInterestPerUnit;
 
-  // 2. FIXED: Proposed Price Calculation (Inverse Relationship)
   const proposedRatePct = parseFloat(proposedInterest) || baseRatePct;
 
-  // Step A: Calculate the fixed annual income (coupon) the bond actually pays
-  // Example: 1000 Face Value * 6% = 60 Annual Income
   const fixedAnnualIncome = faceValuePerUnit * (baseRatePct / 100);
 
-  // Step B: Calculate what Price makes that income equal to the Proposed Rate
-  // Formula: Price = Income / TargetRate
-  // Example: 60 / 0.062 = 967.74 (Price drops)
   let impliedPrincipalPrice = faceValuePerUnit;
   if (proposedRatePct > 0) {
     impliedPrincipalPrice = fixedAnnualIncome / (proposedRatePct / 100);
   }
 
-  // Step C: Add the accrued interest back (User pays for the days the seller held the bond)
   const proposedPricePerUnit = impliedPrincipalPrice + baseInterestPerUnit;
 
-  // ... Continue with totals ...
   const totalBaseAmount = totalUnitsAvailable * baseResalePricePerUnit;
   const totalProposedAmount = totalUnitsAvailable * proposedPricePerUnit;
   
-  // Savings will now be positive when Rate is Higher
   const savings = totalBaseAmount - totalProposedAmount;
 
   const isValid = proposedRatePct >= baseRatePct - 0.2 && proposedRatePct <= baseRatePct + 0.2;
@@ -1140,7 +1123,6 @@ function NegotiationModal({
     setStep("confirm");
   };
 
-  // Function to handle slider change
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
     setProposedInterest(value.toFixed(2));
@@ -1152,7 +1134,6 @@ function NegotiationModal({
       setNegotiationLoading(true);
 
       const offerData = {
-        // only data the modal itself knows
         units: totalUnitsAvailable,
         proposedInterestRate: proposedRatePct,
         totalProposedAmount,
@@ -1160,14 +1141,11 @@ function NegotiationModal({
         savings,
       };
 
-      // 🔗 call parent (page-level) handler
       await onConfirm(offerData);
 
-      // if success → show success screen
       setStep("success");
     } catch (error) {
       console.error("Negotiation failed:", error);
-      // send user back to input on error
       setStep("input");
     } finally {
       setNegotiationLoading(false);
@@ -1188,16 +1166,16 @@ function NegotiationModal({
             onClick={handleClose}
           />
           
-          {/* Modal */}
+          {/* Modal - Fixed height for desktop */}
           <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
             <motion.div
               variants={modalVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="w-full max-w-md h-[90vh] sm:h-auto flex flex-col"
+              className="w-full max-w-md"
             >
-              <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200 flex flex-col max-h-full">
+              <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200 flex flex-col max-h-[85vh]">
                 
                 {/* Header - Fixed */}
                 <div className="relative p-4 sm:p-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100 shrink-0">
@@ -1226,97 +1204,12 @@ function NegotiationModal({
                   </div>
                 </div>
 
-                {/* Scrollable Content Area with Visual Scroll Bar */}
+                {/* Scrollable Content Area with Fixed Height */}
                 <div 
                   ref={modalContentRef}
                   onScroll={handleScroll}
-                  className="flex-1 overflow-y-auto p-4 sm:p-6 relative"
-                  style={{
-                    scrollbarWidth: 'thin',
-                    scrollbarColor: '#c7d2fe #f5f3ff',
-                    scrollBehavior: 'smooth'
-                  }}
+                  className="flex-1 overflow-y-auto p-4 sm:p-6 relative scroll-container"
                 >
-                  {/* Global styles for custom scrollbar and sliders */}
-                  <style>{`
-                    /* Custom scrollbar styles */
-                    .scroll-container::-webkit-scrollbar {
-                      width: 6px;
-                    }
-                    .scroll-container::-webkit-scrollbar-track {
-                      background: #f5f3ff;
-                      border-radius: 10px;
-                    }
-                    .scroll-container::-webkit-scrollbar-thumb {
-                      background: #c7d2fe;
-                      border-radius: 10px;
-                    }
-                    .scroll-container::-webkit-scrollbar-thumb:hover {
-                      background: #a5b4fc;
-                    }
-                    
-                    /* Interest slider styles */
-                    .interest-slider::-webkit-slider-thumb {
-                      appearance: none;
-                      height: 20px;
-                      width: 20px;
-                      border-radius: 50%;
-                      background: #8b5cf6;
-                      cursor: pointer;
-                      border: 2px solid white;
-                      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-                    }
-                    
-                    .interest-slider::-moz-range-thumb {
-                      height: 20px;
-                      width: 20px;
-                      border-radius: 50%;
-                      background: #8b5cf6;
-                      cursor: pointer;
-                      border: 2px solid white;
-                      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-                    }
-                    
-                    /* Regular slider styles */
-                    .slider::-webkit-slider-thumb {
-                      appearance: none;
-                      height: 20px;
-                      width: 20px;
-                      border-radius: 50%;
-                      background: #10b981;
-                      cursor: pointer;
-                      border: 2px solid white;
-                      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-                    }
-                    
-                    .slider::-moz-range-thumb {
-                      height: 20px;
-                      width: 20px;
-                      border-radius: 50%;
-                      background: #10b981;
-                      cursor: pointer;
-                      border: 2px solid white;
-                      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-                    }
-                  `}</style>
-
-                  {/* Scroll Down Indicator (only shows when content is scrollable) */}
-                  {step === "input" && showScrollIndicator && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-10"
-                    >
-                      <div className="flex flex-col items-center">
-                        <span className="text-xs text-purple-600 font-medium bg-purple-100 px-3 py-1 rounded-full mb-1 shadow-sm">
-                          Scroll down for more details
-                        </span>
-                        <ChevronDown className="w-5 h-5 text-purple-500 animate-bounce" />
-                      </div>
-                    </motion.div>
-                  )}
-
                   {/* Bond Info Card */}
                   {(step === "input" || step === "confirm") && (
                     <motion.div
@@ -1419,11 +1312,11 @@ function NegotiationModal({
                         </div>
                       </div>
 
-                      {/* Dynamic Content Section - Only shows when interest is entered */}
+                      {/* Dynamic Content Section - Scrolls if needed */}
                       {proposedInterest && (
                         <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
                           className="space-y-4 pt-2"
                         >
                           {/* Price Comparison */}
@@ -1507,6 +1400,21 @@ function NegotiationModal({
                               You can adjust the interest rate by ±0.2%. The seller will review your offer and can accept, reject, or counter-offer. Offers are valid for 48 hours.
                             </p>
                           </motion.div>
+
+                          {/* Scroll Down Indicator */}
+                          {showScrollIndicator && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0 }}
+                              className="flex flex-col items-center pt-4"
+                            >
+                              <span className="text-xs text-purple-600 font-medium bg-purple-100 px-3 py-1 rounded-full mb-1 shadow-sm">
+                                Scroll down for more details
+                              </span>
+                              <ChevronDown className="w-5 h-5 text-purple-500 animate-bounce" />
+                            </motion.div>
+                          )}
                         </motion.div>
                       )}
                     </motion.div>
@@ -1633,7 +1541,7 @@ function NegotiationModal({
                   )}
                 </div>
 
-                {/* Fixed Footer Actions - Always visible at bottom */}
+                {/* Fixed Footer Actions */}
                 {(step === "input" || step === "confirm") && (
                   <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-white shrink-0">
                     <div className="flex gap-3">
@@ -1681,6 +1589,53 @@ function NegotiationModal({
                     </div>
                   </div>
                 )}
+
+                {/* Global styles for sliders and scrollbar */}
+                <style jsx>{`
+                  .scroll-container {
+                    scrollbar-width: thin;
+                    scrollbar-color: #c7d2fe #f5f3ff;
+                  }
+                  
+                  .scroll-container::-webkit-scrollbar {
+                    width: 6px;
+                  }
+                  
+                  .scroll-container::-webkit-scrollbar-track {
+                    background: #f5f3ff;
+                    border-radius: 10px;
+                  }
+                  
+                  .scroll-container::-webkit-scrollbar-thumb {
+                    background: #c7d2fe;
+                    border-radius: 10px;
+                  }
+                  
+                  .scroll-container::-webkit-scrollbar-thumb:hover {
+                    background: #a5b4fc;
+                  }
+                  
+                  .interest-slider::-webkit-slider-thumb {
+                    appearance: none;
+                    height: 20px;
+                    width: 20px;
+                    border-radius: 50%;
+                    background: #8b5cf6;
+                    cursor: pointer;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                  }
+                  
+                  .interest-slider::-moz-range-thumb {
+                    height: 20px;
+                    width: 20px;
+                    border-radius: 50%;
+                    background: #8b5cf6;
+                    cursor: pointer;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                  }
+                `}</style>
               </div>
             </motion.div>
           </div>
@@ -1723,22 +1678,18 @@ const ResaleBondPage = ({ params }: ResalePageProps) => {
   }, [listingId]);
 
   const handleBuyConfirm = async (buyData: any) => {
-    // Implement your purchase logic here
     console.log("Purchase data:", buyData);
-    // await buyFromListingAndPersist(buyData);
   };
 
   const handleNegotiationConfirm = async (offerData: any) => {
     if (!currentUser) {
-      // optionally: redirect to login or show toast
       router.push("/login");
       return;
     }
 
     const bond = listing.bond;
 
-    // NOTE: adjust this if your listing model uses different field name
-    const sellerUserId = listing.seller_user_id; // or listing.sellerUserId
+    const sellerUserId = listing.seller_user_id;
 
     const res = await fetch("/api/investor/negotiations/create", {
       method: "POST",
@@ -1753,12 +1704,11 @@ const ResaleBondPage = ({ params }: ResalePageProps) => {
         sellerUserId,
         sellerWallet: listing.seller_wallet,
 
-        units: offerData.units, // from modal
+        units: offerData.units,
         originalInterestRate: Number(bond.interest_rate),
         proposedInterestRate: offerData.proposedInterestRate,
         proposedTotalAmountNu: Math.round(offerData.totalProposedAmount),
 
-        // optional – if you want to save savings or note later
         savings: offerData.savings,
       }),
     });
