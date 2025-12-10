@@ -205,7 +205,7 @@ const TokenizationBondPage = () => {
         }));
     };
 
-    const validateForm = (): boolean => {
+    const validateForm = () => {
         const newErrors: ValidationErrors = {};
         const newTouched: Record<string, boolean> = {};
         const newValidFields: ValidationState = {};
@@ -213,12 +213,13 @@ const TokenizationBondPage = () => {
         // Validate only the actual form fields we have
         formFields.forEach(key => {
             newTouched[key] = true;
-            const error = validateField(key, bondDetails[key as keyof typeof bondDetails]);
+            const value = bondDetails[key as keyof typeof bondDetails] as string;
+            const error = validateField(key, value);
             if (error) {
                 newErrors[key as keyof ValidationErrors] = error;
                 newValidFields[key] = false;
             } else {
-                newValidFields[key] = bondDetails[key as keyof typeof bondDetails].length > 0;
+                newValidFields[key] = value.length > 0;
             }
         });
 
@@ -226,17 +227,25 @@ const TokenizationBondPage = () => {
         setErrors(newErrors);
         setValidFields(newValidFields);
 
-        return Object.keys(newErrors).length === 0;
+        const isValid = Object.values(newErrors).every(err => !err);
+        return { isValid, newErrors };
     };
 
     const handleFinalizeClick = async (e: React.MouseEvent) => {
         e.preventDefault();
         
-        if (!validateForm()) {
+        const { isValid, newErrors } = validateForm();
+        if (!isValid) {
             // Scroll to first error
-            const firstError = Object.keys(errors)[0];
-            const element = document.querySelector(`[name="${firstError}"]`);
-            element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const firstErrorField = Object.keys(newErrors).find(
+                key => newErrors[key as keyof ValidationErrors]
+            );
+            if (firstErrorField) {
+                const element = document.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
+                    `[name="${firstErrorField}"]`
+                );
+                element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
             return;
         }
 
@@ -277,11 +286,14 @@ const TokenizationBondPage = () => {
         return `${baseClasses} border-gray-300 ${focusClasses}`;
     };
 
-    const hasErrors = Object.keys(errors).length > 0;
+    // NEW: correctly compute whether there are any actual errors
+    const hasErrors = Object.values(errors).some(error => !!error);
+    const hasAnyTouched = Object.values(touched).some(v => v);
+
     const totalFields = formFields.length;
     const completedFields = formFields.filter(field => validFields[field]).length;
     const progressPercentage = (completedFields / totalFields) * 100;
-    const isFormValid = completedFields === totalFields;
+    const isFormValid = completedFields === totalFields && !hasErrors;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50/80 via-blue-50/30 to-indigo-50/20 p-4 sm:p-6 lg:p-8">
@@ -929,8 +941,8 @@ const TokenizationBondPage = () => {
                             </motion.div>
                         )}
 
-                        {/* Validation Summary */}
-                        {hasErrors && (
+                        {/* Validation Summary - Errors */}
+                        {hasAnyTouched && hasErrors && (
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -953,8 +965,8 @@ const TokenizationBondPage = () => {
                             </motion.div>
                         )}
 
-                        {/* Success Summary */}
-                        {!hasErrors && completedFields > 0 && (
+                        {/* Success / No-issues Summary */}
+                        {hasAnyTouched && !hasErrors && (
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -962,12 +974,15 @@ const TokenizationBondPage = () => {
                             >
                                 <div className="flex items-center gap-2 text-green-800 mb-2">
                                     <IoCheckmarkCircleOutline className="w-5 h-5" />
-                                    <h3 className="font-semibold">Great progress!</h3>
+                                    <h3 className="font-semibold">No issues yet</h3>
                                 </div>
                                 <p className="text-sm text-green-700">
-                                    {completedFields === totalFields 
-                                        ? 'All fields are valid! You can now finalize the bond.'
-                                        : `${completedFields} out of ${totalFields} fields are completed and valid.`}
+                                    {completedFields === 0 &&
+                                        "You can start filling the form. Any issues will appear here."}
+                                    {completedFields > 0 && completedFields < totalFields &&
+                                        `No issues yet. ${completedFields} out of ${totalFields} fields are completed and valid so far.`}
+                                    {completedFields === totalFields &&
+                                        "No issues yet. All fields are valid and you can now finalize the bond."}
                                 </p>
                             </motion.div>
                         )}
