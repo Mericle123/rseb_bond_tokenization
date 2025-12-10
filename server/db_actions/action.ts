@@ -466,7 +466,7 @@ export async function createNegotiationOffer(input: CreateNegotiationOfferInput)
 
   // 3) Convert to tenths & amount in tenths
   const unitsTenths = BigInt(units * 10); // integer units * 10
-  const proposedTotalAmountTenths = BigInt(proposedTotalAmountNu * 10);
+  const proposedTotalAmountTenths = BigInt(proposedTotalAmountNu * 100);
 
   const originalRate = parseFloat(bond.interest_rate || "0");
 
