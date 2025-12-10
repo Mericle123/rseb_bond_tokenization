@@ -19,6 +19,7 @@ import {
   IoCashOutline,
   IoDocumentTextOutline,
   IoSearchOutline,
+  IoArrowRedoOutline,
 } from "react-icons/io5";
 
 /* ========================= Types ========================= */
@@ -37,6 +38,9 @@ type Row = {
   bondType: string;
   faceValue: number;
   totalInvestment: number;
+  bondId?: string; // Added for sell functionality
+  seriesObjectId?: string; // Added for sell functionality
+  total?: number; // Added for sell functionality (units held)
 };
 
 /* ========================= Motion ========================= */
@@ -423,6 +427,424 @@ function BookLoader() {
   );
 }
 
+/* ========================= Enhanced Sell Modal Component ========================= */
+
+function SellBondModal({
+  row,
+  isOpen,
+  onClose,
+  onConfirm
+}: {
+  row: Row | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (amount: number) => Promise<void>;
+}) {
+  const [sellAmount, setSellAmount] = useState("");
+  const [sellLoading, setSellLoading] = useState(false);
+  const [step, setStep] = useState<"input" | "confirm" | "processing" | "success">("input");
+  const [transactionHash, setTransactionHash] = useState("");
+
+  if (!row || !isOpen) return null;
+
+  const totalUnits = row.total || row.totalInvestment; // Fallback to totalInvestment if total not available
+  const amount = parseFloat(sellAmount) || 0;
+  const isValid = amount > 0 && amount <= totalUnits;
+  const percentage = (amount / totalUnits) * 100;
+
+  const resetModal = () => {
+    setSellAmount("");
+    setStep("input");
+    setTransactionHash("");
+    setSellLoading(false);
+  };
+
+  const handleClose = () => {
+    resetModal();
+    onClose();
+  };
+
+  const handleConfirm = async () => {
+    if (!isValid) return;
+    
+    setStep("confirm");
+  };
+
+  const executeSell = async () => {
+    try {
+      setStep("processing");
+      setSellLoading(true);
+      
+      await onConfirm(amount);
+      
+      // Simulate transaction hash (replace with actual from blockchain)
+      setTransactionHash(`0x${Math.random().toString(16).slice(2, 42)}`);
+      setStep("success");
+      
+      // Auto close after success
+      setTimeout(() => {
+        handleClose();
+      }, 2000);
+    } catch (error) {
+      console.error("Sell failed:", error);
+      setStep("input");
+      setSellLoading(false);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            onClick={handleClose}
+          />
+          
+          {/* Modal */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ 
+                type: "spring",
+                damping: 25,
+                stiffness: 300,
+                duration: 0.4
+              }}
+              className="w-full max-w-md"
+            >
+              <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+                
+                {/* Header */}
+                <div className="relative p-6 bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-100">
+                  <button
+                    onClick={handleClose}
+                    className="absolute right-4 top-4 p-1.5 rounded-lg hover:bg-white/50 transition-colors"
+                  >
+                    <span className="text-xl">×</span>
+                  </button>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-red-100 rounded-xl">
+                      <IoArrowRedoOutline className="w-6 h-6 text-red-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">
+                        {step === "success" ? "Sale Listed Successfully!" : "Sell Bond"}
+                      </h2>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {step === "success" 
+                          ? "Your bond has been listed for sale" 
+                          : `Sell units of ${row.name}`
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-6">
+                  
+                  {/* Bond Info Card */}
+                  {(step === "input" || step === "confirm") && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-200"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <IoDocumentTextOutline className="w-4 h-4 text-[#5B50D9]" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{row.name}</h3>
+                            <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                              <span>{row.bondType}</span>
+                              <span>•</span>
+                              <span>{(row.ratePct * 100).toFixed(2)}% / yr</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-gray-500">Available Units</p>
+                          <p className="font-semibold text-gray-900">{totalUnits.toLocaleString()} units</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500">Maturity</p>
+                          <p className="font-semibold text-gray-900">{row.maturity}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 1: Input Amount */}
+                  {step === "input" && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="space-y-4"
+                    >
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Units to Sell
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min="0"
+                            max={totalUnits}
+                            step="0.1"
+                            value={sellAmount}
+                            onChange={(e) => setSellAmount(e.target.value)}
+                            className="w-full px-4 py-3 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all"
+                            placeholder="0.0"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setSellAmount(totalUnits.toString())}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                          >
+                            MAX
+                          </button>
+                        </div>
+                        
+                        {/* Amount Slider */}
+                        <div className="mt-4">
+                          <input
+                            type="range"
+                            min="0"
+                            max={totalUnits}
+                            step={totalUnits / 100}
+                            value={sellAmount || 0}
+                            onChange={(e) => setSellAmount(e.target.value)}
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                          />
+                          <div className="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>0%</span>
+                            <span>{percentage.toFixed(0)}%</span>
+                            <span>100%</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Summary */}
+                      {amount > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          className="bg-blue-50 rounded-xl p-4 border border-blue-200"
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <IoInformationCircle className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm font-medium text-blue-900">Sale Summary</span>
+                          </div>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-blue-700">Units to sell:</span>
+                              <span className="font-semibold text-blue-900">{amount.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-blue-700">Remaining after sale:</span>
+                              <span className="font-semibold text-blue-900">{(totalUnits - amount).toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* Warning for full sale */}
+                      {amount === totalUnits && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="bg-amber-50 rounded-xl p-3 border border-amber-200"
+                        >
+                          <div className="flex items-center gap-2">
+                            <IoLockClosed className="w-4 h-4 text-amber-600" />
+                            <span className="text-sm font-medium text-amber-800">Full Sale</span>
+                          </div>
+                          <p className="text-xs text-amber-700 mt-1">
+                            You're selling all your units. This action cannot be undone.
+                          </p>
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  )}
+
+                  {/* Step 2: Confirmation */}
+                  {step === "confirm" && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="space-y-4"
+                    >
+                      <div className="text-center py-4">
+                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <IoArrowRedoOutline className="w-8 h-8 text-red-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          Confirm Sale
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          You are about to list {amount.toLocaleString()} units for sale
+                        </p>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-xl p-4 space-y-3 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Bond Name:</span>
+                          <span className="font-medium">{row.name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Units Selling:</span>
+                          <span className="font-medium">{amount.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Remaining Holdings:</span>
+                          <span className="font-medium">{(totalUnits - amount).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 3: Processing */}
+                  {step === "processing" && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center py-8"
+                    >
+                      <div className="w-20 h-20 border-4 border-red-200 border-t-red-600 rounded-full animate-spin mx-auto mb-4"></div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Processing Sale
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        Listing your bond units on the marketplace...
+                      </p>
+                      <div className="flex items-center justify-center gap-2 mt-3 text-xs text-gray-500">
+                        <IoTimeOutline className="w-4 h-4" />
+                        <span>This may take a few seconds</span>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 4: Success */}
+                  {step === "success" && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="text-center py-8"
+                    >
+                      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <IoCheckmarkCircle className="w-10 h-10 text-green-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Sale Listed Successfully!
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-4">
+                        Your {amount.toLocaleString()} units have been listed for sale
+                      </p>
+                      
+                      {transactionHash && (
+                        <div className="bg-gray-50 rounded-xl p-3 text-xs">
+                          <p className="text-gray-600 mb-1">Transaction Hash:</p>
+                          <code className="text-gray-800 break-all">{transactionHash}</code>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </div>
+
+                {/* Footer Actions */}
+                {(step === "input" || step === "confirm") && (
+                  <div className="px-6 pb-6">
+                    <div className="flex gap-3">
+                      {step === "input" ? (
+                        <>
+                          <button
+                            onClick={handleClose}
+                            className="flex-1 px-4 py-3 text-gray-700 font-medium bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={handleConfirm}
+                            disabled={!isValid || sellLoading}
+                            className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                          >
+                            Continue
+                            <span>→</span>
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setStep("input")}
+                            className="flex-1 px-4 py-3 text-gray-700 font-medium bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                          >
+                            Back
+                          </button>
+                          <button
+                            onClick={executeSell}
+                            disabled={sellLoading}
+                            className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                          >
+                            {sellLoading ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                Listing...
+                              </>
+                            ) : (
+                              "Confirm Sale"
+                            )}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Custom slider styles */}
+          <style jsx>{`
+            .slider::-webkit-slider-thumb {
+              appearance: none;
+              height: 20px;
+              width: 20px;
+              border-radius: 50%;
+              background: #dc2626;
+              cursor: pointer;
+              border: 2px solid white;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            }
+            
+            .slider::-moz-range-thumb {
+              height: 20px;
+              width: 20px;
+              border-radius: 50%;
+              background: #dc2626;
+              cursor: pointer;
+              border: 2px solid white;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            }
+          `}</style>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
 /* ========================= Component ========================= */
 
 export default function EarningsPage() {
@@ -441,6 +863,12 @@ export default function EarningsPage() {
 
   // search
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Sell modal state
+  const [sellModal, setSellModal] = useState<{ isOpen: boolean; row: Row | null }>({
+    isOpen: false,
+    row: null
+  });
 
   const sliderRef = useRef<HTMLDivElement | null>(null);
 
@@ -529,6 +957,36 @@ export default function EarningsPage() {
     if (!isMatured(row.maturity)) return;
     // TODO: plug actual redeem backend/blockchain logic here
     console.log("Redeem clicked for", row.id);
+  };
+
+  const openSellModal = (row: Row) => {
+    setSellModal({ isOpen: true, row });
+  };
+
+  const closeSellModal = () => {
+    setSellModal({ isOpen: false, row: null });
+  };
+
+  const handleConfirmSell = async (amount: number) => {
+    if (!sellModal.row) return;
+
+    try {
+      // TODO: Replace with actual sell logic from blockchain
+      console.log("Selling", amount, "units of", sellModal.row.id);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update local state if needed
+      // setRows(prev => prev.map(r => 
+      //   r.id === sellModal.row!.id 
+      //     ? { ...r, total: (r.total || 0) - amount } 
+      //     : r
+      // ));
+    } catch (err) {
+      console.error("Sell failed:", err);
+      throw err;
+    }
   };
 
   const handleExportCSV = () => {
@@ -724,11 +1182,13 @@ export default function EarningsPage() {
             </div>
             <p>
               <span className="font-medium text-gray-800">
-                Redemption rules:
+                Redemption & Sale rules:
               </span>{" "}
-              Bonds can be redeemed only after reaching maturity. The{" "}
+              Bonds can be redeemed only after reaching maturity. You can sell bonds anytime on the secondary market.{" "}
               <span className="text-[#5B50D9] font-medium">Redeem</span>{" "}
-              button will be enabled automatically when eligible.
+              button is enabled when eligible.{" "}
+              <span className="text-red-600 font-medium">Sell</span>{" "}
+              button is always available.
             </p>
           </div>
 
@@ -976,7 +1436,7 @@ export default function EarningsPage() {
                             </div>
                           </td>
 
-                          {/* Actions */}
+                          {/* Actions - UPDATED with Sell button */}
                           <td className="px-6 py-4 align-top text-right">
                             <div className="flex items-center justify-end gap-2">
                               <button
@@ -988,6 +1448,17 @@ export default function EarningsPage() {
                                 View
                               </button>
 
+                              {/* Sell Button */}
+                              <button
+                                type="button"
+                                onClick={() => openSellModal(row)}
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 hover:border-red-300 transition-colors"
+                              >
+                                <IoArrowRedoOutline className="w-4 h-4" />
+                                Sell
+                              </button>
+
+                              {/* Redeem Button */}
                               <button
                                 type="button"
                                 onClick={() => handleRedeem(row)}
@@ -1100,6 +1571,7 @@ export default function EarningsPage() {
                     </div>
                   </div>
 
+                  {/* Actions - UPDATED with Sell button */}
                   <div className="mt-3 flex items-center gap-2">
                     <button
                       type="button"
@@ -1109,6 +1581,18 @@ export default function EarningsPage() {
                       <IoEyeOutline className="w-3.5 h-3.5" />
                       View
                     </button>
+                    
+                    {/* Sell Button */}
+                    <button
+                      type="button"
+                      onClick={() => openSellModal(row)}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-[11px] font-medium text-red-700 hover:bg-red-100 hover:border-red-300 transition-colors"
+                    >
+                      <IoArrowRedoOutline className="w-3.5 h-3.5" />
+                      Sell
+                    </button>
+                    
+                    {/* Redeem Button */}
                     <button
                       type="button"
                       onClick={() => handleRedeem(row)}
@@ -1237,7 +1721,7 @@ export default function EarningsPage() {
                       </div>
                     </div>
 
-                    {/* Fixed-size action strip */}
+                    {/* Fixed-size action strip - UPDATED with Sell button */}
                     <div className="mt-3 flex items-center gap-2">
                       <button
                         type="button"
@@ -1247,6 +1731,18 @@ export default function EarningsPage() {
                         <IoEyeOutline className="w-3.5 h-3.5" />
                         View
                       </button>
+                      
+                      {/* Sell Button */}
+                      <button
+                        type="button"
+                        onClick={() => openSellModal(row)}
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-[11px] font-medium text-red-700 hover:bg-red-100 hover:border-red-300 transition-colors"
+                      >
+                        <IoArrowRedoOutline className="w-3.5 h-3.5" />
+                        Sell
+                      </button>
+                      
+                      {/* Redeem Button */}
                       <button
                         type="button"
                         onClick={() => handleRedeem(row)}
@@ -1387,7 +1883,7 @@ export default function EarningsPage() {
                     </div>
                   </div>
 
-                  {/* Footer actions */}
+                  {/* Footer actions - UPDATED with Sell button */}
                   <div className="flex items-center gap-2 pt-1">
                     <button
                       type="button"
@@ -1396,6 +1892,18 @@ export default function EarningsPage() {
                     >
                       Close
                     </button>
+                    
+                    {/* Sell Button */}
+                    <button
+                      type="button"
+                      onClick={() => openSellModal(selectedRow)}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-100 hover:border-red-300 transition-colors"
+                    >
+                      <IoArrowRedoOutline className="w-4 h-4" />
+                      Sell
+                    </button>
+                    
+                    {/* Redeem Button */}
                     <button
                       type="button"
                       onClick={() => handleRedeem(selectedRow)}
@@ -1418,6 +1926,14 @@ export default function EarningsPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Enhanced Sell Modal */}
+        <SellBondModal
+          row={sellModal.row}
+          isOpen={sellModal.isOpen}
+          onClose={closeSellModal}
+          onConfirm={handleConfirmSell}
+        />
       </main>
     </div>
   );
