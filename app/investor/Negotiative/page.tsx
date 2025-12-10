@@ -1601,7 +1601,7 @@ export default function NegotiationsPage() {
                           </p>
                         </div>
                         <div className="bg-gray-50 p-3 rounded-xl">
-                          <p className="text-xs text-gray-600">Total Amount</p>
+                          <p className="text-xs text-gray-600">Proposed Total Amount  </p>
                           <p className="text-lg font-bold text-gray-900">
                             {formatCurrency(
                               selectedOffer.proposedTotalAmount
@@ -1657,7 +1657,7 @@ export default function NegotiationsPage() {
                               )}
                             </p>
                             <p className="text-sm text-blue-700 mt-1">
-                              Based on proposed rate
+                              Based on original rate
                             </p>
                           </div>
 
@@ -1665,7 +1665,7 @@ export default function NegotiationsPage() {
                             <div className="flex items-center gap-2 mb-2">
                               <Shield className="w-4 h-4 text-purple-600" />
                               <h5 className="font-medium text-purple-900">
-                                Face Value
+                                Bond Value
                               </h5>
                             </div>
                             <p className="text-2xl font-bold text-purple-900">
