@@ -1503,7 +1503,7 @@ export default function InterestAccumulationPage({
           <StatsCard
             icon={TrendingUp}
             label="Total Interest Earned"
-            value={`Nu ${nf4.format(detail.interestAccrued)}`}
+            value={`BTNC ${nf4.format(detail.interestAccrued)}`}
           />
           <StatsCard
             icon={PieChart}
@@ -1513,7 +1513,7 @@ export default function InterestAccumulationPage({
           <StatsCard
             icon={Coins}
             label="Principal (Total Investment)"
-            value={`Nu ${nf4.format(detail.totalInvestment)}`}
+            value={`BTNC ${nf4.format(detail.totalInvestment)}`}
           />
           <StatsCard
             icon={Wallet}
@@ -1574,7 +1574,7 @@ export default function InterestAccumulationPage({
             <LineChart
               data={chartValues}
               xLabels={xLabels}
-              yLabel="Interest (Nu)"
+              yLabel="Interest (BTNC)"
             />
           </div>
 
@@ -1600,10 +1600,10 @@ export default function InterestAccumulationPage({
                         {tableGran === "Day" ? "Date" : "Period"}
                       </th>
                       <th className="py-4 px-4 text-right text-sm font-semibold text-slate-700">
-                        Interest Earned (Nu)
+                        Interest Earned (BTNC)
                       </th>
                       <th className="py-4 pr-6 pl-4 text-right text-sm font-semibold text-slate-700">
-                        Cumulative Interest (Nu)
+                        Cumulative Interest (BTNC)
                       </th>
                     </tr>
                   </thead>
@@ -1659,7 +1659,7 @@ export default function InterestAccumulationPage({
                   <div className="text-xs text-slate-600">
                     Cumulative:{" "}
                     <span className="font-semibold text-slate-900">
-                      {nf4.format(r.cumulative)} Nu
+                      {nf4.format(r.cumulative)} BTNC
                     </span>
                   </div>
                 </motion.div>
